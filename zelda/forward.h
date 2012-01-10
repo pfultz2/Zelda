@@ -1,0 +1,206 @@
+/* 
+ * File:   forward.h
+ * Author: pfultz
+ *
+ * Created on November 19, 2011, 7:01 PM
+ */
+
+#ifndef FORWARD_H
+#define	FORWARD_H
+
+#include <boost/type_traits/remove_reference.hpp>
+#include <boost/lexical_cast.hpp>
+#include <utility>
+#include "pp.h"
+
+namespace zelda {
+
+
+
+#ifdef ZELDA_HAS_RVALUE_REFS
+#define ZELDA_FORWARD_REF(x) x &&
+template< class T >
+T&& forward( typename boost::remove_reference<T>::type& t )
+{
+    return static_cast<T&&>(t);
+}
+
+template< class T >
+T&& forward( typename boost::remove_reference<T>::type&& t )
+{
+    return static_cast<T&&>(t);
+}
+#else
+#define ZELDA_FORWARD_REF(x) x &
+template< class T >
+T& forward( typename boost::remove_reference<T>::type& t )
+{
+    return static_cast<T&>(t);
+}
+#endif
+}
+#ifdef ZELDA_HAS_RVALUE_REFS
+#define ZELDA_DETAIL_FORWARD_TYPENAME(...) __VA_ARGS__
+#else
+#define ZELDA_DETAIL_FORWARD_TYPENAME(x) BOOST_PP_CAT(Zelda_Forward_, x)
+#endif
+
+
+//Check for keyword forward
+#define ZELDA_DETAIL_FORWARD_N(x, n, ...) n
+#define ZELDA_DETAIL_FORWARD_CHECK(...) ZELDA_DETAIL_FORWARD_N(__VA_ARGS__, 0)
+#define ZELDA_DETAIL_FORWARD_PROBE_forward PP_NIL, 1,
+#define ZELDA_DETAIL_FORWARD_HAS_FORWARD(x) ZELDA_DETAIL_FORWARD_CHECK(PP_JOIN(ZELDA_DETAIL_FORWARD_PROBE_, x))
+
+//Remove keyword forward and replace it with a reference
+//TODO: Make it a ref when ZELDA_FORWARD_REF is used also
+#define ZELDA_DETAIL_FORWARD_MAKE_REF_forward(...) ZELDA_DETAIL_FORWARD_TYPENAME(ZELDA_FORWARD_REF(__VA_ARGS__))
+#define ZELDA_DETAIL_FORWARD_MAKE_REF_0(x) x
+#define ZELDA_DETAIL_FORWARD_MAKE_REF_1(x) BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_MAKE_REF_, x)
+#define ZELDA_DETAIL_FORWARD_MAKE_REF(x) BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_MAKE_REF_, ZELDA_DETAIL_FORWARD_HAS_FORWARD(x))(x)
+
+//Remove forward keyword
+#define ZELDA_DETAIL_FORWARD_REMOVE_forward 
+#define ZELDA_DETAIL_FORWARD_REMOVE_0(x) x
+#define ZELDA_DETAIL_FORWARD_REMOVE_1(x) BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_REMOVE_, x)
+#define ZELDA_DETAIL_FORWARD_REMOVE(x) BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_REMOVE_, ZELDA_DETAIL_FORWARD_HAS_FORWARD(x))(x)
+
+//Replaces forward with class
+#define ZELDA_DETAIL_FORWARD_CLASS(x) BOOST_PP_IF(\
+ZELDA_DETAIL_FORWARD_HAS_FORWARD(x), \
+class ZELDA_DETAIL_FORWARD_TYPENAME(ZELDA_DETAIL_FORWARD_REMOVE(x)), \
+x) 
+
+//Return forward type
+#define ZELDA_DETAIL_FORWARD_TYPE_forward(x) x,
+#define ZELDA_DETAIL_FORWARD_TYPE_II(x, ...) x 
+#define ZELDA_DETAIL_FORWARD_TYPE_I(x) ZELDA_DETAIL_FORWARD_TYPE_II x
+#define ZELDA_DETAIL_FORWARD_TYPE(x) ZELDA_DETAIL_FORWARD_TYPE_I((BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_TYPE_, x)))
+
+//Return a sequence of only the elements that start with the keyword forward
+#define ZELDA_DETAIL_FORWARD_SEQ_HAS_FORWARD_FILTER_P(s, data, x) ZELDA_DETAIL_FORWARD_HAS_FORWARD(x)
+#define ZELDA_DETAIL_FORWARD_SEQ_HAS_FORWARD(seq) BOOST_PP_SEQ_FILTER(ZELDA_DETAIL_FORWARD_SEQ_HAS_FORWARD_FILTER_P, data, seq)
+
+//Return a sequence of the types declared by forward
+#define ZELDA_DETAIL_FORWARD_SEQ_FORWARD_TYPES_TRANSFORM(s, data, x) ZELDA_DETAIL_FORWARD_TYPE(x)
+#define ZELDA_DETAIL_FORWARD_SEQ_FORWARD_TYPES(seq) \
+BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_FORWARD_SEQ_FORWARD_TYPES_TRANSFORM, data, ZELDA_DETAIL_FORWARD_SEQ_HAS_FORWARD(seq))
+
+//Forward sequence
+//0 - not a forward parameter
+//1 - forward but not const
+//2 - forward and const
+//This macro makes the forward seqs from args
+#define ZELDA_DETAIL_FORWARD_MAKE_FORWARD_SEQS_TRANSFORM(s, data, x) BOOST_PP_IF(ZELDA_DETAIL_FORWARD_HAS_FORWARD(x), (1)(2), (0))
+#define ZELDA_DETAIL_FORWARD_MAKE_FORWARD_SEQS(...) BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_FORWARD_MAKE_FORWARD_SEQS_TRANSFORM, data, PP_ARGS_TO_SEQ(__VA_ARGS__)) 
+
+//Create default params for template parameter list
+//The default template param is used to emulate reference collapsing
+//So type T can either be const T or T
+#define ZELDA_DETAIL_FORWARD_SEQ_FORWARD_DEFAULTS_EACH(r, seq, i, x) \
+BOOST_PP_EXPR_IF(BOOST_PP_NOT_EQUAL(BOOST_PP_SEQ_ELEM(i, seq), 0) , \
+(class ZELDA_DETAIL_FORWARD_TYPE(x) = BOOST_PP_EXPR_IF(BOOST_PP_EQUAL(BOOST_PP_SEQ_ELEM(i, seq), 2), const) \
+ZELDA_DETAIL_FORWARD_TYPENAME(ZELDA_DETAIL_FORWARD_TYPE(x)) ))
+#define ZELDA_DETAIL_FORWARD_SEQ_FORWARD_DEFAULTS(args_seq, forward_seq) \
+BOOST_PP_SEQ_FOR_EACH_I(ZELDA_DETAIL_FORWARD_SEQ_FORWARD_DEFAULTS_EACH, forward_seq, args_seq) 
+
+//Return a template parameter list as a sequence
+#define ZELDA_DETAIL_FORWARD_MAKE_TMPL_SEQ_TRANSFORM(s, data, x) ZELDA_DETAIL_FORWARD_CLASS(x)
+#define ZELDA_DETAIL_FORWARD_MAKE_TMPL_SEQ(template_seq, args_seq, forward_seq) \
+BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_FORWARD_MAKE_TMPL_SEQ_TRANSFORM, data, template_seq) \
+ZELDA_DETAIL_FORWARD_SEQ_FORWARD_DEFAULTS(args_seq, forward_seq)
+
+//Return the argument list as a sequence
+#define ZELDA_DETAIL_FORWARD_MAKE_ARGS_SEQ_EACH(r, seq, i, x) \
+(BOOST_PP_EXPR_IF(BOOST_PP_EQUAL(BOOST_PP_SEQ_ELEM(i, seq), 2), const) ZELDA_DETAIL_FORWARD_MAKE_REF(x))
+#define ZELDA_DETAIL_FORWARD_MAKE_ARGS_SEQ(args_seq, forward_seq) \
+BOOST_PP_SEQ_FOR_EACH_I(ZELDA_DETAIL_FORWARD_MAKE_ARGS_SEQ_EACH, forward_seq, args_seq) 
+
+//Makes it a sequence of sequence
+#define ZELDA_DETAIL_FORWARD_DOUBLE_SEQ_TRANSFORM(s, data, x) (x)
+#define ZELDA_DETAIL_FORWARD_DOUBLE_SEQ(seq) BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_FORWARD_DOUBLE_SEQ_TRANSFORM, data, seq) 
+ 
+//Remove parens
+#define ZELDA_DETAIL_FORWARD_REMOVE_PAREN_I(...) __VA_ARGS__
+#define ZELDA_DETAIL_FORWARD_REMOVE_PAREN(...) ZELDA_DETAIL_FORWARD_REMOVE_PAREN_I __VA_ARGS__
+#define ZELDA_DETAIL_FORWARD_ELEM(i, seq) ZELDA_DETAIL_FORWARD_REMOVE_PAREN(BOOST_PP_SEQ_ELEM(i, seq))
+
+//seq => ((template))((return))((name))((args))((body))(forward_seq)...
+#define ZELDA_DETAIL_FORWARD_TEMPLATE_SEQ(seq) PP_ARGS_TO_SEQ(ZELDA_DETAIL_FORWARD_ELEM(0, seq))
+#define ZELDA_DETAIL_FORWARD_RETURN_SEQ(seq) ZELDA_DETAIL_FORWARD_ELEM(1, seq)
+#define ZELDA_DETAIL_FORWARD_NAME_SEQ(seq) ZELDA_DETAIL_FORWARD_ELEM(2, seq)
+#define ZELDA_DETAIL_FORWARD_ARGS_SEQ(seq) PP_ARGS_TO_SEQ(ZELDA_DETAIL_FORWARD_ELEM(3, seq))
+#define ZELDA_DETAIL_FORWARD_BODY_SEQ(seq) ZELDA_DETAIL_FORWARD_ELEM(4, seq)
+#define ZELDA_DETAIL_FORWARD_FORWARD_SEQ(seq) BOOST_PP_SEQ_REST_N(5, seq)
+
+#define ZELDA_DETAIL_FORWARD_TEMPLATE_LIST(seq) \
+BOOST_PP_SEQ_ENUM(ZELDA_DETAIL_FORWARD_MAKE_TMPL_SEQ( \
+ZELDA_DETAIL_FORWARD_TEMPLATE_SEQ(seq), ZELDA_DETAIL_FORWARD_ARGS_SEQ(seq), ZELDA_DETAIL_FORWARD_FORWARD_SEQ(seq)))
+#define ZELDA_DETAIL_FORWARD_ARGS_LIST(seq) BOOST_PP_SEQ_ENUM(ZELDA_DETAIL_FORWARD_MAKE_ARGS_SEQ( \
+ZELDA_DETAIL_FORWARD_ARGS_SEQ(seq), ZELDA_DETAIL_FORWARD_FORWARD_SEQ(seq)))
+
+#define ZELDA_DETAIL_FORWARD_EACH(r, seq) \
+template<ZELDA_DETAIL_FORWARD_TEMPLATE_LIST(seq)> \
+ZELDA_DETAIL_FORWARD_RETURN_SEQ(seq) ZELDA_DETAIL_FORWARD_NAME_SEQ(seq) \
+(ZELDA_DETAIL_FORWARD_ARGS_LIST(seq)) \
+{ ZELDA_DETAIL_FORWARD_BODY_SEQ(seq) }
+
+ 
+
+#ifdef ZELDA_HAS_RVALUE_REFS
+
+#define ZELDA_DETAIL_FORWARD(...) __VA_ARGS__
+
+#define ZELDA_DETAIL_FORWARD_BODY_I(...) { __VA_ARGS__ }
+#define ZELDA_DETAIL_FORWARD_ARGS_EACH(s, data, x) ZELDA_DETAIL_FORWARD_MAKE_REF(x)
+#define ZELDA_DETAIL_FORWARD_ARGS_I(...) (PP_ARGS_TRANSFORM(ZELDA_DETAIL_FORWARD_ARGS_EACH, data, __VA_ARGS__)) ZELDA_DETAIL_FORWARD_BODY_I
+#define ZELDA_DETAIL_FORWARD_NAME_I(...) __VA_ARGS__ ZELDA_DETAIL_FORWARD_ARGS_I
+#define ZELDA_DETAIL_FORWARD_RETURN_I(...) __VA_ARGS__ ZELDA_DETAIL_FORWARD_NAME_I
+#define ZELDA_DETAIL_FORWARD_TEMPLATE_EACH(s, data, x) ZELDA_DETAIL_FORWARD_CLASS(x)
+#define ZELDA_DETAIL_FORWARD_template(...) template<PP_ARGS_TRANSFORM(ZELDA_DETAIL_FORWARD_TEMPLATE_EACH, data, __VA_ARGS__)> ZELDA_DETAIL_FORWARD_RETURN_I
+
+#else
+
+#define ZELDA_DETAIL_FORWARD(seq) \
+BOOST_PP_SEQ_FOR_EACH_PRODUCT(ZELDA_DETAIL_FORWARD_EACH, \
+seq \
+ZELDA_DETAIL_FORWARD_MAKE_FORWARD_SEQS(ZELDA_DETAIL_FORWARD_REMOVE_PAREN(ZELDA_DETAIL_FORWARD_ELEM(3, seq))) )
+
+#define ZELDA_DETAIL_FORWARD_BODY_I(...) (((__VA_ARGS__)))
+#define ZELDA_DETAIL_FORWARD_ARGS_I(...) (((__VA_ARGS__))) ZELDA_DETAIL_FORWARD_BODY_I
+#define ZELDA_DETAIL_FORWARD_NAME_I(...) (((__VA_ARGS__))) ZELDA_DETAIL_FORWARD_ARGS_I
+#define ZELDA_DETAIL_FORWARD_RETURN_I(...) (((__VA_ARGS__))) ZELDA_DETAIL_FORWARD_NAME_I
+#define ZELDA_DETAIL_FORWARD_template(...) (((__VA_ARGS__))) ZELDA_DETAIL_FORWARD_RETURN_I
+
+#endif
+
+#define ZELDA_FORWARD(x) ZELDA_DETAIL_FORWARD(BOOST_PP_CAT(ZELDA_DETAIL_FORWARD_, x))
+
+
+
+
+//ZELDA_DETAIL_FORWARD_HAS_FORWARD(forward T)
+//ZELDA_DETAIL_FORWARD_CLASS(forward T)
+
+//BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_FORWARD_MAKE_TMPL_SEQ_TRANSFORM, data, (forward T)(class T))
+
+//ZELDA_DETAIL_FORWARD_TYPE(forward(T) y)
+
+//ZELDA_FORWARD
+//(
+//template(forward T, class U)
+//(ZELDA_FORWARD_REF(T))(foo)(U x, forward(T) y)
+//(
+//return bar(forward<T>(y));
+//)
+//)
+
+//template< class ZELDA_FORWARD_T, class U, class T = const ZELDA_FORWARD_T > 
+//T & foo(U x, ZELDA_FORWARD_T & y)
+//{return bar(forward < T > (y));}
+//template< class ZELDA_FORWARD_T, class U, class T = ZELDA_FORWARD_T > 
+//T & foo(U x, const ZELDA_FORWARD_T & y)
+//{return bar(forward < T > (y));}
+
+#endif	/* FORWARD_H */
+

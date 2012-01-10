@@ -1,0 +1,64 @@
+/* 
+ * File:   closure.h
+ * Author: pfultz
+ *
+ * Created on January 9, 2012, 11:15 AM
+ */
+
+#ifndef CLOSURE_H
+#define	CLOSURE_H
+
+#include "forward.h"
+
+#define ZELDA_DETAIL_CLOSURE_TYPE(type) Zelda_Closure_ ## type
+#define ZELDA_DETAIL_CLOSURE_ENUM_ARGS_EACH(z, i, type) forward(BOOST_PP_CAT(type, i)) x ## i
+#define ZELDA_DETAIL_CLOSURE_ENUM_ARGS(n, type) \
+BOOST_PP_ENUM(n, ZELDA_DETAIL_CLOSURE_ENUM_ARGS_EACH, type)
+
+#define ZELDA_DETAIL_CLOSURE_VARS_EACH(r, data, i, x) BOOST_PP_CAT(data, i) & x;
+#define ZELDA_CLOSURE_VARS(type, ...)  PP_ARGS_FOREACH_I(ZELDA_DETAIL_CLOSURE_VARS_EACH, type, __VA_ARGS__)
+
+#define ZELDA_DETAIL_CLOSURE_SEQ_FIRST(seq) BOOST_PP_SEQ_ELEM(0, seq)
+#define ZELDA_DETAIL_CLOSURE_SEQ_ELEM(i, seq) BOOST_PP_SEQ_ELEM(BOOST_PP_INC(i), seq)
+//BOOST_PP_SEQ_ELEM(BOOST_PP_DEC(BOOST_PP_SEQ_SIZE(seq)), data)
+#define ZELDA_DETAIL_CLOSURE_CONSTRUCTOR_EACH(z, i, data) BOOST_PP_CAT(ZELDA_DETAIL_CLOSURE_SEQ_FIRST(data), i) & ZELDA_DETAIL_CLOSURE_SEQ_ELEM(i, data) 
+#define ZELDA_DETAIL_CLOSURE_CONSTRUCT_EACH(z, i, data) BOOST_PP_SEQ_ELEM(i, data)(BOOST_PP_SEQ_ELEM(i, data))
+#define ZELDA_CLOSURE_CONSTRUCT(type, ...) \
+( BOOST_PP_ENUM(PP_NARGS(__VA_ARGS__), ZELDA_DETAIL_CLOSURE_CONSTRUCTOR_EACH, (type)PP_ARGS_TO_SEQ(__VA_ARGS__)) ) \
+: BOOST_PP_ENUM(PP_NARGS(__VA_ARGS__), ZELDA_DETAIL_CLOSURE_CONSTRUCT_EACH, PP_ARGS_TO_SEQ(__VA_ARGS__)) {}
+
+#define ZELDA_CLOSURE_HEADER(name, type, ...) \
+template<BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), class ZELDA_DETAIL_CLOSURE_TYPE(type))> \
+struct type; \
+ZELDA_FORWARD \
+( \
+template( BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), forward ZELDA_DETAIL_CLOSURE_TYPE(type)) ) \
+(type<BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), ZELDA_DETAIL_CLOSURE_TYPE(type))>) \
+(name) \
+(ZELDA_DETAIL_CLOSURE_ENUM_ARGS(PP_NARGS(__VA_ARGS__), ZELDA_DETAIL_CLOSURE_TYPE(type))) \
+( return type<BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), ZELDA_DETAIL_CLOSURE_TYPE(type))>\
+(BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), x));  ) \
+) \
+template<BOOST_PP_ENUM_PARAMS(PP_NARGS(__VA_ARGS__), class ZELDA_DETAIL_CLOSURE_TYPE(type))> \
+struct type \
+{ \
+ZELDA_CLOSURE_VARS(ZELDA_DETAIL_CLOSURE_TYPE(type), __VA_ARGS__) \
+type ZELDA_CLOSURE_CONSTRUCT(ZELDA_DETAIL_CLOSURE_TYPE(type), __VA_ARGS__)
+
+#define ZELDA_CLOSURE_BODY(...) __VA_ARGS__ }
+
+#define ZELDA_CLOSURE(name, ...) \
+ZELDA_CLOSURE_HEADER(name, BOOST_PP_CAT(zelda_closure_, name), __VA_ARGS__) \
+ZELDA_CLOSURE_BODY
+
+
+
+//ZELDA_CLOSURE(max, x, y)
+//    (
+//    int run() { return x > y ? x : y; }
+//    );
+    
+   
+    
+#endif	/* CLOSURE_H */
+
