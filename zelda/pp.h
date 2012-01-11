@@ -54,8 +54,14 @@
 #define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_4(macro, args) 0
 
 
-#define PP_EXPAND(...) PP_MSVC_CALL(DETAIL_PP_EXPAND, (__VA_ARGS__))
-#define DETAIL_PP_EXPAND(...) __VA_ARGS__
+#define PP_EXPAND(...) DETAIL_PP_EXPAND_I((__VA_ARGS__))
+#define DETAIL_PP_EXPAND_I(args) DETAIL_PP_EXPAND_II args
+#define DETAIL_PP_EXPAND_II(...) DETAIL_PP_EXPAND_III((__VA_ARGS__))
+#define DETAIL_PP_EXPAND_III(args) DETAIL_PP_EXPAND_IIII args
+#define DETAIL_PP_EXPAND_IIII(...) __VA_ARGS__
+
+
+#define PP_OUT(...) __VA_ARGS__
 
 //Safely concat two token even if the they are parens
 //TODO: Join if the first toke is a paran also
