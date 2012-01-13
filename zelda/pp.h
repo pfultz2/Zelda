@@ -11,6 +11,71 @@
 #include <boost/preprocessor.hpp>
 
 /**
+ * This macro used to compensate for a bug in compilers in visual c++, see
+ * http://connect.microsoft.com/VisualStudio/feedback/details/380090/variadic-macro-replacement
+ */
+#define PP_MSVC_CALL BOOST_PP_CAT(DETAIL_PP_MSVC_CALL_, BOOST_PP_AUTO_REC(DETAIL_PP_MSVC_CALL_P, 8))
+
+#define DETAIL_PP_MSVC_CALL_P(n) BOOST_PP_CAT(DETAIL_PP_MSVC_CALL_CHECK_, DETAIL_PP_MSVC_CALL_## n(PP_NIL,))
+
+#define DETAIL_PP_MSVC_CALL_1(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_2(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_3(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_4(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_5(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_6(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_7(macro, args) macro args
+#define DETAIL_PP_MSVC_CALL_8(macro, args) macro args
+
+#define DETAIL_PP_MSVC_CALL_CHECK_PP_NIL 1
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_1(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_2(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_3(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_4(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_5(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_6(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_7(macro, args) 0
+#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_8(macro, args) 0
+
+
+//Check if is parenthesis
+#define DETAIL_PP_IS_PAREN_N(x, n, ...) n
+#define DETAIL_PP_IS_PAREN_CHECK(...) PP_MSVC_CALL(DETAIL_PP_IS_PAREN_N, (__VA_ARGS__, 0))
+#define DETAIL_PP_IS_PAREN_PROBE(...) PP_NIL, 1
+#define PP_IS_PAREN(...) DETAIL_PP_IS_PAREN_CHECK(DETAIL_PP_IS_PAREN_PROBE __VA_ARGS__)
+
+//Safely concat two token even if the they are parens
+#define DETAIL_PP_JOIN_00(x, y) BOOST_PP_CAT(x, y)
+#define DETAIL_PP_JOIN_00(x, y) x y
+#define DETAIL_PP_JOIN_10(x, y) x y
+#define DETAIL_PP_JOIN_11(x, y) x y
+#define PP_JOIN(x, y) \
+BOOST_PP_CAT(DETAIL_PP_JOIN_, BOOST_PP_CAT(PP_IS_PAREN(x), PP_IS_PAREN(y)))(x, y)
+
+
+#define PP_TOKEN PP_NIL, 1,
+
+#ifndef PP_TOKEN_token_token
+#define PP_TOKEN_token_token PP_TOKEN
+#endif
+
+#define PP_DETAIL_TOKEN_TAIL_I(x, n, ...) __VA_ARGS__
+#define PP_DETAIL_TOKEN_TAIL(...) PP_MSVC_CALL(PP_DETAIL_TOKEN_TAIL_I, (__VA_ARGS__))
+#define PP_DETAIL_TOKEN_N(x, n, ...) n
+#define PP_DETAIL_TOKEN_CHECK(...) PP_MSVC_CALL(PP_DETAIL_TOKEN_N, (__VA_ARGS__, 0))
+#define PP_DETAIL_TOKEN_HAS(x, probe) PP_DETAIL_TOKEN_CHECK(PP_JOIN(probe, x))
+#define PP_DETAIL_TOKEN_EAT(x, probe) PP_DETAIL_TOKEN_TAIL(PP_JOIN(probe, x))
+#define PP_DETAIL_TOKEN_HAS_PROBE(token) BOOST_PP_CAT(PP_TOKEN_, BOOST_PP_CAT(token, _))
+
+/**
+ */
+#define PP_TOKEN_HAS(x, token) PP_DETAIL_TOKEN_HAS(x, PP_DETAIL_TOKEN_HAS_PROBE(token))
+#define PP_TOKEN_EAT(x, token) PP_DETAIL_TOKEN_EAT(x, PP_DETAIL_TOKEN_HAS_PROBE(token))
+#define PP_TOKEN_REPLACE(x, token, replacement) \
+BOOST_PP_IIF(PP_TOKEN_HAS(x, token), replacement PP_TOKEN_EAT(x, token), x)
+
+
+/**
  * PP_NARGS returns the number of args in __VA_ARGS__
  */
 #define PP_NARGS(...) \
@@ -34,25 +99,6 @@
          19,18,17,16,15,14,13,12,11,10, \
          9,8,7,6,5,4,3,2,1,0 
 
-/**
- * This macro used to compensate for a bug in compilers in visual c++, see
- * http://connect.microsoft.com/VisualStudio/feedback/details/380090/variadic-macro-replacement
- */
-#define PP_MSVC_CALL BOOST_PP_CAT(DETAIL_PP_MSVC_CALL_, BOOST_PP_AUTO_REC(DETAIL_PP_MSVC_CALL_P, 4))
-
-#define DETAIL_PP_MSVC_CALL_P(n) BOOST_PP_CAT(DETAIL_PP_MSVC_CALL_CHECK_, DETAIL_PP_MSVC_CALL_## n(PP_NIL,))
-
-#define DETAIL_PP_MSVC_CALL_1(macro, args) macro args
-#define DETAIL_PP_MSVC_CALL_2(macro, args) macro args
-#define DETAIL_PP_MSVC_CALL_3(macro, args) macro args
-#define DETAIL_PP_MSVC_CALL_4(macro, args) macro args
-
-#define DETAIL_PP_MSVC_CALL_CHECK_PP_NIL 1
-#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_1(macro, args) 0
-#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_2(macro, args) 0
-#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_3(macro, args) 0
-#define DETAIL_PP_MSVC_CALL_CHECK_DETAIL_PP_MSVC_CALL_4(macro, args) 0
-
 
 #define PP_EXPAND(...) DETAIL_PP_EXPAND_I((__VA_ARGS__))
 #define DETAIL_PP_EXPAND_I(args) DETAIL_PP_EXPAND_II args
@@ -63,14 +109,6 @@
 
 #define PP_OUT(...) __VA_ARGS__
 
-//Safely concat two token even if the they are parens
-//TODO: Join if the first toke is a paran also
-#define DETAIL_PP_JOIN_N(x, n, ...) n
-#define DETAIL_PP_JOIN_CHECK(...) DETAIL_PP_JOIN_N(__VA_ARGS__, 0)
-#define DETAIL_JOIN_PROBE(...) PP_NIL, 1
-#define DETAIL_PP_JOIN_0(x, y) BOOST_PP_CAT(x, y)
-#define DETAIL_PP_JOIN_1(x, y) x y
-#define PP_JOIN(x, y) BOOST_PP_CAT(DETAIL_PP_JOIN_, DETAIL_PP_JOIN_CHECK(DETAIL_JOIN_PROBE y))(x, y)
 
 #define PP_NOP(...)
 #define DETAIL_PP_ARGS_TO_SEQ(size, tuple) BOOST_PP_TUPLE_TO_SEQ(size, tuple)

@@ -10,6 +10,8 @@
 
 #include "forward.h"
 
+//TODO: Add capture by value
+
 #define ZELDA_DETAIL_CLOSURE_TYPE(type) Zelda_Closure_ ## type
 #define ZELDA_DETAIL_CLOSURE_ENUM_ARGS_EACH(z, i, type) forward(BOOST_PP_CAT(type, i)) x ## i
 #define ZELDA_DETAIL_CLOSURE_ENUM_ARGS(n, type) \
