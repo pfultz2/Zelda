@@ -10,6 +10,8 @@
 
 #include <boost/preprocessor.hpp>
 
+#define PP_NOP(...)
+
 /**
  * This macro used to compensate for a bug in compilers in visual c++, see
  * http://connect.microsoft.com/VisualStudio/feedback/details/380090/variadic-macro-replacement
@@ -110,7 +112,6 @@ BOOST_PP_IIF(PP_TOKEN_HAS(x, token), replacement PP_TOKEN_EAT(x, token), x)
 #define PP_OUT(...) __VA_ARGS__
 
 
-#define PP_NOP(...)
 #define DETAIL_PP_ARGS_TO_SEQ(size, tuple) BOOST_PP_TUPLE_TO_SEQ(size, tuple)
 #define PP_ARGS_TO_SEQ(...) DETAIL_PP_ARGS_TO_SEQ(PP_NARGS(__VA_ARGS__), (__VA_ARGS__))
 
@@ -119,7 +120,8 @@ BOOST_PP_IIF(PP_TOKEN_HAS(x, token), replacement PP_TOKEN_EAT(x, token), x)
 
 #define PP_ARGS_BACK(...) PP_ARGS_ELEM(BOOST_PP_DEC(PP_NARGS(__VA_ARGS__)), __VA_ARGS__)
 #define PP_ARGS_CAT(...) BOOST_PP_SEQ_CAT(PP_ARGS_TO_SEQ(__VA_ARGS__)) 
-#define PP_ARGS_ELEM(i, ...) BOOST_PP_SEQ_ELEM(i, PP_ARGS_TO_SEQ(__VA_ARGS__)) 
+#define PP_ARGS_ELEM(i, ...) BOOST_PP_SEQ_ELEM(i, PP_ARGS_TO_SEQ(__VA_ARGS__))
+#define PP_ARGS_FILTER(pred, data, ...) BOOST_PP_SEQ_FILTER(pred, data, PP_ARGS_TO_SEQ(__VA_ARGS__)) 
 #define PP_ARGS_FOREACH(macro, data, ...) BOOST_PP_SEQ_FOR_EACH(macro, data, PP_ARGS_TO_SEQ(__VA_ARGS__)) 
 #define PP_ARGS_FOREACH_I(macro, data, ...) BOOST_PP_SEQ_FOR_EACH_I(macro, data, PP_ARGS_TO_SEQ(__VA_ARGS__))
 #define PP_ARGS_FRONT(...) PP_ARGS_ELEM(0, __VA_ARGS__)
@@ -127,11 +129,26 @@ BOOST_PP_IIF(PP_TOKEN_HAS(x, token), replacement PP_TOKEN_EAT(x, token), x)
 #define PP_ARGS_POP_FRONT(...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_POP_FRONT(PP_ARGS_TO_SEQ(__VA_ARGS__)))
 #define PP_ARGS_PUSH_BACK(elem, ...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_PUSH_BACK(PP_ARGS_TO_SEQ(__VA_ARGS__), elem))
 #define PP_ARGS_PUSH_FRONT(elem, ...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_PUSH_FRONT(PP_ARGS_TO_SEQ(__VA_ARGS__), elem))
+#define PP_ARGS_TAIL(...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_TAIL(PP_ARGS_TO_SEQ(__VA_ARGS__)))
 #define PP_ARGS_TRANSFORM(macro, data, ...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_TRANSFORM(macro, data, PP_ARGS_TO_SEQ(__VA_ARGS__)))
 
 
-#define PP_ARGS_TAIL(...) PP_SEQ_TO_ARGS(BOOST_PP_SEQ_TAIL(PP_ARGS_TO_SEQ(__VA_ARGS__)))
+#define DETAIL_PP_ARGS_TOKEN_REPLACE_T_I(x, y) x
+#define DETAIL_PP_ARGS_TOKEN_REPLACE_R_I(x, y) y
+#define DETAIL_PP_ARGS_TOKEN_REPLACE_T(x) DETAIL_PP_ARGS_TOKEN_REPLACE_T_I x
+#define DETAIL_PP_ARGS_TOKEN_REPLACE_R(x) DETAIL_PP_ARGS_TOKEN_REPLACE_R_I x
+#define DETAIL_PP_ARGS_TOKEN_REPLACE_EACH(s, data, x) \
+PP_EXPAND(PP_TOKEN_REPLACE(x, DETAIL_PP_ARGS_TOKEN_REPLACE_T(data), DETAIL_PP_ARGS_TOKEN_REPLACE_R(data)))
 
+#define PP_ARGS_TOKEN_REPLACE(token, replacement, ...)\
+PP_ARGS_TRANSFORM(DETAIL_PP_ARGS_TOKEN_REPLACE_EACH, (token, replacement), __VA_ARGS__)
+
+#define PP_SEQ_TOKEN_REPLACE(token, replacement, seq)\
+BOOST_PP_SEQ_TRANSFORM(DETAIL_PP_ARGS_TOKEN_REPLACE_EACH, (token, replacement), seq)
+
+#define DETAIL_PP_TOKEN_FILTER_P(s, data, x) PP_TOKEN_HAS(x, data)
+#define PP_ARGS_TOKEN_FILTER(token, ...) PP_ARGS_FILTER(DETAIL_PP_TOKEN_FILTER_P, token, __VA_ARGS__)
+#define PP_SEQ_TOKEN_FILTER(token, seq) BOOST_PP_SEQ_FILTER(DETAIL_PP_TOKEN_FILTER_P, token, __VA_ARGS__)
 
 
 #define PP_OPTIONAL_FIRST(...) PP_MSVC_CALL(BOOST_PP_IF( BOOST_PP_EQUAL(1, PP_NARGS(__VA_ARGS__)),  \
