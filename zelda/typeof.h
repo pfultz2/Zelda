@@ -26,7 +26,7 @@
 
 #ifndef ZELDA_HAS_DECLTYPE
 
-#ifdef __GNUC__ || __clang__
+#if defined(__GNUC__) || defined(__clang__)
 #define typeof_tpl typeof
 
 #elif defined(_MSC_VER)
@@ -43,9 +43,16 @@
 #define typeof_tpl BOOST_TYPEOF_TPL
 #endif
 
+#define ZELDA_TYPEOF typeof
+
 #endif
 
 namespace zelda {
+
+template<class T>
+T declval();
+
+
 namespace typeof_detail {
 template<class T>
 boost::mpl::true_ is_const(const T& x);
@@ -116,7 +123,7 @@ zelda::typeof_detail::xtype<typeof(x), ZELDA_TYPEOF_IS_CONST(x), ZELDA_TYPEOF_IS
 #define ZELDA_XTYPEOF_TPL(x) \
 typename zelda::typeof_detail::xtype<typeof_tpl(x), ZELDA_TYPEOF_IS_CONST_TPL(x), ZELDA_TYPEOF_IS_RVALUE_TPL(x)>::type
 
-}
+}}
 
 #ifdef ZELDA_TEST
 namespace zelda {

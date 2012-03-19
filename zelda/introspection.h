@@ -10,105 +10,172 @@
 
 #include "pp.h"
 #include "requires.h"
+#include "typeof.h"
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/and.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/type_traits.hpp>
-
-/**
- * This macro creates a trait to evaluate if a class has a member function using
- * SFINAE. The trait name will be has_ + <the member name>.
- * This macro takes two parameters:
- * member: this is the name of the member function to check for. This will also
- *      be used to name the type.
- * parameters(optional): This is the list of parameters for the function. The arguments
- *      must be a PP_SEQ. So if the parameters for the function are two ints, it
- *      would be written as (int)(int). If the parameters option is left out, it 
- *      assumed there are no parameters for the function.
- */
-#define ZELDA_INTROSPECTION_HAS_MEMBER_FUNCTION template<class this_t> DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION
-#define ZELDA_INTROSPECTION_HAS_MEMBER_FUNCTION_TEMPLATE(...) template<class this_t, __VA_ARGS__> DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION
-
-#ifndef ZELDA_NO_INTROSPECTION
-#define DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION(...) PP_OPTIONAL_IF(\
-	DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_SFINAE, \
-	DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_SFINAE_EMPTY, \
-	__VA_ARGS__)
-#else
-#define DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION(...) DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_NO_INTROSPECTION(PP_OPTIONAL_FIRST(__VA_ARGS__))
-#endif
+#include <boost/mpl/has_xxx.hpp>
 
 
-#define DETAIL_INTROSPECTION_VALUE_OF_EACH_ELEM(d, data, ...) value_of< __VA_ARGS__ >()
-#define DETAIL_INTROSPECTION_VALUE_OF_EACH_TRANSFORM(args) BOOST_PP_SEQ_TO_TUPLE(BOOST_PP_SEQ_TRANSFORM(DETAIL_INTROSPECTION_VALUE_OF_EACH_ELEM, 0, args))
-#define DETAIL_INTROSPECTION_VALUE_OF_EACH(args) BOOST_PP_IF(BOOST_PP_SEQ_SIZE(args),  \
-DETAIL_INTROSPECTION_VALUE_OF_EACH_TRANSFORM, \
-PP_NOP \
-)(args)
+namespace zelda{ namespace introspection {
 
+struct void_ {};
 
-#define DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_SFINAE(member, args) \
-struct BOOST_PP_CAT(has_, member) \
-{ \
-    template<class U> \
-    static U value_of(); \
-    typedef char yes; \
-    typedef long no; \
-    template<class N> struct selector; \
-\
-    template<class U> \
-    static yes check( selector<typeof( value_of<U>().member( DETAIL_INTROSPECTION_VALUE_OF_EACH(args)) )> * ); \
-\
-    template<class U> \
-    static no check(...); \
-    \
-    static const bool value = sizeof(check<this_t>(0)) == sizeof(yes); \
-\
-    typedef boost::mpl::bool_<value> type;\
-};\
-
-#define DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_SFINAE_EMPTY(member) \
-struct BOOST_PP_CAT(has_, member) \
-{ \
-    template<class U> \
-    static U value_of(); \
-    typedef char yes; \
-    typedef long no; \
-    template<class N> struct selector; \
-\
-    template<class U> \
-    static yes check( selector<typeof( value_of<U>().member() )> * ); \
-\
-    template<class U> \
-    static no check(...); \
-    \
-    static const bool value = sizeof(check<this_t>(0)) == sizeof(yes); \
-\
-    typedef boost::mpl::bool_<value> type;\
-};\
-
-#define DETAIL_INTROSPECTION_HAS_MEMBER_FUNCTION_NO_INTROSPECTION(member) \
-struct BOOST_PP_CAT(has_, member) \
-{ \
-    static const bool value = false; \
-    typedef boost::mpl::bool_<value> type;\
-};\
-
-
-#ifndef ZELDA_NO_INTROSPECTION
-namespace test_detail
-{
-ZELDA_INTROSPECTION_HAS_MEMBER_FUNCTION(foo);
-struct test_true
-{
-    void foo();
-};
-struct test_false
-{
-};
-BOOST_STATIC_ASSERT((has_foo<test_true>::value == true));
-BOOST_STATIC_ASSERT((has_foo<test_false>::value == false));
+template<class From, class To>
+struct check_type 
+: boost::mpl::eval_if<boost::mpl::or_<
+    boost::is_same<To, void_>, 
+    boost::is_same<To, void> 
+    >,
+boost::mpl::bool_<true>,
+boost::is_convertible<From, To> 
+>::type {};
 }
-#endif
+}
+
+
+#define ZELDA_HAS_MEMBER(...) \
+DETAIL_ZELDA_HAS_MEMBER(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
+
+#define ZELDA_HAS_TYPE(...) \
+DETAIL_ZELDA_HAS_TYPE(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
+
+#define ZELDA_HAS_TEMPLATE(...) \
+DETAIL_ZELDA_HAS_TEMPLATE(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
+
+#define DETAIL_ZELDA_TRAIT_NAME_1(x) PP_CAT(has_, x)
+#define DETAIL_ZELDA_TRAIT_NAME_2(x, y) y
+#define DETAIL_ZELDA_TRAIT_NAME(...) \
+PP_CAT(DETAIL_ZELDA_TRAIT_NAME_, PP_NARGS(__VA_ARGS__))(__VA_ARGS__)
+
+#define DETAIL_ZELDA_HAS_MEMBER(member, trait) \
+template<class Zelda_I_C, class Zelda_I_T> \
+struct trait \
+{ \
+    typedef char yes; \
+    typedef long no; \
+    template<class Zelda_I_TT, class Zelda_I_Enable = ZELDA_CLASS_REQUIRES(zelda::introspection::check_type<Zelda_I_TT, Zelda_I_T>)> \
+    struct selector {}; \
+\
+    template<class Zelda_I_U> \
+    static yes check( selector<ZELDA_TYPEOF( zelda::declval<Zelda_I_U>().member )> * ); \
+\
+    template<class Zelda_I_U> \
+    static no check(...); \
+    \
+    static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
+\
+    typedef boost::mpl::bool_<value> type; \
+}; \
+template<class Zelda_I_C, class Zelda_I_R, class... Zelda_I_Args> \
+struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
+{ \
+    typedef char yes; \
+    typedef long no; \
+    template<class Zelda_I_TT, class Zelda_I_Enable = ZELDA_CLASS_REQUIRES(zelda::introspection::check_type<Zelda_I_TT, Zelda_I_R>)> \
+    struct selector {}; \
+\
+    template<class Zelda_I_U> \
+    static yes check( selector<ZELDA_TYPEOF( zelda::declval<Zelda_I_U>().member(zelda::declval<Zelda_I_Args>()...) )> * ); \
+\
+    template<class Zelda_I_U> \
+    static no check(...); \
+    \
+    static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
+\
+    typedef boost::mpl::bool_<value> type; \
+}; \
+
+
+#define DETAIL_ZELDA_HAS_TYPE(type,trait) \
+  template<class Zelda_I_C, class Zelda_I_T = zelda::introspection::void_> \
+  struct trait \
+    { \
+    typedef char yes; \
+    typedef long no; \
+    template<class Zelda_I_TT, class Zelda_I_Enable = ZELDA_CLASS_REQUIRES(zelda::introspection::check_type<Zelda_I_TT, Zelda_I_T>)> \
+    struct selector {}; \
+    \
+    template<class Zelda_I_U> \
+    static yes check(selector<typename Zelda_I_U::type> *); \
+    \
+    template<class Zelda_I_U> \
+    static no check(...); \
+    \
+    static const bool value=sizeof(check<Zelda_I_C>(0))==sizeof(yes); \
+    \
+    typedef boost::mpl::bool_<value> type; \
+    }; \
+
+#define DETAIL_ZELDA_HAS_TEMPLATE(tpl, trait) \
+  template<class Zelda_I_C> \
+  struct trait \
+    { \
+    typedef char yes; \
+    typedef long no; \
+    template<template<class...> class Zelda_I_TT> \
+    struct selector {}; \
+    \
+    template<class Zelda_I_U> \
+    static yes check(selector<Zelda_I_U::template tpl> *); \
+    \
+    template<class Zelda_I_U> \
+    static no check(...); \
+    \
+    static const bool value=sizeof(check<Zelda_I_C>(0))==sizeof(yes); \
+    \
+    typedef boost::mpl::bool_<value> type; \
+    }; \
+
+
+namespace zelda { namespace introspection_test{
+
+struct introspection_pass_t
+{
+    typedef void type;
+    template<class T>
+    struct tpl
+    {
+        /* data */
+    };
+
+    static void static_method();
+    void method();
+    int var;
+};
+
+struct introspection_fail_t
+{
+    typedef void tpl;
+    template<class T>
+    struct type
+    {
+    };
+    void method(int, int);
+};
+
+ZELDA_HAS_TYPE(type);
+ZELDA_HAS_TEMPLATE(tpl);
+ZELDA_HAS_MEMBER(method);
+ZELDA_HAS_MEMBER(var);
+
+
+static_assert(has_type<introspection_pass_t, void>::value, "Type failed");
+static_assert(has_tpl<introspection_pass_t>::value, "Template failed");
+static_assert(has_method<introspection_pass_t, void()>::value, "Method failed");
+static_assert(has_var<introspection_pass_t, int>::value, "Var failed");
+
+static_assert(not has_type<introspection_fail_t, void>::value, "Type failed");
+static_assert(not has_tpl<introspection_fail_t>::value, "Template failed");
+static_assert(not has_method<introspection_fail_t, void()>::value, "Method failed");
+static_assert(not has_var<introspection_fail_t, int>::value, "Var failed");
+
+}}
+
+
 
 #endif	/* ZELDA_INTROSPECTION_H */
 
