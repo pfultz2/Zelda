@@ -75,6 +75,7 @@ struct function_base<F, ZELDA_CLASS_REQUIRES(boost::is_empty<F>)>
     }
 };
 
+//Pipable
 namespace details {
 template<class F, class Sequence>
 struct pipe_closure
@@ -133,14 +134,15 @@ pipable_adaptor<F> pipable(F f)
     return pipable_adaptor<F>(f);
 }
 
-//TODO: lazy
+//lazy
+//TODO: Use boost::phoenix::detail::expression::function_eval instead
 template<class F>
 boost::phoenix::function<F> lazy(F f)
 {
     return boost::phoenix::function<F>(f);
 }
 
-//TODO: general
+//general
 template<class F>
 struct general_adaptor : function_base<F>
 {
