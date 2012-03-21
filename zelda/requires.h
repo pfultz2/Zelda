@@ -12,6 +12,8 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/logical.hpp>
 
+#define ZELDA_DETAIL_REQUIRES_CLAUSE(...) boost::mpl::and_<__VA_ARGS__, boost::mpl::bool_<true> >
+
 /**
  * The ZELDA_FUNCTION_REQUIRES macro is used to place conditions on template 
  * functions. NOTE: If an error occurs here it is because you are most likely
@@ -31,10 +33,12 @@
  * 
  */
 #define ZELDA_ERROR_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
-#define ZELDA_FUNCTION_REQUIRES(...) typename boost::enable_if<boost::mpl::and_<__VA_ARGS__, boost::mpl::bool_<true> >, ZELDA_ERROR_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+#define ZELDA_FUNCTION_REQUIRES(...) typename boost::enable_if<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__), ZELDA_ERROR_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 #define ZELDA_EXCLUDE(...) typename boost::mpl::not_<typename boost::mpl::or_<__VA_ARGS__, boost::mpl::bool_<false> >::type >::type
 
-#define ZELDA_CLASS_REQUIRES(...) typename boost::enable_if<boost::mpl::and_<__VA_ARGS__, boost::mpl::bool_<true> > >::type
+#define ZELDA_CLASS_REQUIRES(...) typename boost::enable_if<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__)>::type
+
+#define ZELDA_REQUIRES(...) class Zelda_Enable = typename boost::enable_if<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__)>::type
 
 #endif	/* ZELDA_REQUIRES_H */
 

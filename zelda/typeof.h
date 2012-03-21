@@ -13,7 +13,83 @@
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/if.hpp>
+ #include <boost/mpl/eval_if.hpp>
 #include <boost/type_traits.hpp>
+
+#define ZELDA_TYPEOF decltype
+
+namespace zelda {
+template<class T>
+T&& declval();
+
+namespace typeof_detail {
+struct value {};
+struct rvalue {};
+struct const_lvalue {};
+struct lvalue {};
+
+//is_const2 that works with references
+template<class T>
+struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
+{
+};
+
+template<class T>
+typename boost::mpl::eval_if<std::is_rvalue_reference<T&&>, boost::mpl::identity<rvalue>, 
+                                boost::mpl::eval_if<is_const2<T&&>, boost::mpl::identity<const_lvalue>, boost::mpl::identity<lvalue> >
+                            >::type test(T&&);
+
+template<class Tag, class T>
+struct xtypeof {};
+
+template<class T>
+struct xtypeof<rvalue, T> : std::add_rvalue_reference<T> {};
+
+template<class T>
+struct xtypeof<lvalue, T> : std::add_lvalue_reference<T> {};
+
+template<class T>
+struct xtypeof<const_lvalue, T> : std::add_const< typename std::add_lvalue_reference<T>::type > {};
+
+template<class T>
+struct xtypeof<value, T> : boost::mpl::identity<T> {};
+}
+}
+
+#define ZELDA_XTYPEOF(...) \
+typename zelda::typeof_detail::xtypeof<ZELDA_TYPEOF(zelda::typeof_detail::test(__VA_ARGS__)), ZELDA_TYPEOF(__VA_ARGS__)>::type
+
+#define ZELDA_RETURNS(...) -> decltype(__VA_ARGS__) { return __VA_ARGS__; }
+
+#ifdef ZELDA_TEST
+namespace zelda {
+namespace typeof_test {
+
+int by_value();
+int&& by_rvalue();
+int& by_ref();
+const int& by_const_ref();
+
+
+
+}
+}
+
+BOOST_STATIC_ASSERT((std::is_rvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
+BOOST_STATIC_ASSERT((not zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
+
+BOOST_STATIC_ASSERT((std::is_rvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_rvalue())>::value));
+BOOST_STATIC_ASSERT((not zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_rvalue())>::value));
+
+BOOST_STATIC_ASSERT((std::is_lvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_ref())>::value));
+BOOST_STATIC_ASSERT((not zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_ref())>::value));
+
+BOOST_STATIC_ASSERT((std::is_lvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
+BOOST_STATIC_ASSERT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
+
+#endif
+
+#if 0
 
 #ifdef NETBEANS
 #define typeof decltype
@@ -54,6 +130,19 @@ T declval();
 
 
 namespace typeof_detail {
+
+template<class T>
+struct identity
+{
+    typedef T type;
+};
+
+template<class T>
+struct wrap
+{
+    typedef typename T::type type;
+};
+
 template<class T>
 boost::mpl::true_ is_const(const T& x);
 
@@ -125,36 +214,7 @@ typename zelda::typeof_detail::xtype<typeof_tpl(x), ZELDA_TYPEOF_IS_CONST_TPL(x)
 
 }}
 
-#ifdef ZELDA_TEST
-namespace zelda {
-namespace typeof_test {
-
-int by_value();
-int& by_ref();
-const int& by_const_ref();
-
-//is_const2 that works with references
-template<class T>
-struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
-{
-};
-
-
-
-}
-}
-
-BOOST_STATIC_ASSERT((not boost::is_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
-BOOST_STATIC_ASSERT((not zelda::typeof_test::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
-
-BOOST_STATIC_ASSERT((boost::is_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_ref())>::value));
-BOOST_STATIC_ASSERT((not zelda::typeof_test::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_ref())>::value));
-
-BOOST_STATIC_ASSERT((boost::is_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
-BOOST_STATIC_ASSERT((zelda::typeof_test::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
-
 #endif
-
 
 #endif	/* TYPEOF_H */
 
