@@ -8,8 +8,11 @@
 #ifndef ZELDA_PP_H
 #define ZELDA_PP_H
 
+#define BOOST_PP_VARIADICS 1
 #include <boost/preprocessor.hpp>
+#include <boost/preprocessor/variadic.hpp>
 #include <boost/preprocessor/facilities/is_empty.hpp>
+#include "tokens.h"
 
 //Utility
 
@@ -131,7 +134,7 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 #else
 #define DETAIL_PP_TAIL(x, ...) __VA_ARGS__
 #endif
-#define PP_TAIL(...) PP_IF(PP_EQUAL(PP_NARGS(__VA_ARGS__), 1) \
+#define PP_TAIL(...) PP_IF(PP_EQUAL(PP_NARGS(__VA_ARGS__), 1)) \
    ( \
       PP_NOP, \
       DETAIL_PP_TAIL \
@@ -140,21 +143,22 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 
 //Tuple
 #define PP_TUPLE_EAT(...)
-#define PP_TUPLE_ELEM(i, tuple) BOOST_PP_TUPLE_ELEM(i, tuple)
+#define PP_TUPLE_ELEM(i, tuple) BOOST_PP_TUPLE_ELEM(PP_TUPLE_SIZE(tuple), i, tuple)
 #define DETAIL_PP_TUPLE_REM(...) __VA_ARGS__
 #define PP_TUPLE_REM(tuple) DETAIL_PP_TUPLE_REM tuple
-#define PP_TUPLE_SIZE(tuple) BOOST_PP_TUPLE_SIZE(tuple)
+#define PP_TUPLE_SIZE(tuple) PP_NARGS tuple
 
 //Args
-#define PP_ARGS_TO_SEQ BOOST_PP_VARIADIC_TO_SEQ
+#define DETAIL_PP_ARGS_TO_SEQ(size, tuple) BOOST_PP_TUPLE_TO_SEQ(size, tuple)
+#define PP_ARGS_TO_SEQ(...) DETAIL_PP_ARGS_TO_SEQ(PP_NARGS(__VA_ARGS__), (__VA_ARGS__))
 #define PP_ARGS_TO_TUPLE(...) (__VA_ARGS__)
 
 
 //Closure
 
 //#define DETAIL_PP_CLOSURE_INVOKE(macro, args) macro args
-
-#define PP_CLOSURE_INVOKE BOOST_PP_CAT(DETAIL_PP_CLOSURE_INVOKE_, BOOST_PP_AUTO_REC(DETAIL_PP_CLOSURE_INVOKE_P, 8))
+#define DETAIL_PP_CLOSURE_INVOKE_STATE() BOOST_PP_AUTO_REC(DETAIL_PP_CLOSURE_INVOKE_P, 8)
+#define PP_CLOSURE_INVOKE PP_CAT(DETAIL_PP_CLOSURE_INVOKE_, DETAIL_PP_CLOSURE_INVOKE_STATE())
 
 #define DETAIL_PP_CLOSURE_INVOKE_P(n) BOOST_PP_CAT(DETAIL_PP_CLOSURE_INVOKE_CHECK_, DETAIL_PP_CLOSURE_INVOKE_## n(PP_NIL,))
 #define DETAIL_PP_CLOSURE_INVOKE_1(macro, args) macro args
@@ -178,10 +182,11 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 
 #define DETAIL_PP_CLOSURE_ARGS(r, data, elem) \
    (r, \
-   PP_IF(PP_EQUAL(PP_TUPLE_SIZE(data), 1)) (PP_HEAD, PP_OUT) (elem, PP_TUPLE_REM(PP_TUPLE_ELEM(1, data))) \
+   PP_IF(PP_IS_EMPTY PP_TUPLE_ELEM(1, data)) (PP_HEAD, PP_OUT) (elem, PP_TUPLE_REM(PP_TUPLE_ELEM(1, data))) \
    )
 //TODO: Make recursive
-#define DETAIL_PP_CLOSURE(r, data, elem) DETAIL_PP_CLOSURE_INVOKE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, data, elem) )
+#define DETAIL_PP_CLOSURE(r, data, elem) PP_CLOSURE_INVOKE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, data, elem) )
+//#define DETAIL_PP_CLOSURE(r, data, elem) DEBUG_DATA(data) DEBUG_CLOSURE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, data, elem) )
 
 #define DETAIL_PP_CLOSURE_STATE(tuple) PP_TUPLE_REM(PP_TUPLE_ELEM(1, tuple))
 
@@ -216,6 +221,7 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 #define PP_SEQ_FOLD_LEFT(m, ...) DETAIL_PP_CLOSURE_STATE(BOOST_PP_SEQ_FOLD_LEFT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__)))
 #define PP_SEQ_FOLD_RIGHT(m, ...) DETAIL_PP_CLOSURE_STATE(BOOST_PP_SEQ_FOLD_LEFT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__)))
 #define PP_SEQ_FOR_EACH(m, ...) BOOST_PP_SEQ_FOR_EACH(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
+//#define PP_SEQ_FOR_EACH(m, ...) DEBUG_OUT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
 #define PP_SEQ_TRANSFORM(m, ...) BOOST_PP_SEQ_TRANSFORM(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
 
 #define DETAIL_PP_SEQ_ZIP_ELEM(i, j, tuple) PP_SEQ_ELEM(i, BOOST_PP_TUPLE_ELEM(2, j, data))
@@ -258,6 +264,21 @@ BOOST_PP_SEQ_FOR_EACH_PRODUCT(DETAIL_PP_SEQ_FOR_EACH_PRODUCT_EACH, ((macro))((da
 
 #define DETAIL_PP_TOKENS_POP_I(x, ...) PP_IIF(PP_IS_TOKEN(PP_HEAD(__VA_ARGS__)))(PP_TAIL(__VA_ARGS__), x)
 #define PP_TOKENS_POP(x) DETAIL_PP_TOKENS_POP_I(x, PP_JOIN(PP_PREFIX_, x))
+
+#define DETAIL_PP_TOKEN_REPLACE_I(token, replacement, x, ...) PP_IIF(PP_EQUAL(PP_HEAD(__VA_ARGS__), token))(replacement PP_TAIL(__VA_ARGS__), x)
+#define PP_TOKEN_REPLACE(token, replacement, x) DETAIL_PP_TOKEN_REPLACE_I(token, replacement, x, PP_JOIN(PP_PREFIX_, x))
+
+#define DETAIL_PP_TOKEN_TRANSFORM_APPLY_FOUND(token, found, not_found, x, ...) found(token, PP_TAIL(__VA_ARGS__))
+#define DETAIL_PP_TOKEN_TRANSFORM_APPLY_NOT_FOUND(token, found, not_found, x, ...) not_found(x)
+#define DETAIL_PP_TOKEN_TRANSFORM_I(token, found, not_found, x, ...) \
+PP_IIF(PP_EQUAL(PP_HEAD(__VA_ARGS__), token))\
+(\
+   DETAIL_PP_TOKEN_TRANSFORM_APPLY_FOUND, \
+   DETAIL_PP_TOKEN_TRANSFORM_APPLY_NOT_FOUND \
+)(token, found, not_found, x, __VA_ARGS__)
+#define PP_TOKEN_TRANSFORM(token, found, not_found, x) DETAIL_PP_TOKEN_TRANSFORM_I(token, found, not_found, x, PP_JOIN(PP_PREFIX_, x))
+
+
 
 
 

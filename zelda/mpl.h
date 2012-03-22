@@ -1,8 +1,6 @@
 #ifndef ZELDA_MPL_H
 #define ZELDA_MPL_H
 
-#include "requires.h"
-
 #include <boost/mpl/long.hpp>
 #include <boost/mpl/at_fwd.hpp>
 #include <boost/mpl/clear_fwd.hpp>
@@ -13,6 +11,7 @@
 #include <boost/mpl/pop_back_fwd.hpp>
 #include <boost/mpl/pop_front_fwd.hpp>
 #include <boost/mpl/push_front_fwd.hpp>
+#include <boost/mpl/iterator_tags.hpp>
 
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/equal_to.hpp>
@@ -21,6 +20,7 @@
 #include <boost/mpl/next_prior.hpp>
 #include <boost/mpl/next.hpp>
 #include <boost/mpl/prior.hpp>
+#include <boost/mpl/fold.hpp>
 
 #include <boost/type_traits/is_same.hpp>
 
@@ -39,7 +39,7 @@ struct eval
 
 template<class T>
 struct eval<lazy<T> >
-: T {};
+: lazy<T> {};
 
 namespace detail
 {
@@ -55,17 +55,15 @@ namespace detail
 template<bool C, class T>
 struct if_clause
 {
-    //typedef if_c o;
-
     template<bool C1, class T1 = void, class E1 = no_else>
     struct else_if_c
     : zelda::mpl::if_c<C || C1, typename zelda::mpl::if_c<C, T, T1>::type, E1> {};
 
     template<class C1, class T1 = void, class E1 = no_else>
-    struct else_if: else_if_c<C1::value, T1, E1> {};
+    struct else_if: else_if_c<C1::type::value, T1, E1> {};
 
     template<class E>
-    class else_: public zelda::mpl::if_c<C, T, E> {};
+    struct else_: zelda::mpl::if_c<C, T, E> {};
 };
 
 }
@@ -89,17 +87,50 @@ struct if_c<true, T, detail::no_else> : detail::if_clause<true, T>
 };
 
 template<class C, class T = void, class E = detail::no_else>
-struct if_: if_c<C::value, T, E> {};
+struct if_: if_c<C::type::value, T, E> {};
 
 
-
+//varidiac vector
 struct vector_tag {};
 
-template< typename... Args >
+template< class... Args >
 struct vector 
 {
     typedef vector_tag tag;
 };
+
+//varidiac logical operations
+template<class ... T>
+struct and_ 
+{
+    struct op
+    {
+        template<class X, class Y>
+        struct apply
+        : boost::mpl::bool_<X::type::value and Y::type::value> {};
+    };
+
+    typedef typename boost::mpl::fold<vector<T...>, boost::mpl::bool_<true>, op>::type type;
+};
+
+template<class ... T>
+struct or_ 
+{
+    struct op
+    {
+        template<class X, class Y>
+        struct apply
+        : boost::mpl::bool_<X::type::value or Y::type::value> {};
+    };
+
+    typedef typename boost::mpl::fold<vector<T...>, boost::mpl::bool_<false>, op>::type type;
+};
+
+template<class T>
+struct not_
+: boost::mpl::bool_<not T::type::value> {};
+
+
 
 namespace details {
 
@@ -110,6 +141,7 @@ struct vector_iterator
 : boost::mpl::at<Vector, boost::mpl::long_<N> >  
 {
     typedef vector_iterator_tag tag;
+    typedef boost::mpl::random_access_iterator_tag category;
     static const long pos = N;
 };
 
@@ -119,19 +151,21 @@ struct push_back_iterator
 };
 
 template<template <typename...> class Vector, class Iterator, class End, class... Args>
-struct push_back_iterator<Vector<Args...>, Iterator, End, ZELDA_CLASS_REQUIRES(boost::is_same<Iterator, End>)>
+struct push_back_iterator<Vector<Args...>, Iterator, End, typename if_<boost::is_same<Iterator, End>>::type>
 {
     typedef Vector<Args...> type;
 };
 
 template<template <typename...> class Vector, class Iterator, class End, class... Args>
-struct push_back_iterator<Vector<Args...>, Iterator, End, ZELDA_CLASS_REQUIRES(ZELDA_EXCLUDE(boost::is_same<Iterator, End>))>
+struct push_back_iterator<Vector<Args...>, Iterator, End, typename if_c<not boost::is_same<Iterator, End>::value>::type>
 : push_back_iterator<Vector<Args..., typename boost::mpl::deref<Iterator>::type>, typename boost::mpl::next<Iterator>::type, End>
 {};
 }
 }
 }
 
+
+//Metafunctions to integrate vector into mpl library
 namespace boost{ namespace mpl {
 
 template<>
