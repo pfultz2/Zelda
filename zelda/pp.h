@@ -182,11 +182,10 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 
 #define DETAIL_PP_CLOSURE_ARGS(r, data, elem) \
    (r, \
-   PP_IF(PP_IS_EMPTY PP_TUPLE_ELEM(1, data)) (PP_HEAD, PP_OUT) (elem, PP_TUPLE_REM(PP_TUPLE_ELEM(1, data))) \
+   PP_IF(PP_IS_EMPTY data) (PP_HEAD, PP_OUT) (elem, PP_TUPLE_REM(data)) \
    )
 //TODO: Make recursive
-#define DETAIL_PP_CLOSURE(r, data, elem) PP_CLOSURE_INVOKE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, data, elem) )
-//#define DETAIL_PP_CLOSURE(r, data, elem) DEBUG_DATA(data) DEBUG_CLOSURE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, data, elem) )
+#define DETAIL_PP_CLOSURE(r, data, elem) PP_CLOSURE_INVOKE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, PP_TUPLE_ELEM(1, data), elem) )
 
 #define DETAIL_PP_CLOSURE_STATE(tuple) PP_TUPLE_REM(PP_TUPLE_ELEM(1, tuple))
 
@@ -221,7 +220,6 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 #define PP_SEQ_FOLD_LEFT(m, ...) DETAIL_PP_CLOSURE_STATE(BOOST_PP_SEQ_FOLD_LEFT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__)))
 #define PP_SEQ_FOLD_RIGHT(m, ...) DETAIL_PP_CLOSURE_STATE(BOOST_PP_SEQ_FOLD_LEFT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__)))
 #define PP_SEQ_FOR_EACH(m, ...) BOOST_PP_SEQ_FOR_EACH(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
-//#define PP_SEQ_FOR_EACH(m, ...) DEBUG_OUT(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
 #define PP_SEQ_TRANSFORM(m, ...) BOOST_PP_SEQ_TRANSFORM(DETAIL_PP_CLOSURE, (m, (PP_TAIL(__VA_ARGS__))), PP_HEAD(__VA_ARGS__))
 
 #define DETAIL_PP_SEQ_ZIP_ELEM(i, j, tuple) PP_SEQ_ELEM(i, BOOST_PP_TUPLE_ELEM(2, j, data))

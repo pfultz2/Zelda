@@ -8,7 +8,6 @@
 #ifndef FUNCTION_H
 #define	FUNCTION_H
 
-#include <boost/mpl/identity.hpp>
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
 #include "requires.h"
@@ -40,9 +39,9 @@ struct is_callable_seq_impl_next
 
 template<class F, class Iterator, class End, class... T>
 struct is_callable_seq_impl 
-: boost::mpl::eval_if<boost::is_same<Iterator, End>,
-    boost::mpl::identity<zelda::is_callable<F(T...)> >,
-    is_callable_seq_impl_next<F, boost::fusion::result_of::next<Iterator>, End, boost::fusion::result_of::deref<Iterator>, T...> 
+: zelda::mpl::if_<boost::is_same<Iterator, End>,
+    zelda::is_callable<F(T...) >,
+    zelda::mpl::lazy<is_callable_seq_impl_next<F, boost::fusion::result_of::next<Iterator>, End, boost::fusion::result_of::deref<Iterator>, T...> >
     >::type {};
 }
 template<class F, class Seq>
@@ -75,6 +74,8 @@ struct function_base<F, ZELDA_CLASS_REQUIRES(boost::is_empty<F>)>
     }
 };
 
+//TODO: Defer
+
 //Pipable
 namespace details {
 template<class F, class Sequence>
@@ -104,7 +105,7 @@ struct pipable_adaptor : function_base<F>
     struct result {};
 
     template<class X, class... Args>
-    struct result<X(Args...), ZELDA_CLASS_REQUIRES(ZELDA_EXCLUDE(zelda::is_callable<X(Args...)>))>
+    struct result<X(Args...), ZELDA_CLASS_REQUIRES(not zelda::is_callable<X(Args...)>)>
     {
         typedef details::pipe_closure<F, zelda::tuple<Args...>> type;
     };
@@ -114,7 +115,7 @@ struct pipable_adaptor : function_base<F>
     : zelda::result_of<X(Args...)> {};
 
     template<class... Args>
-    ZELDA_FUNCTION_REQUIRES(ZELDA_EXCLUDE(zelda::is_callable<F(Args...)>))
+    ZELDA_FUNCTION_REQUIRES(not zelda::is_callable<F(Args...)>)
     (typename result<F(Args&&...)>::type) operator()(Args &&... args) const
     {
         return details::make_pipe_closure(this->get_function(), std::forward<Args>(args)...);
@@ -143,6 +144,11 @@ boost::phoenix::function<F> lazy(F f)
 }
 
 //general
+namespace details{
+template<class... T>
+struct is_phoenix_expression
+: zelda::mpl::or_<T...> {};
+}
 template<class F>
 struct general_adaptor : function_base<F>
 {
@@ -153,25 +159,25 @@ struct general_adaptor : function_base<F>
     struct result {};
 
     template<class X, class... Args>
-    struct result<X(Args...), ZELDA_CLASS_REQUIRES(boost::mpl::or_<boost::phoenix::is_actor<Args>...>)>
+    struct result<X(Args...), ZELDA_CLASS_REQUIRES(zelda::details::is_phoenix_expression<Args...>)>
     {
         typedef ZELDA_XTYPEOF(lazy(zelda::declval<F>())(zelda::declval<Args>()...)) type;
     };
 
     template<class X, class... Args>
-    struct result<X(Args...), ZELDA_CLASS_REQUIRES(ZELDA_EXCLUDE(boost::phoenix::is_actor<Args>...))>
-    : zelda::result_of<X(Args&&...)> {};
+    struct result<X(Args...), ZELDA_CLASS_REQUIRES(not zelda::details::is_phoenix_expression<Args...>)>
+    : zelda::result_of<X(Args...)> {};
 
     template<class... Args>
-    ZELDA_FUNCTION_REQUIRES(boost::mpl::or_<boost::phoenix::is_actor<Args>...>)
-    (typename result<void(Args...)>::type) operator()(Args&&... args) const
+    ZELDA_FUNCTION_REQUIRES(zelda::details::is_phoenix_expression<Args...>)
+    (typename result<void(Args&&...)>::type) operator()(Args&&... args) const
     {
         return lazy(this->get_function())(std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    ZELDA_FUNCTION_REQUIRES(ZELDA_EXCLUDE(boost::phoenix::is_actor<Args>...))
-    (typename result<void(Args...)>::type) operator()(Args&&... args) const
+    ZELDA_FUNCTION_REQUIRES(not zelda::details::is_phoenix_expression<Args...>)
+    (typename result<void(Args&&...)>::type) operator()(Args&&... args) const
     {
         return this->get_function()(std::forward<Args>(args)...);
     }
@@ -180,9 +186,45 @@ struct general_adaptor : function_base<F>
 
 //TODO: Partial
 
-//TODO: fuse
+//fuse
+template<class F>
+struct fuse_adaptor : function_base<F>
+{
+    fuse_adaptor() {};
+    fuse_adaptor(F f) : function_base<F>(f) {};
 
-//TODO: unfuse
+    template<class Sequence>
+    auto operator()(Sequence && seq) -> ZELDA_XTYPEOF(zelda::invoke(zelda::declval<F>(), seq))
+    {
+        return zelda::invoke(this->get_function(), seq);
+    }
+};
+
+template<class F>
+fuse_adaptor<F> fuse(F f)
+{
+    return fuse_adaptor<F>(f);
+}
+
+//unfuse
+template<class F>
+struct unfuse_adaptor : function_base<F>
+{
+    unfuse_adaptor() {};
+    unfuse_adaptor(F f) : function_base<F>(f) {};
+
+    template<class... T>
+    auto operator()(T && ... x) -> ZELDA_XTYPEOF(zelda::declval<F>()(zelda::make_tuple(std::forward<T>(x)...)))
+    {
+        return  this->get_function()(zelda::make_tuple(std::forward<T>(x)...));
+    }
+};
+
+template<class F>
+unfuse_adaptor<F> unfuse(F f)
+{
+    return unfuse_adaptor<F>(f);
+}
 
 //TODO: memoize
 }

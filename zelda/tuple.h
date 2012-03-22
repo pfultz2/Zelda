@@ -8,6 +8,8 @@
 namespace zelda{
 
 using std::tuple;
+using std::make_tuple;
+using std::tie;
 
 }
 

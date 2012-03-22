@@ -9,12 +9,9 @@
 #define	TYPEOF_H
 
 #include <boost/typeof/typeof.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/if.hpp>
- #include <boost/mpl/eval_if.hpp>
 #include <boost/type_traits.hpp>
+
+#include "mpl.h"
 
 #define ZELDA_TYPEOF decltype
 
@@ -35,9 +32,9 @@ struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
 };
 
 template<class T>
-typename boost::mpl::eval_if<std::is_rvalue_reference<T&&>, boost::mpl::identity<rvalue>, 
-                                boost::mpl::eval_if<is_const2<T&&>, boost::mpl::identity<const_lvalue>, boost::mpl::identity<lvalue> >
-                            >::type test(T&&);
+typename zelda::mpl::if_<std::is_rvalue_reference<T&&>, rvalue>
+                                ::template else_if<is_const2<T&&>, const_lvalue, lvalue >
+                            ::type test(T&&);
 
 template<class Tag, class T>
 struct xtypeof {};
