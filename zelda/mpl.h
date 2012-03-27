@@ -2,7 +2,6 @@
 #define ZELDA_MPL_H
 
 #include <boost/mpl/long.hpp>
-#include <boost/mpl/at_fwd.hpp>
 #include <boost/mpl/clear_fwd.hpp>
 #include <boost/mpl/size_fwd.hpp>
 #include <boost/mpl/push_back_fwd.hpp>
@@ -13,6 +12,7 @@
 #include <boost/mpl/push_front_fwd.hpp>
 #include <boost/mpl/iterator_tags.hpp>
 
+#include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/not_equal_to.hpp>

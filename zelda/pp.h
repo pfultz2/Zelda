@@ -61,13 +61,16 @@
 #define PP_CHECK(...) DETAIL_PP_CHECK_N(__VA_ARGS__, 0)
 #endif
 
-#define PP_PROBE ~, 1
-
-#define DETAIL_PP_IS_EMPTY_0(...) 0
-#define PP_IS_EMPTY(...) \
-BOOST_PP_IF(BOOST_PP_EQUAL(PP_NARGS(__VA_ARGS__), 1), BOOST_PP_IS_EMPTY, DETAIL_PP_IS_EMPTY_0)(__VA_ARGS__) 
+#define PP_PROBE ~, 1,
 
 #define PP_IS_UNARY BOOST_PP_IS_UNARY
+
+#define DETAIL_PP_IS_EMPTY_0(x) 0
+#define DETAIL_PP_IS_EMPTY(x) PP_IIF(PP_IS_UNARY(x))(0, PP_IS_UNARY(x (unused)))
+#define PP_IS_EMPTY(...) \
+PP_IIF(BOOST_PP_EQUAL(PP_NARGS(__VA_ARGS__), 1))(DETAIL_PP_IS_EMPTY, DETAIL_PP_IS_EMPTY_0)(PP_HEAD(__VA_ARGS__)) 
+
+
 
 //Check if is parenthesis
 #define DETAIL_PP_IS_PAREN_PROBE(...) PP_PROBE
@@ -79,7 +82,7 @@ BOOST_PP_IF(BOOST_PP_EQUAL(PP_NARGS(__VA_ARGS__), 1), BOOST_PP_IS_EMPTY, DETAIL_
 #define DETAIL_PP_JOIN_10(x, y) x y
 #define DETAIL_PP_JOIN_11(x, y) x y
 #define PP_JOIN(x, y) \
-BOOST_PP_CAT(DETAIL_PP_JOIN_, BOOST_PP_CAT(PP_IS_PAREN(x), PP_IS_PAREN(y)))(x, y)
+PP_CAT(DETAIL_PP_JOIN_, PP_CAT(PP_IS_PAREN(x), PP_IS_PAREN(y)))(x, y)
 
 //Condtional/logic
 
@@ -93,6 +96,11 @@ BOOST_PP_CAT(DETAIL_PP_JOIN_, BOOST_PP_CAT(PP_IS_PAREN(x), PP_IS_PAREN(y)))(x, y
 #define DETAIL_PP_IF_TRUE(t, f) t
 #define DETAIL_PP_IF_FALSE(t, f) f
 #define PP_IIF(cond) BOOST_PP_IIF(cond, DETAIL_PP_IF_TRUE, DETAIL_PP_IF_FALSE)
+
+#define PP_WHEN_EMPTY(...) __VA_ARGS__ PP_IIF(PP_IS_EMPTY(__VA_ARGS__))(PP_OUT, PP_NOP)
+#define DETAIL_PP_IF_EMPTY_TRUE(t, f) t
+#define DETAIL_PP_IF_EMPTY_FALSE(t, f) f
+#define PP_IF_EMPTY(...) __VA_ARGS__ PP_IIF(PP_IS_EMPTY(__VA_ARGS__))(DETAIL_PP_IF_EMPTY_TRUE, DETAIL_PP_IF_EMPTY_FALSE)
 
 
 #define PP_EQUAL(a, b) \
@@ -184,6 +192,7 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
    (r, \
    PP_IF(PP_IS_EMPTY data) (PP_HEAD, PP_OUT) (elem, PP_TUPLE_REM(data)) \
    )
+
 //TODO: Make recursive
 #define DETAIL_PP_CLOSURE(r, data, elem) PP_CLOSURE_INVOKE(PP_TUPLE_ELEM(0, data), DETAIL_PP_CLOSURE_ARGS(r, PP_TUPLE_ELEM(1, data), elem) )
 
@@ -252,16 +261,31 @@ BOOST_PP_SEQ_FOR_EACH_PRODUCT(DETAIL_PP_SEQ_FOR_EACH_PRODUCT_EACH, ((macro))((da
 #endif
 #ifndef PP_TOKEN_token
 #define PP_TOKEN_token(x) x
-#endif    
+#endif
 
-#define PP_IS_TOKEN(x) PP_IS_UNARY( PP_JOIN(PP_TOKEN_, x)((unused)) ) 
+//Make parens tokens too
+#define PP_PREFIX_(...) (__VA_ARGS__),
+    
+
+#define PP_IS_TOKEN(x) PP_OR(PP_IS_UNARY( PP_JOIN(PP_TOKEN_, x)((unused)) ), PP_IS_PAREN(x))
 
 #define DETAIL_PP_TOKENS_PEEK_I(token) PP_WHEN(PP_IS_TOKEN(token))(token)
-#define DETAIL_PP_TOKENS_PEEK(x) DETAIL_PP_TOKENS_PEEK_I(PP_HEAD(PP_CAT(PP_PREFIX_, x)))
+#define DETAIL_PP_TOKENS_PEEK(x) DETAIL_PP_TOKENS_PEEK_I(PP_HEAD(PP_JOIN(PP_PREFIX_, x)))
 #define PP_TOKENS_PEEK(...) DETAIL_PP_TOKENS_PEEK(PP_HEAD(__VA_ARGS__))
 
 #define DETAIL_PP_TOKENS_POP_I(x, ...) PP_IIF(PP_IS_TOKEN(PP_HEAD(__VA_ARGS__)))(PP_TAIL(__VA_ARGS__), x)
 #define PP_TOKENS_POP(x) DETAIL_PP_TOKENS_POP_I(x, PP_JOIN(PP_PREFIX_, x))
+
+
+#define DETAIL_PP_TOKENS_TO_SEQ_PROBE_PP_TOKENS_TO_SEQ_EOF_NIL PP_PROBE
+#define DETAIL_PP_TOKENS_TO_SEQ_EOF(...) PP_TOKENS_TO_SEQ_EOF_NIL
+#define DETAIL_PP_TOKENS_TO_SEQ_IS_EOF(x) PP_CHECK(PP_JOIN(DETAIL_PP_TOKENS_TO_SEQ_PROBE_, x))
+#define DETAIL_PP_TOKENS_TO_SEQ_P(r, state) PP_NOT(PP_OR(PP_IS_EMPTY(state), DETAIL_PP_TOKENS_TO_SEQ_IS_EOF(state)))
+#define DETAIL_PP_TOKENS_TO_SEQ_OP(r, state) PP_IIF(PP_IS_EMPTY(PP_TOKENS_PEEK(state)))(DETAIL_PP_TOKENS_TO_SEQ_EOF, PP_TOKENS_POP)(state)
+#define DETAIL_PP_TOKENS_TO_SEQ_EACH(r, state) (PP_WHEN_EMPTY(PP_TOKENS_PEEK(state))(state))
+#define PP_TOKENS_TO_SEQ(x) BOOST_PP_FOR(x, DETAIL_PP_TOKENS_TO_SEQ_P, DETAIL_PP_TOKENS_TO_SEQ_OP, DETAIL_PP_TOKENS_TO_SEQ_EACH)
+
+
 
 #define DETAIL_PP_TOKEN_REPLACE_I(token, replacement, x, ...) PP_IIF(PP_EQUAL(PP_HEAD(__VA_ARGS__), token))(replacement PP_TAIL(__VA_ARGS__), x)
 #define PP_TOKEN_REPLACE(token, replacement, x) DETAIL_PP_TOKEN_REPLACE_I(token, replacement, x, PP_JOIN(PP_PREFIX_, x))
@@ -275,10 +299,6 @@ PP_IIF(PP_EQUAL(PP_HEAD(__VA_ARGS__), token))\
    DETAIL_PP_TOKEN_TRANSFORM_APPLY_NOT_FOUND \
 )(token, found, not_found, x, __VA_ARGS__)
 #define PP_TOKEN_TRANSFORM(token, found, not_found, x) DETAIL_PP_TOKEN_TRANSFORM_I(token, found, not_found, x, PP_JOIN(PP_PREFIX_, x))
-
-
-
-
 
 /**
  * This macro used to compensate for a bug in compilers in visual c++, see

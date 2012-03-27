@@ -229,5 +229,8 @@ unfuse_adaptor<F> unfuse(F f)
 //TODO: memoize
 }
 
+
+
+
 #endif	/* FUNCTION_H */
 
