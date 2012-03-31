@@ -28,7 +28,7 @@ struct requires_
 
         template<class X>
         struct apply<X, not_tag>
-        : not_state<X> {};
+        : zelda::mpl::identity<not_state<X> > {};
 
         template<class X, class Y>
         struct apply<not_state<X>, Y>
@@ -43,6 +43,14 @@ struct requires_
 #define ZELDA_DETAIL_REQUIRES_CLAUSE_NOT(t, x) (zelda::requires_detail::not_tag)(x)
 #define ZELDA_DETAIL_REQUIRES_CLAUSE_EACH(r, x) PP_TOKEN_TRANSFORM(not, ZELDA_DETAIL_REQUIRES_CLAUSE_NOT, ZELDA_DETAIL_REQUIRES_CLAUSE_DEFAULT, x)
 #define ZELDA_DETAIL_REQUIRES_CLAUSE(...) zelda::requires_detail::requires_<PP_SEQ_ENUM(PP_SEQ_FOR_EACH(ZELDA_DETAIL_REQUIRES_CLAUSE_EACH, PP_ARGS_TO_SEQ(__VA_ARGS__)))>
+
+#ifdef ZELDA_TEST
+static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(boost::mpl::bool_<true>)::type::value, "Failed");
+static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(boost::mpl::bool_<true>, boost::mpl::bool_<true>)::type::value, "Failed");
+static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(boost::mpl::bool_<true>, not boost::mpl::bool_<false>)::type::value, "Failed");
+static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(not boost::mpl::bool_<false>, boost::mpl::bool_<true>)::type::value, "Failed");
+static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(not boost::mpl::bool_<false>)::type::value, "Failed");
+#endif
 
 //#define ZELDA_DETAIL_REQUIRES_CLAUSE(...) zelda::mpl::and_<__VA_ARGS__>
 

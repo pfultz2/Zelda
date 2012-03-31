@@ -10,6 +10,7 @@
 
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
+#include <boost/fusion/algorithm/transformation/join.hpp>
 #include "requires.h"
 #include "invoke.h"
 #include "tuple.h"
@@ -27,26 +28,13 @@ operator() params const \
 
 namespace zelda {
 
-namespace details{
-template<class F, class Iterator, class End, class... T>
-struct is_callable_seq_impl;
-
-template<class F, class I, class End, class D, class... T>
-struct is_callable_seq_impl_next
+template<bool B, class T>
+T static_assert_expr(T x)
 {
-    typedef is_callable_seq_impl<F, typename I::type, End, typename D::type, T...> type;
-};
-
-template<class F, class Iterator, class End, class... T>
-struct is_callable_seq_impl 
-: zelda::mpl::if_<boost::is_same<Iterator, End>,
-    zelda::is_callable<F(T...) >,
-    zelda::mpl::lazy<is_callable_seq_impl_next<F, boost::fusion::result_of::next<Iterator>, End, boost::fusion::result_of::deref<Iterator>, T...> >
-    >::type {};
+    static_assert(B, "Assertion failed");
+    return x;
 }
-template<class F, class Seq>
-struct is_callable_seq : details::is_callable_seq_impl<F, typename boost::fusion::result_of::begin<Seq>::type, typename boost::fusion::result_of::end<Seq>::type>
-{};
+
 
 //Optimization for stateless functions
 template<class F, class Enable = void>
@@ -74,7 +62,173 @@ struct function_base<F, ZELDA_CLASS_REQUIRES(boost::is_empty<F>)>
     }
 };
 
+template<class A, class Enable = void>
+struct function_adaptor_base
+{
+    A a;
+    function_adaptor_base() {};
+    function_adaptor_base(A a) : a(a) {};
+
+    A& get_adaptor() const
+    {
+        return a;
+    }
+};
+
+template<class A>
+struct function_adaptor_base<A, ZELDA_CLASS_REQUIRES(boost::is_empty<A>)>
+{
+    function_adaptor_base() {};
+    function_adaptor_base(A) {};
+
+    A get_adaptor() const
+    {
+        return A();
+    }
+};
+
+template<class A, class F>
+struct function_adaptor : function_base<F>, function_adaptor_base<A>
+{
+    function_adaptor() {};
+    function_adaptor(F f) : function_base<F>(f) {};
+    function_adaptor(A a) : function_adaptor_base<A>(a) {};
+    function_adaptor(F f, A a) : function_base<F>(f), function_adaptor_base<A>(a) {};
+
+    template<class X, class Enable = void>
+    struct result {};
+
+    template<class X, class... T>
+    struct result<X(T...)>
+    : zelda::result_of<A(F, T...)> {};
+
+    template<class... T>
+    typename result<void(T...)>::type
+    operator()(T && ... x)
+    {
+        return this->get_adaptor()(this->get_function(), std::forward<T>(x)...);
+    }
+};
+
+template<class A, class F>
+struct function_variadic_adaptor : function_base<F>, function_adaptor_base<A>
+{
+    function_variadic_adaptor() {};
+    function_variadic_adaptor(F f) : function_base<F>(f) {};
+    function_variadic_adaptor(A a) : function_adaptor_base<A>(a) {};
+    function_variadic_adaptor(F f, A a) : function_base<F>(f), function_adaptor_base<A>(a) {};
+
+    template<class X, class Enable = void>
+    struct result {};
+
+    //TODO: Check if it is callable
+    template<class X, class... T>
+    struct result<X(T...)>
+    {
+        typedef ZELDA_XTYPEOF(zelda::declval<A>()(zelda::declval<F>(), zelda::make_tuple(zelda::declval<T>()...))) type;
+    };
+
+    template<class... T>
+    typename result<void(T...)>::type
+    operator()(T && ... x)
+    {
+        return this->get_adaptor()(this->get_function(), zelda::make_tuple(std::forward<T>(x)...));
+    }
+
+};
+
+#define DETAIL_ZELDA_FUNCTION_MAKE_ADAPTOR(name, adaptor_type, adaptor_base) \
+template<class F> \
+struct name ## _adaptor : adaptor_type<adaptor_base, F> \
+{ \
+    name ## _adaptor() {}; \
+    name ## _adaptor(F f) : adaptor_type<F, adaptor_base>(f) {}; \
+}; \
+template<class F> \
+name ## _adaptor<F> name(F f) { return name ## _adaptor<F>(f); }
+
+
+#define ZELDA_FUNCTION_MAKE_SIMPLE_ADAPTOR(name) DETAIL_ZELDA_FUNCTION_MAKE_ADAPTOR(name, function_adaptor, name ## _adaptor_base)
+#define ZELDA_FUNCTION_MAKE_ADAPTOR(name) DETAIL_ZELDA_FUNCTION_MAKE_ADAPTOR(name, function_variadic_adaptor, name ## _adaptor_base)
+
+
 //TODO: Defer
+
+//fuse
+struct fuse_adaptor_base
+{
+    ZELDA_AUTO_DECLARE_RESULT()
+
+    ZELDA_AUTO_RESULT((f, seq)(zelda::invoke(f, seq)))
+};
+ZELDA_FUNCTION_MAKE_SIMPLE_ADAPTOR(fuse)
+
+
+// template<class F>
+// struct fuse_adaptor : function_base<F>
+// {
+//     fuse_adaptor() {};
+//     fuse_adaptor(F f) : function_base<F>(f) {};
+
+//     template<class X>
+//     struct result {};
+
+//     template<class X, class Sequence>
+//     struct result<X(Sequence)>
+//     : result_of_seq<F, Sequence> {};
+
+//     template<class Sequence>
+//     auto operator()(Sequence && seq) -> ZELDA_XTYPEOF(zelda::invoke(zelda::declval<F>(), seq))
+//     {
+//         return zelda::invoke(this->get_function(), seq);
+//     }
+// };
+
+// template<class F>
+// fuse_adaptor<F> fuse(F f)
+// {
+//     return fuse_adaptor<F>(f);
+// }
+
+//variadic
+struct variadic_adaptor_base
+{
+    ZELDA_AUTO_DECLARE_RESULT()
+
+    ZELDA_AUTO_RESULT((f, seq)(f(seq)))
+};
+ZELDA_FUNCTION_MAKE_ADAPTOR(variadic)
+
+
+
+// template<class F>
+// struct variadic_adaptor : function_base<F>
+// {
+//     variadic_adaptor() {};
+//     variadic_adaptor(F f) : function_base<F>(f) {};
+
+//     template<class X>
+//     struct result {};
+
+//     template<class X, class... T>
+//     struct result<X(T...)>
+//     {
+//         typedef ZELDA_XTYPEOF(zelda::declval<F>()(zelda::make_tuple(zelda::declval<T>()...))) type;
+//     };
+
+//     template<class... T>
+//     auto operator()(T && ... x) -> ZELDA_XTYPEOF(zelda::declval<F>()(zelda::make_tuple(std::forward<T>(x)...)))
+//     {
+//         return  this->get_function()(zelda::make_tuple(std::forward<T>(x)...));
+//     }
+// };
+
+// template<class F>
+// variadic_adaptor<F> variadic(F f)
+// {
+//     return variadic_adaptor<F>(f);
+// }
+
 
 //Pipable
 namespace details {
@@ -82,58 +236,91 @@ template<class F, class Sequence>
 struct pipe_closure
 {
     F f;
-    const Sequence& seq;
-    pipe_closure(const Sequence& seq) : seq(seq) {};
-    pipe_closure(const Sequence& seq, F f) : seq(seq), f(f) {};
+    Sequence seq;
+    pipe_closure(Sequence seq) : seq(seq) {};
+    pipe_closure(F f, Sequence seq) : seq(seq), f(f) {};
 
-    template<class A, ZELDA_REQUIRES(zelda::is_callable_seq<F, typename boost::fusion::result_of::push_front<Sequence, A&&>::type>)>
-    friend auto operator|(A && a, const pipe_closure<F, Sequence>& p) ZELDA_RETURNS(zelda::invoke(p.f, boost::fusion::push_front(p.seq, a)))
-};
-
-template<class F, class... Args>
-auto make_pipe_closure(F f, Args && ... args) 
-ZELDA_RETURNS(pipe_closure<F, zelda::tuple<Args && ...>>(f, zelda::tuple<Args && ...>(std::forward<Args>(args)...)))
-}
-
-template<class F>
-struct pipable_adaptor : function_base<F>
-{
-    pipable_adaptor() {};
-    pipable_adaptor(F f) : function_base<F>(f) {};
-
-    template<class X, class E = void>
-    struct result {};
-
-    template<class X, class... Args>
-    struct result<X(Args...), ZELDA_CLASS_REQUIRES(not zelda::is_callable<X(Args...)>)>
+    template<class A, ZELDA_REQUIRES(zelda::is_callable_seq<F, typename boost::fusion::result_of::push_front<Sequence, A>::type>)>
+    friend typename zelda::result_of_seq<F, typename boost::fusion::result_of::push_front<Sequence, A>::type>::type 
+    operator|(A && a, const pipe_closure<F, Sequence>& p)
     {
-        typedef details::pipe_closure<F, zelda::tuple<Args...>> type;
-    };
-
-    template<class X, class... Args>
-    struct result<X(Args...), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(Args...)>)>
-    : zelda::result_of<X(Args...)> {};
-
-    template<class... Args>
-    ZELDA_FUNCTION_REQUIRES(not zelda::is_callable<F(Args...)>)
-    (typename result<F(Args&&...)>::type) operator()(Args &&... args) const
-    {
-        return details::make_pipe_closure(this->get_function(), std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    ZELDA_FUNCTION_REQUIRES(zelda::is_callable<F(Args...)>)
-    (typename result<F(Args&&...)>::type) operator()(Args &&... args) const
-    {
-        return this->get_function()(std::forward<Args>(args)...);
+        return zelda::invoke(p.f, boost::fusion::push_front(p.seq, a));
     }
 };
 
-template<class F>
-pipable_adaptor<F> pipable(F f)
-{
-    return pipable_adaptor<F>(f);
+template<class F, class Seq>
+pipe_closure<F, Seq> make_pipe_closure(F f, Seq seq) 
+{ 
+    return pipe_closure<F, Seq>(f, seq); 
 }
+
+}
+
+struct pipable_adaptor_base
+{
+    ZELDA_AUTO_DECLARE_RESULT()
+
+    ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, seq>) (zelda::invoke(f, seq)) )
+    //ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, seq>) (static_assert(false, "is_callable")) )
+
+    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_seq<f, seq>) (details::make_pipe_closure(f, seq)) )
+};
+
+template<class F>
+struct pipable_adaptor : function_variadic_adaptor<pipable_adaptor_base, F> 
+{ 
+    pipable_adaptor() {}; 
+    pipable_adaptor(F f) : function_variadic_adaptor<F, pipable_adaptor_base>(f) {}; 
+
+    template<class A, ZELDA_REQUIRES(zelda::is_callable<F(A)>)>
+    friend typename zelda::result_of<F(A)>::type operator|(A && a, const pipable_adaptor<F>& p)
+    {
+        return p.get_function()(std::forward<A>(a));
+    }
+}; 
+template<class F> 
+pipable_adaptor<F> pipable(F f) { return pipable_adaptor<F>(f); }
+
+
+// template<class F>
+// struct pipable_adaptor : function_base<F>
+// {
+//     pipable_adaptor() {};
+//     pipable_adaptor(F f) : function_base<F>(f) {};
+
+//     template<class X, class E = void>
+//     struct result {};
+
+//     template<class X, class... Args>
+//     struct result<X(Args...), ZELDA_CLASS_REQUIRES(not zelda::is_callable<X(Args...)>)>
+//     {
+//         typedef details::pipe_closure<F, zelda::tuple<Args...>> type;
+//     };
+
+//     template<class X, class... Args>
+//     struct result<X(Args...), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(Args...)>)>
+//     : zelda::result_of<X(Args...)> {};
+
+//     template<class... Args>
+//     ZELDA_FUNCTION_REQUIRES(not zelda::is_callable<F(Args...)>)
+//     (typename result<F(Args&&...)>::type) operator()(Args &&... args) const
+//     {
+//         return details::make_pipe_closure(this->get_function(), std::forward<Args>(args)...);
+//     }
+
+//     template<class... Args>
+//     ZELDA_FUNCTION_REQUIRES(zelda::is_callable<F(Args...)>)
+//     (typename result<F(Args&&...)>::type) operator()(Args &&... args) const
+//     {
+//         return this->get_function()(std::forward<Args>(args)...);
+//     }
+// };
+
+// template<class F>
+// pipable_adaptor<F> pipable(F f)
+// {
+//     return pipable_adaptor<F>(f);
+// }
 
 //lazy
 //TODO: Use boost::phoenix::detail::expression::function_eval instead
@@ -185,45 +372,100 @@ struct general_adaptor : function_base<F>
 };
 
 //TODO: Partial
+template<class , class>
+struct partial_adaptor;
 
-//fuse
+template<class F, class Sequence>
+partial_adaptor<F, Sequence> partial(F, Sequence);
+
+namespace partial_details {
 template<class F>
-struct fuse_adaptor : function_base<F>
-{
-    fuse_adaptor() {};
-    fuse_adaptor(F f) : function_base<F>(f) {};
+struct seq 
+: zelda::mpl::identity<zelda::tuple<> > {};
 
-    template<class Sequence>
-    auto operator()(Sequence && seq) -> ZELDA_XTYPEOF(zelda::invoke(zelda::declval<F>(), seq))
-    {
-        return zelda::invoke(this->get_function(), seq);
-    }
-};
+template<class F, class Sequence>
+struct seq<partial_adaptor<F, Sequence> >
+: zelda::mpl::identity<Sequence > {};
 
 template<class F>
-fuse_adaptor<F> fuse(F f)
+struct fun 
+: zelda::mpl::identity<F> {};
+
+template<class F, class Sequence>
+struct fun<partial_adaptor<F, Sequence> >
+: zelda::mpl::identity<F> {};
+
+template<class F>
+zelda::tuple<> get_sequence(F)
 {
-    return fuse_adaptor<F>(f);
+    return zelda::tuple<>();
 }
 
-//unfuse
-template<class F>
-struct unfuse_adaptor : function_base<F>
+template<class F, class Sequence>
+Sequence get_sequence(F f)
 {
-    unfuse_adaptor() {};
-    unfuse_adaptor(F f) : function_base<F>(f) {};
+    return f.seq;
+}
 
-    template<class... T>
-    auto operator()(T && ... x) -> ZELDA_XTYPEOF(zelda::declval<F>()(zelda::make_tuple(std::forward<T>(x)...)))
-    {
-        return  this->get_function()(zelda::make_tuple(std::forward<T>(x)...));
-    }
+template<class F>
+F get_function(F f)
+{
+    return f;
+}
+
+template<class F, class Sequence>
+F get_function(F f)
+{
+    return f.get_function();
+}
+
+template<class F, class Sequence>
+struct partial_join_seq
+: boost::fusion::result_of::join<typename seq<F>::type, Sequence> {};
+
+template<class F, class Sequence>
+typename partial_join_seq<F, Sequence>::type
+partial_join(F f, Sequence seq)
+{
+    return boost::fusion::join(get_sequence(f), seq);
+}
+
+}
+
+struct partial_adaptor_base
+{
+    ZELDA_AUTO_DECLARE_RESULT()
+
+    ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+                        (zelda::invoke(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
+
+    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_seq<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+                        (partial(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
 };
 
-template<class F>
-unfuse_adaptor<F> unfuse(F f)
+template<class F, class Sequence = zelda::tuple<> >
+struct partial_adaptor : function_variadic_adaptor<partial_adaptor_base, F>
 {
-    return unfuse_adaptor<F>(f);
+    typedef Sequence sequence;
+    Sequence seq;
+    partial_adaptor() {}; 
+    partial_adaptor(Sequence seq) : seq(seq) {};
+    partial_adaptor(F f) : function_variadic_adaptor<F, partial_adaptor_base>(f) {};
+    partial_adaptor(Sequence seq, F f) : seq(seq), function_variadic_adaptor<F, partial_adaptor_base>(f) {};
+
+
+};
+
+template<class F, class Sequence>
+partial_adaptor<F, Sequence> partial(F f, Sequence seq)
+{
+    return partial_adaptor<F, Sequence>(f, seq);
+}
+
+template<class F>
+partial_adaptor<F> partial(F f)
+{
+    return partial_adaptor<F>(f);
 }
 
 //TODO: memoize

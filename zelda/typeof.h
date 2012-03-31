@@ -32,7 +32,7 @@ struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
 };
 
 template<class T>
-typename zelda::mpl::if_<std::is_rvalue_reference<T&&>, rvalue>
+typename zelda::mpl::if_<std::is_rvalue_reference<T&&>, value>
                                 ::template else_if<is_const2<T&&>, const_lvalue, lvalue >
                             ::type test(T&&);
 
@@ -72,7 +72,7 @@ const int& by_const_ref();
 }
 }
 
-BOOST_STATIC_ASSERT((std::is_rvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
+BOOST_STATIC_ASSERT((not std::is_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
 BOOST_STATIC_ASSERT((not zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_value())>::value));
 
 BOOST_STATIC_ASSERT((std::is_rvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_rvalue())>::value));

@@ -29,6 +29,12 @@ namespace mpl
 {
 
 template<class T>
+struct identity
+{
+    typedef T type;
+};
+
+template<class T>
 struct lazy : T {};
 
 template<class T>
@@ -81,10 +87,8 @@ struct if_c<false, T, detail::no_else>
 : detail::if_clause<false, T> {};
 
 template<class T>
-struct if_c<true, T, detail::no_else> : detail::if_clause<true, T>
-{
-    typedef T type;
-};
+struct if_c<true, T, detail::no_else> 
+: detail::if_clause<true, T>, eval<T> {};
 
 template<class C, class T = void, class E = detail::no_else>
 struct if_: if_c<C::type::value, T, E> {};

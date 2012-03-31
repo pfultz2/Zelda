@@ -87,14 +87,15 @@ struct result_of<F(Args...), ZELDA_CLASS_REQUIRES(is_callable<F(Args...)>)>
 #define DETAIL_ZELDA_AUTO_RESULT_ARGS(seq) BOOST_PP_ENUM(PP_SEQ_SIZE(seq), DETAIL_ZELDA_AUTO_RESULT_ARGS_ENUM, seq) 
 
 #define DETAIL_ZELDA_AUTO_RESULT_ENABLE(args, requires) \
+template<class Zelda_F> struct PP_CAT(private_result_enable, __LINE__) : boost::mpl::bool_<false> {}; \
 template<class Zelda_F, DETAIL_ZELDA_AUTO_RESULT_CLASS(args)> \
-struct private_result_enable<F(PP_SEQ_ENUM(args))> \
+struct PP_CAT(private_result_enable, __LINE__) <Zelda_F(PP_SEQ_ENUM(args))> \
 : ZELDA_DETAIL_REQUIRES_CLAUSE(PP_TUPLE_REM(requires)) {};
 
 #define DETAIL_ZELDA_AUTO_RESULT_DEDUCE(args, requires, expr) \
 template<class Zelda_F, DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args), class)> \
 struct result<Zelda_F(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args))), \
-typename zelda::mpl::if_<private_result_enable<Zelda_F(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args)))> >::type> \
+typename zelda::mpl::if_<PP_CAT(private_result_enable, __LINE__) <Zelda_F(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args)))> >::type> \
 { \
     DETAIL_ZELDA_AUTO_RESULT_STATIC(args) \
     typedef ZELDA_XTYPEOF(expr) type;\
@@ -102,7 +103,10 @@ typename zelda::mpl::if_<private_result_enable<Zelda_F(DETAIL_ZELDA_AUTO_RESULT_
 
 #define DETAIL_ZELDA_AUTO_RESULT_FUNCTION(args, expr) \
 template<DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args), class)> \
-typename result<Zelda_F(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE_REF(PP_SEQ_SIZE(args)))>::type \
+typename zelda::mpl::if_< \
+PP_CAT(private_result_enable, __LINE__) <void(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args)))>, \
+zelda::mpl::lazy<result<void(DETAIL_ZELDA_AUTO_RESULT_TEMPLATE(PP_SEQ_SIZE(args)))> > \
+>::type \
 operator()( DETAIL_ZELDA_AUTO_RESULT_ARGS(args) ) \
 { \
     return expr; \
@@ -115,17 +119,17 @@ DETAIL_ZELDA_AUTO_RESULT_DEDUCE(args, requires, expr) \
 DETAIL_ZELDA_AUTO_RESULT_FUNCTION(args, expr)
 
 #define DETAIL_ZELDA_AUTO_RESULT_2(seq) \
-DETAIL_ZELDA_AUTO_RESULT_KERNEL(PP_TUPLE_TO_SEQ(PP_SEQ_ELEM(0, seq)), boost::mpl::bool_<true>, PP_SEQ_ELEM(1, seq))
+DETAIL_ZELDA_AUTO_RESULT_KERNEL(PP_TUPLE_TO_SEQ(PP_SEQ_ELEM(0, seq)), (boost::mpl::bool_<true>), PP_SEQ_ELEM(1, seq))
 
-#define DETAIL_ZELDA_AUTO_RESULT_3(args, requires, expr) \
+#define DETAIL_ZELDA_AUTO_RESULT_3(seq) \
 DETAIL_ZELDA_AUTO_RESULT_KERNEL(PP_TUPLE_TO_SEQ(PP_SEQ_ELEM(0, seq)), PP_SEQ_ELEM(1, seq), PP_SEQ_ELEM(2, seq))
 
 #define ZELDA_AUTO_DECLARE_RESULT() \
-template<class Zelda_F> struct result {}; \
-template<class Zelda_F> struct private_result_enable : boost::mpl::bool_<false> {}; 
+template<class Zelda_F, class Zelda_Enable = void> struct result {}; 
 
 #define DETAIL_ZELDA_AUTO_RESULT(seq) PP_CAT(DETAIL_ZELDA_AUTO_RESULT_, PP_SEQ_SIZE(seq))(seq)
 //AUTO_RESULT((args)(requires)(expression))
+//AUTO_RESULT((args)(expression))
 #define ZELDA_AUTO_RESULT(seq) DETAIL_ZELDA_AUTO_RESULT(PP_TUPLE_SEQ(seq))
 
 // template<class F>
@@ -137,5 +141,35 @@ template<class Zelda_F> struct private_result_enable : boost::mpl::bool_<false> 
 // : result_details::has_type< typename result_details::function_object<F>::type::template result<F> >::type {};
 
 }
+
+// struct sum
+// {
+
+// ZELDA_AUTO_DECLARE_RESULT()
+
+// ZELDA_AUTO_RESULT((x, y)(boost::is_numeric<x>)(x+y))
+// };
+
+// struct sum
+// {
+
+// template<class Zelda_F, class Zelda_Enable = void> struct result {}; 
+// template<class Zelda_F> struct private_result_enable : boost::mpl::bool_<false> {};
+
+// template<class Zelda_F, class x, class y> 
+// struct private_result_enable<Zelda_F(x, y)> 
+// : zelda::requires_detail::requires_<boost::mpl::bool_<true> > {}; 
+
+// template<class Zelda_F, class Zelda_AR_Type0 , class Zelda_AR_Type1> 
+//     struct result<Zelda_F( Zelda_AR_Type0 , Zelda_AR_Type1), typename zelda::mpl::if_<private_result_enable<Zelda_F( Zelda_AR_Type0 , Zelda_AR_Type1)> >::type> 
+//     { 
+//         static Zelda_AR_Type0 && x; static Zelda_AR_Type1 && y; 
+//         typedef typename zelda::typeof_detail::xtypeof<decltype(zelda::typeof_detail::test((x+y))), decltype((x+y))>::type type;
+//     }; 
+//     template< class Zelda_AR_Type0 , class Zelda_AR_Type1> 
+//     typename result<void( Zelda_AR_Type0 && , Zelda_AR_Type1 &&)>::type 
+//     operator()( Zelda_AR_Type0 && x , Zelda_AR_Type1 && y ) { return (x+y); }
+// };
+
 
 #endif

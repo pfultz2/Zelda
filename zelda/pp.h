@@ -155,6 +155,7 @@ PP_TOKEN_ ## a(PP_TOKEN_ ## b)((unused)) )) \
 #define DETAIL_PP_TUPLE_REM(...) __VA_ARGS__
 #define PP_TUPLE_REM(tuple) DETAIL_PP_TUPLE_REM tuple
 #define PP_TUPLE_SIZE(tuple) PP_NARGS tuple
+#define PP_TUPLE_TO_SEQ(tuple) BOOST_PP_TUPLE_TO_SEQ(PP_TUPLE_SIZE(tuple), tuple)
 
 //Args
 #define DETAIL_PP_ARGS_TO_SEQ(size, tuple) BOOST_PP_TUPLE_TO_SEQ(size, tuple)
