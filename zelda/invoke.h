@@ -7,11 +7,12 @@
 #include <boost/fusion/iterator/advance.hpp>
 #include <boost/fusion/iterator.hpp>
 #include <boost/fusion/include/is_sequence.hpp>
+#include <boost/fusion/functional/invocation/invoke.hpp>
 #include "result_of.h"
 #include "requires.h"
 #include "typeof.h"
 
-namespace zelda {
+namespace zz {
 
 namespace  details {
 template<class F, class Iterator, class End, class... T>
@@ -52,7 +53,10 @@ namespace details{
 
 template<class R, class F, class Iterator, class End, class... Args>
 ZELDA_FUNCTION_REQUIRES(boost::is_same<Iterator, End>)
-(R) invoke_impl(F f, Iterator it, End e, Args && ... args);
+(R) invoke_impl(F f, Iterator it, End e, Args && ... args)
+{
+    return f(std::forward<Args>(args)...);
+}
 
 template<class R, class F, class Iterator, class End, class... Args>
 ZELDA_FUNCTION_REQUIRES(not boost::is_same<Iterator, End>)
@@ -61,20 +65,15 @@ ZELDA_FUNCTION_REQUIRES(not boost::is_same<Iterator, End>)
     return invoke_impl<R>(f, boost::fusion::next(it), e, boost::fusion::deref(it), std::forward<Args>(args)...);
 }
 
-template<class R, class F, class Iterator, class End, class... Args>
-ZELDA_FUNCTION_REQUIRES(boost::is_same<Iterator, End>)
-(R) invoke_impl(F f, Iterator it, End e, Args && ... args)
-{
-    return f(std::forward<Args>(args)...);
-}
-
 
 }
+
+//using boost::fusion::invoke;
 
 template<class F, class Sequence, ZELDA_REQUIRES(boost::fusion::traits::is_sequence<Sequence>)>
-typename zelda::result_of_seq<F, Sequence>::type invoke(F f, const Sequence& seq)
+typename result_of_seq<F, Sequence>::type invoke(F f, Sequence&& seq)
 {
-    return details::invoke_impl<typename zelda::result_of_seq<F, Sequence>::type>(f, boost::fusion::begin(seq), boost::fusion::end(seq));
+    return details::invoke_impl<typename result_of_seq<F, Sequence>::type>(f, boost::fusion::begin(seq), boost::fusion::end(seq));
 }
 
 

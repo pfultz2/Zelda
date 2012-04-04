@@ -4,6 +4,7 @@
 #include "introspection.h"
 #include "requires.h"
 #include "typeof.h"
+#include "tuple.h"
 
 namespace zelda{
 
@@ -69,7 +70,32 @@ struct result_of {};
 
 template<class F, class... Args>
 struct result_of<F(Args...), ZELDA_CLASS_REQUIRES(is_callable<F(Args...)>)>
-: boost::mpl::identity<ZELDA_XTYPEOF(zelda::declval<F>()(zelda::declval<Args>()...))> {};
+: zelda::mpl::identity<ZELDA_XTYPEOF(zelda::declval<F>()(zelda::declval<Args>()...))> {};
+
+namespace detail {
+template<class F, class Tuple, class Seq>
+struct tuple_to_function_impl {};
+
+template<class F, class Tuple, template<int... > class Seq, int... N>
+struct tuple_to_function_impl<F, Tuple, Seq<N...> >
+: zelda::mpl::identity<F(typename zelda::tuple_element<N, Tuple>::type...)> {};
+
+template<class F, class Tuple>
+struct tuple_to_function
+: detail::tuple_to_function_impl<F, Tuple, typename detail::gens<zelda::tuple_size<Tuple>::value>::type> {};
+}
+
+template<class F, class Tuple, ZELDA_REQUIRES(is_tuple<Tuple>)>
+struct is_callable_tuple
+: is_callable<typename detail::tuple_to_function<F, Tuple>::type >
+{};
+
+template<class F, class Tuple, ZELDA_REQUIRES(is_tuple<Tuple>)>
+struct result_of_tuple
+: result_of<typename detail::tuple_to_function<F, Tuple>::type >
+{};
+
+}
 
 #define DETAIL_ZELDA_AUTO_RESULT_CLASS_TRANSFORM(r, x) class x
 #define DETAIL_ZELDA_AUTO_RESULT_CLASS(seq) PP_SEQ_ENUM(PP_SEQ_TRANSFORM(DETAIL_ZELDA_AUTO_RESULT_CLASS_TRANSFORM, seq))
@@ -132,6 +158,9 @@ template<class Zelda_F, class Zelda_Enable = void> struct result {};
 //AUTO_RESULT((args)(expression))
 #define ZELDA_AUTO_RESULT(seq) DETAIL_ZELDA_AUTO_RESULT(PP_TUPLE_SEQ(seq))
 
+
+
+
 // template<class F>
 // struct is_callable<F, ZELDA_CLASS_REQUIRES(result_details::has_enable<typename result_details::function_object<F>::type>)>
 // : result_details::function_object<F>::type::template enable<F>::type {};
@@ -139,8 +168,6 @@ template<class Zelda_F, class Zelda_Enable = void> struct result {};
 // template<class F>
 // struct is_callable<F, ZELDA_CLASS_REQUIRES(result_details::has_type<typename result_of<F>::type>)>
 // : result_details::has_type< typename result_details::function_object<F>::type::template result<F> >::type {};
-
-}
 
 // struct sum
 // {

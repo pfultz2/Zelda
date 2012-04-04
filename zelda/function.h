@@ -10,10 +10,11 @@
 
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
-#include <boost/fusion/algorithm/transformation/join.hpp>
+//#include <boost/fusion/algorithm/transformation/join.hpp>
 #include "requires.h"
-#include "invoke.h"
+//#include "invoke.h"
 #include "tuple.h"
+#include "result_of.h"
 #include "pp.h"
 
 #define ZELDA_DETAIL_FO_DEFINE(tmpl, enable, ret, name, params) \
@@ -125,14 +126,14 @@ struct function_variadic_adaptor : function_base<F>, function_adaptor_base<A>
     template<class X, class... T>
     struct result<X(T...)>
     {
-        typedef ZELDA_XTYPEOF(zelda::declval<A>()(zelda::declval<F>(), zelda::make_tuple(zelda::declval<T>()...))) type;
+        typedef ZELDA_XTYPEOF(zelda::declval<A>()(zelda::declval<F>(), zelda::declval<zelda::tuple<T&&...>>())) type;
     };
 
     template<class... T>
     typename result<void(T...)>::type
     operator()(T && ... x)
     {
-        return this->get_adaptor()(this->get_function(), zelda::make_tuple(std::forward<T>(x)...));
+        return this->get_adaptor()(this->get_function(), zelda::forward_as_tuple(std::forward<T>(x)...));
     }
 
 };
@@ -237,22 +238,28 @@ struct pipe_closure
 {
     F f;
     Sequence seq;
-    pipe_closure(Sequence seq) : seq(seq) {};
-    pipe_closure(F f, Sequence seq) : seq(seq), f(f) {};
+    template<class S>
+    pipe_closure(S && seq) : seq(zelda::unforward_tuple(std::forward<Sequence>(seq))) {};
+    template<class S>
+    pipe_closure(F f, S && seq) : f(f), seq(zelda::unforward_tuple(std::forward<Sequence>(seq))) {};
 
-    template<class A, ZELDA_REQUIRES(zelda::is_callable_seq<F, typename boost::fusion::result_of::push_front<Sequence, A>::type>)>
-    friend typename zelda::result_of_seq<F, typename boost::fusion::result_of::push_front<Sequence, A>::type>::type 
-    operator|(A && a, const pipe_closure<F, Sequence>& p)
+    template<class A>
+    static auto push_front(A && a, Sequence && seq)
+    ZELDA_RETURNS(zelda::tuple_cat(zelda::tuple<A>(a), seq));
+
+    template<class A>
+    friend ZELDA_FUNCTION_REQUIRES(zelda::is_callable_tuple<F, typename zelda::tuple_join<tuple<A&&>, Sequence>::type>)
+    (typename zelda::result_of_tuple<F, typename zelda::tuple_join<tuple<A&&>, Sequence>::type>::type) 
+    operator|(A && a, pipe_closure<F, Sequence> p)
+    
     {
-        return zelda::invoke(p.f, boost::fusion::push_front(p.seq, a));
+        return zelda::invoke(p.f, zelda::tuple_cat(zelda::forward_as_tuple(std::forward<A>(a)), p.seq));
     }
 };
 
 template<class F, class Seq>
-pipe_closure<F, Seq> make_pipe_closure(F f, Seq seq) 
-{ 
-    return pipe_closure<F, Seq>(f, seq); 
-}
+auto make_pipe_closure(F f, Seq && seq) ZELDA_RETURNS
+( pipe_closure<F, decltype(zelda::unforward_tuple(seq))>(f, std::forward<Seq>(seq)) )
 
 }
 
@@ -260,10 +267,10 @@ struct pipable_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, seq>) (zelda::invoke(f, seq)) )
+    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, seq>) (zelda::invoke(f, seq)) )
     //ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, seq>) (static_assert(false, "is_callable")) )
 
-    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_seq<f, seq>) (details::make_pipe_closure(f, seq)) )
+    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, seq>) (details::make_pipe_closure(f, seq)) )
 };
 
 template<class F>
@@ -420,15 +427,15 @@ F get_function(F f)
 }
 
 template<class F, class Sequence>
-struct partial_join_seq
-: boost::fusion::result_of::join<typename seq<F>::type, Sequence> {};
+auto partial_join(F f, Sequence seq)
+ZELDA_RETURNS(get_sequence(f), seq)
+
 
 template<class F, class Sequence>
-typename partial_join_seq<F, Sequence>::type
-partial_join(F f, Sequence seq)
-{
-    return boost::fusion::join(get_sequence(f), seq);
-}
+struct partial_join_seq
+: zelda::mpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
+{};
+
 
 }
 
@@ -436,10 +443,10 @@ struct partial_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, typename partial_details::partial_join_seq<f, seq>::type>) 
                         (zelda::invoke(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
 
-    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_seq<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, typename partial_details::partial_join_seq<f, seq>::type>) 
                         (partial(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
 };
 

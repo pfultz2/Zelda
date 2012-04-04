@@ -10,6 +10,7 @@
 
 #include "mpl.h"
 #include "pp.h"
+#include "typeof.h"
 
 namespace zelda{namespace requires_detail{
 struct not_tag {};
@@ -79,6 +80,9 @@ static_assert(ZELDA_DETAIL_REQUIRES_CLAUSE(not boost::mpl::bool_<false>)::type::
 #define ZELDA_CLASS_REQUIRES(...) typename zelda::mpl::if_<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__)>::type
 
 #define ZELDA_REQUIRES(...) class Zelda_Enable = typename zelda::mpl::if_<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__)>::type
+
+#define ZELDA_ERROR_RETURN_REQUIRES_NEEDS_AN_EXPRESSION(...) ZELDA_XTYPEOF(__VA_ARGS__)>::type { return __VA_ARGS__; }
+#define ZELDA_RETURN_REQUIRES(...) -> typename zelda::mpl::if_<ZELDA_DETAIL_REQUIRES_CLAUSE(__VA_ARGS__), ZELDA_ERROR_RETURN_REQUIRES_NEEDS_AN_EXPRESSION
 
 
 #endif	/* ZELDA_REQUIRES_H */

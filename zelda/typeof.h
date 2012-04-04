@@ -36,6 +36,8 @@ typename zelda::mpl::if_<std::is_rvalue_reference<T&&>, value>
                                 ::template else_if<is_const2<T&&>, const_lvalue, lvalue >
                             ::type test(T&&);
 
+void test(...);
+
 template<class Tag, class T>
 struct xtypeof {};
 
@@ -50,13 +52,17 @@ struct xtypeof<const_lvalue, T> : std::add_const< typename std::add_lvalue_refer
 
 template<class T>
 struct xtypeof<value, T> : boost::mpl::identity<T> {};
+
+template<class T>
+struct xtypeof<void, T> : boost::mpl::identity<void> {};
 }
 }
 
 #define ZELDA_XTYPEOF(...) \
 typename zelda::typeof_detail::xtypeof<ZELDA_TYPEOF(zelda::typeof_detail::test(__VA_ARGS__)), ZELDA_TYPEOF(__VA_ARGS__)>::type
 
-#define ZELDA_RETURNS(...) -> decltype(__VA_ARGS__) { return __VA_ARGS__; }
+
+#define ZELDA_RETURNS(...) -> ZELDA_XTYPEOF(__VA_ARGS__) { return __VA_ARGS__; }
 
 #ifdef ZELDA_TEST
 namespace zelda {
@@ -66,6 +72,7 @@ int by_value();
 int&& by_rvalue();
 int& by_ref();
 const int& by_const_ref();
+void by_void();
 
 
 
@@ -83,6 +90,8 @@ BOOST_STATIC_ASSERT((not zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::ty
 
 BOOST_STATIC_ASSERT((std::is_lvalue_reference<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
 BOOST_STATIC_ASSERT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(zelda::typeof_test::by_const_ref())>::value));
+
+BOOST_STATIC_ASSERT((std::is_same<ZELDA_XTYPEOF(zelda::typeof_test::by_void()), void>::value));
 
 #endif
 
