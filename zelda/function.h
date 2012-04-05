@@ -239,9 +239,9 @@ struct pipe_closure
     F f;
     Sequence seq;
     template<class S>
-    pipe_closure(S && seq) : seq(zelda::unforward_tuple(std::forward<Sequence>(seq))) {};
+    pipe_closure(S && seq) : seq(std::forward<Sequence>(seq)) {};
     template<class S>
-    pipe_closure(F f, S && seq) : f(f), seq(zelda::unforward_tuple(std::forward<Sequence>(seq))) {};
+    pipe_closure(F f, S && seq) : f(f), seq(std::forward<Sequence>(seq)) {};
 
     template<class A>
     static auto push_front(A && a, Sequence && seq)
@@ -402,16 +402,16 @@ template<class F, class Sequence>
 struct fun<partial_adaptor<F, Sequence> >
 : zelda::mpl::identity<F> {};
 
-template<class F>
-zelda::tuple<> get_sequence(F)
-{
-    return zelda::tuple<>();
-}
-
 template<class F, class Sequence>
-Sequence get_sequence(F f)
+Sequence get_tuple(partial_adaptor<F, Sequence> f)
 {
     return f.seq;
+}
+
+template<class F>
+zelda::tuple<> get_tuple(F)
+{
+    return zelda::tuple<>();
 }
 
 template<class F>
@@ -421,18 +421,18 @@ F get_function(F f)
 }
 
 template<class F, class Sequence>
-F get_function(F f)
+F get_function(partial_adaptor<F, Sequence> f)
 {
     return f.get_function();
 }
 
 template<class F, class Sequence>
-auto partial_join(F f, Sequence seq)
-ZELDA_RETURNS(get_sequence(f), seq)
+auto partial_join(F f, Sequence && seq)
+ZELDA_RETURNS(zelda::tuple_cat(get_tuple(f), std::forward<Sequence>(seq)));
 
 
 template<class F, class Sequence>
-struct partial_join_seq
+struct partial_join_tuple
 : zelda::mpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
 {};
 
@@ -443,10 +443,10 @@ struct partial_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, typename partial_details::partial_join_tuple<f, seq>::type>) 
                         (zelda::invoke(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
 
-    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, typename partial_details::partial_join_seq<f, seq>::type>) 
+    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, typename partial_details::partial_join_tuple<f, seq>::type>) 
                         (partial(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
 };
 
@@ -464,16 +464,18 @@ struct partial_adaptor : function_variadic_adaptor<partial_adaptor_base, F>
 };
 
 template<class F, class Sequence>
-partial_adaptor<F, Sequence> partial(F f, Sequence seq)
-{
-    return partial_adaptor<F, Sequence>(f, seq);
-}
+auto partial(F f, Sequence && seq) ZELDA_RETURNS
+(
+    partial_adaptor<F, decltype(zelda::unforward_tuple(seq))>(f, std::forward<Sequence>(seq))
+)
 
 template<class F>
 partial_adaptor<F> partial(F f)
 {
     return partial_adaptor<F>(f);
 }
+
+//TODO: poly
 
 //TODO: memoize
 }

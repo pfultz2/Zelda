@@ -78,6 +78,10 @@ struct tuple_gens
 template<class F, class T, int ...N>
 auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(zelda::get<N>(std::forward<T>(t))...));
 
+template<class T>
+struct is_empty_tuple
+: boost::mpl::bool_<zelda::tuple_size<T>::value == 0> {};
+
 template<class T1, class T2, class S1, class S2>
 struct tuple_cat_r_impl {};
 
@@ -88,14 +92,33 @@ struct tuple_cat_r_impl<T1, T2, seq<N1...>, seq<N2...> >
 
 template<class T1, class T2>
 struct tuple_cat_r
-: tuple_cat_r_impl<T1, T2, typename tuple_gens<T1>::type, typename tuple_gens<T1>::type>
+: zelda::mpl::if_<is_empty_tuple<T1>, zelda::mpl::lazy<std::remove_reference<T2> > >
+::template else_if<is_empty_tuple<T2>, zelda::mpl::lazy<std::remove_reference<T1> > >
+::template else_< zelda::mpl::lazy<tuple_cat_r_impl<T1, T2, typename tuple_gens<T1>::type, typename tuple_gens<T1>::type> > >
 {};
 
+
+
 template<class R, class T1, class T2, int ...N1, int ...N2>
-R tuple_cat_impl(T1 && t1, T2 && t2, seq<N1...>, seq<N2...>)
+ZELDA_FUNCTION_REQUIRES(not is_empty_tuple<T1>, not is_empty_tuple<T2>) 
+(R) tuple_cat_impl(T1 && t1, T2 && t2, seq<N1...>, seq<N2...>)
 {
     return R(std::forward<typename zelda::tuple_element<N1, T1>::type>(zelda::get<N1>(std::forward<T1>(t1)))...,
              std::forward<typename zelda::tuple_element<N2, T2>::type>(zelda::get<N2>(std::forward<T2>(t2)))...);
+}
+
+template<class R, class T1, class T2, int ...N1, int ...N2>
+ZELDA_FUNCTION_REQUIRES(is_empty_tuple<T1>, not is_empty_tuple<T2>) 
+(R) tuple_cat_impl(T1 &&, T2 && t2, seq<N1...>, seq<N2...>)
+{
+    return R(std::forward<typename zelda::tuple_element<N2, T2>::type>(zelda::get<N2>(std::forward<T2>(t2)))...);
+}
+
+template<class R, class T1, class T2, int ...N1, int ...N2>
+ZELDA_FUNCTION_REQUIRES(not is_empty_tuple<T1>, is_empty_tuple<T2>) 
+(R) tuple_cat_impl(T1 && t1, T2 &&, seq<N1...>, seq<N2...>)
+{
+    return R(std::forward<typename zelda::tuple_element<N1, T1>::type>(zelda::get<N1>(std::forward<T1>(t1)))...);
 }
 
 template<class T>
@@ -184,6 +207,16 @@ auto unforward_tuple(Tuple && t) ZELDA_RETURNS
 
 #ifdef ZELDA_TEST
 static_assert(zelda::is_tuple<zelda::tuple<int> >::value, "is_tuple trait failed");
+
+static_assert(zelda::tuple_size
+<
+    decltype(zelda::tuple_cat(zelda::tuple<>(), zelda::tuple<int>(1)))
+>::value == 1, "tuple_cat failed");
+
+static_assert(zelda::tuple_size
+<
+    decltype(zelda::tuple_cat(zelda::tuple<int>(1), zelda::tuple<int>(1)))
+>::value == 2, "tuple_cat failed");
 #endif
 
 #endif
