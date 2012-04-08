@@ -13,7 +13,7 @@ using std::tuple;
 using std::make_tuple;
 using std::forward_as_tuple;
 using std::tie;
-//using std::tuple_cat;
+using std::tuple_cat;
 //using std::tuple_size;
 using std::get;
 //using std::tuple_element;
@@ -75,8 +75,27 @@ template<class T>
 struct tuple_gens
 : gens<zelda::tuple_size<T>::value> {};
 
+template<class T, class Seq>
+struct tuple_rvalue_check_impl {};
+
+template<class T, int... N>
+struct tuple_rvalue_check_impl<T, seq<N...> >
+: zelda::mpl::if_< zelda::mpl::or_<std::is_rvalue_reference<typename zelda::tuple_element<N, T>::type>...>,
+zelda::mpl::not_<std::is_lvalue_reference<T> > 
+>::template else_< boost::mpl::bool_<true> >
+{};
+
+template<class T>
+struct tuple_rvalue_check
+: tuple_rvalue_check_impl<T, typename tuple_gens<T>::type>
+{};
+
+template<int N, class T>
+auto forward_get(T && t) 
+ZELDA_RETURNS(std::forward<decltype(zelda::get<N>(std::forward<T>(t)))>(zelda::get<N>(std::forward<T>(t))));
+
 template<class F, class T, int ...N>
-auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(zelda::get<N>(std::forward<T>(t))...));
+auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(forward_get<N>(std::forward<T>(t))...));
 
 template<class T>
 struct is_empty_tuple
@@ -90,35 +109,28 @@ struct tuple_cat_r_impl<T1, T2, seq<N1...>, seq<N2...> >
 : zelda::mpl::identity<zelda::tuple<typename zelda::tuple_element<N1, T1>::type..., typename zelda::tuple_element<N2, T2>::type...> >
 {};
 
-template<class T1, class T2>
-struct tuple_cat_r
-: zelda::mpl::if_<is_empty_tuple<T1>, zelda::mpl::lazy<std::remove_reference<T2> > >
-::template else_if<is_empty_tuple<T2>, zelda::mpl::lazy<std::remove_reference<T1> > >
-::template else_< zelda::mpl::lazy<tuple_cat_r_impl<T1, T2, typename tuple_gens<T1>::type, typename tuple_gens<T1>::type> > >
-{};
-
 
 
 template<class R, class T1, class T2, int ...N1, int ...N2>
 ZELDA_FUNCTION_REQUIRES(not is_empty_tuple<T1>, not is_empty_tuple<T2>) 
 (R) tuple_cat_impl(T1 && t1, T2 && t2, seq<N1...>, seq<N2...>)
 {
-    return R(std::forward<typename zelda::tuple_element<N1, T1>::type>(zelda::get<N1>(std::forward<T1>(t1)))...,
-             std::forward<typename zelda::tuple_element<N2, T2>::type>(zelda::get<N2>(std::forward<T2>(t2)))...);
+    return R(forward_get<N1>(std::forward<T1>(t1))...,
+             forward_get<N2>(std::forward<T2>(t2))...);
 }
 
 template<class R, class T1, class T2, int ...N1, int ...N2>
 ZELDA_FUNCTION_REQUIRES(is_empty_tuple<T1>, not is_empty_tuple<T2>) 
-(R) tuple_cat_impl(T1 &&, T2 && t2, seq<N1...>, seq<N2...>)
+(T2) tuple_cat_impl(T1 &&, T2 && t2, seq<N1...>, seq<N2...>)
 {
-    return R(std::forward<typename zelda::tuple_element<N2, T2>::type>(zelda::get<N2>(std::forward<T2>(t2)))...);
+    return std::forward<T2>(t2);
 }
 
 template<class R, class T1, class T2, int ...N1, int ...N2>
 ZELDA_FUNCTION_REQUIRES(not is_empty_tuple<T1>, is_empty_tuple<T2>) 
-(R) tuple_cat_impl(T1 && t1, T2 &&, seq<N1...>, seq<N2...>)
+(T1) tuple_cat_impl(T1 && t1, T2 &&, seq<N1...>, seq<N2...>)
 {
-    return R(std::forward<typename zelda::tuple_element<N1, T1>::type>(zelda::get<N1>(std::forward<T1>(t1)))...);
+    return std::forward<T1>(t1);
 }
 
 template<class T>
@@ -184,12 +196,21 @@ struct is_tuple<Tuple<T...> >
 // : detail::tuple_detail::has_value_type<zelda::tuple_size<T> > {};
 
 template<class T1, class T2>
-typename detail::tuple_cat_r<T1, T2>::type
-tuple_cat(T1 && t1, T2 && t2)
-{
-    return detail::tuple_cat_impl<typename detail::tuple_cat_r<T1, T2>::type>
-    (t1, t2, typename detail::tuple_gens<T1>::type(), typename detail::tuple_gens<T2>::type());
-}
+struct tuple_cat_result
+: zelda::mpl::if_<detail::is_empty_tuple<T1>, zelda::mpl::lazy<std::remove_reference<T2> > >
+::template else_if<detail::is_empty_tuple<T2>, zelda::mpl::lazy<std::remove_reference<T1> > >
+::template else_< zelda::mpl::lazy<detail::tuple_cat_r_impl<T1, T2, typename detail::tuple_gens<T1>::type, typename detail::tuple_gens<T1>::type> > >
+{};
+
+// template<class T1, class T2>
+// typename tuple_cat_result<T1, T2>::type
+// tuple_cat(T1 && t1, T2 && t2)
+// {
+//     static_assert(detail::tuple_rvalue_check<T1>::type::value, "t1 must be an rvalue");
+//     static_assert(detail::tuple_rvalue_check<T2>::type::value, "t2 must be an rvalue");
+//     return detail::tuple_cat_impl<typename tuple_cat_result<T1, T2>::type>
+//     (std::forward<T1>(t1), std::forward<T2>(t2), typename detail::tuple_gens<T1>::type(), typename detail::tuple_gens<T2>::type());
+// }
 
 template<class F, class Tuple>
 auto invoke(F f, Tuple && t) ZELDA_RETURNS

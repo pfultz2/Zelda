@@ -88,7 +88,7 @@ struct function_adaptor_base<A, ZELDA_CLASS_REQUIRES(boost::is_empty<A>)>
     }
 };
 
-template<class A, class F>
+template<class Self, class A, class F>
 struct function_adaptor : function_base<F>, function_adaptor_base<A>
 {
     function_adaptor() {};
@@ -101,17 +101,17 @@ struct function_adaptor : function_base<F>, function_adaptor_base<A>
 
     template<class X, class... T>
     struct result<X(T...)>
-    : zelda::result_of<A(F, T...)> {};
+    : zelda::result_of<A(const Self, F, T...)> {};
 
     template<class... T>
     typename result<void(T...)>::type
-    operator()(T && ... x)
+    operator()(T && ... x) const
     {
-        return this->get_adaptor()(this->get_function(), std::forward<T>(x)...);
+        return this->get_adaptor()(static_cast<const Self&>(*this), this->get_function(), std::forward<T>(x)...);
     }
 };
 
-template<class A, class F>
+template<class Self, class A, class F>
 struct function_variadic_adaptor : function_base<F>, function_adaptor_base<A>
 {
     function_variadic_adaptor() {};
@@ -125,25 +125,25 @@ struct function_variadic_adaptor : function_base<F>, function_adaptor_base<A>
     //TODO: Check if it is callable
     template<class X, class... T>
     struct result<X(T...)>
-    {
-        typedef ZELDA_XTYPEOF(zelda::declval<A>()(zelda::declval<F>(), zelda::declval<zelda::tuple<T&&...>>())) type;
-    };
+    : zelda::result_of<A(const Self, F, zelda::tuple<T&&...>)> {};
+
 
     template<class... T>
     typename result<void(T...)>::type
-    operator()(T && ... x)
+    operator()(T && ... x) const
     {
-        return this->get_adaptor()(this->get_function(), zelda::forward_as_tuple(std::forward<T>(x)...));
+        return this->get_adaptor()(static_cast<const Self&>(*this), this->get_function(), zelda::forward_as_tuple(std::forward<T>(x)...));
     }
 
 };
 
 #define DETAIL_ZELDA_FUNCTION_MAKE_ADAPTOR(name, adaptor_type, adaptor_base) \
 template<class F> \
-struct name ## _adaptor : adaptor_type<adaptor_base, F> \
+struct name ## _adaptor : adaptor_type<name ## _adaptor<F>, adaptor_base, F> \
 { \
+    typedef adaptor_type<name ## _adaptor<F>, adaptor_base, F> base;\
     name ## _adaptor() {}; \
-    name ## _adaptor(F f) : adaptor_type<F, adaptor_base>(f) {}; \
+    name ## _adaptor(F f) : base(f) {}; \
 }; \
 template<class F> \
 name ## _adaptor<F> name(F f) { return name ## _adaptor<F>(f); }
@@ -160,7 +160,7 @@ struct fuse_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT((f, seq)(zelda::invoke(f, seq)))
+    ZELDA_AUTO_RESULT((self, f, seq)(zelda::invoke(f, seq)))
 };
 ZELDA_FUNCTION_MAKE_SIMPLE_ADAPTOR(fuse)
 
@@ -196,7 +196,7 @@ struct variadic_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT((f, seq)(f(seq)))
+    ZELDA_AUTO_RESULT((self, f, seq)(f(seq)))
 };
 ZELDA_FUNCTION_MAKE_ADAPTOR(variadic)
 
@@ -267,17 +267,18 @@ struct pipable_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, seq>) (zelda::invoke(f, seq)) )
+    ZELDA_AUTO_RESULT( (self, f, seq)(is_callable_tuple<f, seq>) (zelda::invoke(f, seq)) )
     //ZELDA_AUTO_RESULT( (f, seq)(is_callable_seq<f, seq>) (static_assert(false, "is_callable")) )
 
-    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, seq>) (details::make_pipe_closure(f, seq)) )
+    ZELDA_AUTO_RESULT( (self, f, seq)(not is_callable_tuple<f, seq>) (details::make_pipe_closure(f, seq)) )
 };
 
 template<class F>
-struct pipable_adaptor : function_variadic_adaptor<pipable_adaptor_base, F> 
+struct pipable_adaptor : function_variadic_adaptor<pipable_adaptor<F>, pipable_adaptor_base, F> 
 { 
+    typedef function_variadic_adaptor<pipable_adaptor<F>, pipable_adaptor_base, F> base;
     pipable_adaptor() {}; 
-    pipable_adaptor(F f) : function_variadic_adaptor<F, pipable_adaptor_base>(f) {}; 
+    pipable_adaptor(F f) : base(f) {}; 
 
     template<class A, ZELDA_REQUIRES(zelda::is_callable<F(A)>)>
     friend typename zelda::result_of<F(A)>::type operator|(A && a, const pipable_adaptor<F>& p)
@@ -383,7 +384,7 @@ template<class , class>
 struct partial_adaptor;
 
 template<class F, class Sequence>
-partial_adaptor<F, Sequence> partial(F, Sequence);
+auto partial(F f, Sequence && seq) -> partial_adaptor<F, decltype(zelda::unforward_tuple(seq))>;
 
 namespace partial_details {
 template<class F>
@@ -426,14 +427,19 @@ F get_function(partial_adaptor<F, Sequence> f)
     return f.get_function();
 }
 
-template<class F, class Sequence>
-auto partial_join(F f, Sequence && seq)
-ZELDA_RETURNS(zelda::tuple_cat(get_tuple(f), std::forward<Sequence>(seq)));
+// template<class F, class Sequence>
+// auto partial_join(F f, Sequence && seq)
+// ZELDA_RETURNS(zelda::tuple_cat(get_tuple(f), std::forward<Sequence>(seq)));
 
 
-template<class F, class Sequence>
-struct partial_join_tuple
-: zelda::mpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
+// template<class F, class Sequence>
+// struct partial_join_tuple
+// : zelda::mpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
+// {};
+
+template<class F, class T, class U>
+struct partial_is_callable
+: is_callable_tuple<F, typename tuple_cat_result<typename std::remove_reference<T>::type::tuple, U>::type> 
 {};
 
 
@@ -443,31 +449,42 @@ struct partial_adaptor_base
 {
     ZELDA_AUTO_DECLARE_RESULT()
 
-    ZELDA_AUTO_RESULT( (f, seq)(is_callable_tuple<f, typename partial_details::partial_join_tuple<f, seq>::type>) 
-                        (zelda::invoke(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
+    ZELDA_AUTO_RESULT( (self, f, seq)(partial_details::partial_is_callable<f, self, seq>) 
+                        ( zelda::invoke(f, zelda::tuple_cat(self.get_tuple(), std::move(seq))) ) )
 
-    ZELDA_AUTO_RESULT( (f, seq)(not is_callable_tuple<f, typename partial_details::partial_join_tuple<f, seq>::type>) 
-                        (partial(partial_details::get_function(f), partial_details::partial_join(f, seq))) )
+    ZELDA_AUTO_RESULT( (self, f, seq)(not partial_details::partial_is_callable<f, self, seq>) 
+                        ( partial(f, zelda::tuple_cat(self.get_tuple(), std::move(seq))) ) )
 };
 
 template<class F, class Sequence = zelda::tuple<> >
-struct partial_adaptor : function_variadic_adaptor<partial_adaptor_base, F>
+struct partial_adaptor : function_variadic_adaptor<partial_adaptor<F, Sequence>, partial_adaptor_base, F>
 {
-    typedef Sequence sequence;
+    typedef function_variadic_adaptor<partial_adaptor<F, Sequence>, partial_adaptor_base, F> base;
+    typedef Sequence tuple;
     Sequence seq;
     partial_adaptor() {}; 
     partial_adaptor(Sequence seq) : seq(seq) {};
-    partial_adaptor(F f) : function_variadic_adaptor<F, partial_adaptor_base>(f) {};
-    partial_adaptor(Sequence seq, F f) : seq(seq), function_variadic_adaptor<F, partial_adaptor_base>(f) {};
+    partial_adaptor(F f) : base(f) {};
+    partial_adaptor(F f, Sequence seq) : seq(seq), base(f) {};
+
+    Sequence& get_tuple()
+    {
+        return seq;
+    }
+
+    const Sequence& get_tuple() const
+    {
+        return seq;
+    }
 
 
 };
 
 template<class F, class Sequence>
-auto partial(F f, Sequence && seq) ZELDA_RETURNS
-(
-    partial_adaptor<F, decltype(zelda::unforward_tuple(seq))>(f, std::forward<Sequence>(seq))
-)
+auto partial(F f, Sequence && seq) -> partial_adaptor<F, decltype(zelda::unforward_tuple(seq))>
+{
+    return {f, std::forward<Sequence>(seq)};
+}
 
 template<class F>
 partial_adaptor<F> partial(F f)
