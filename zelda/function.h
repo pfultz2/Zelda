@@ -237,11 +237,13 @@ template<class F, class Sequence>
 struct pipe_closure
 {
     F f;
-    Sequence seq;
-    template<class S>
-    pipe_closure(S && seq) : seq(std::forward<Sequence>(seq)) {};
-    template<class S>
-    pipe_closure(F f, S && seq) : f(f), seq(std::forward<Sequence>(seq)) {};
+    const Sequence & seq;
+    
+
+    pipe_closure(const Sequence & seq) : seq(seq) {};
+    
+
+    pipe_closure(F f, const Sequence & seq) : f(f), seq(seq) {};
 
     template<class A>
     static auto push_front(A && a, Sequence && seq)
@@ -250,16 +252,20 @@ struct pipe_closure
     template<class A>
     friend ZELDA_FUNCTION_REQUIRES(zelda::is_callable_tuple<F, typename zelda::tuple_join<tuple<A&&>, Sequence>::type>)
     (typename zelda::result_of_tuple<F, typename zelda::tuple_join<tuple<A&&>, Sequence>::type>::type) 
-    operator|(A && a, pipe_closure<F, Sequence> p)
+    operator|(A && a, const pipe_closure<F, Sequence>& p)
     
     {
-        return zelda::invoke(p.f, zelda::tuple_cat(zelda::forward_as_tuple(std::forward<A>(a)), p.seq));
+        return zelda::invoke(p.f, zelda::tuple_cat(zelda::forward_as_tuple(std::forward<A>(a)), const_cast<Sequence&&>(p.seq)));
     }
 };
 
+// template<class F, class Seq>
+// auto make_pipe_closure(F f, Seq && seq) ZELDA_RETURNS
+// ( pipe_closure<F, decltype(zelda::unforward_tuple(seq))>(f, std::forward<Seq>(seq)) )
+
 template<class F, class Seq>
-auto make_pipe_closure(F f, Seq && seq) ZELDA_RETURNS
-( pipe_closure<F, decltype(zelda::unforward_tuple(seq))>(f, std::forward<Seq>(seq)) )
+auto make_pipe_closure(F f, const Seq & seq) ZELDA_RETURNS
+( pipe_closure<F, Seq>(f, seq) )
 
 }
 
