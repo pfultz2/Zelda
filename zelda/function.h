@@ -1,12 +1,23 @@
-/* 
- * File:   function.h
- * Author: paul
- *
- * Created on February 29, 2012, 12:17 AM
- */
+/*=============================================================================
+    Copyright (c) 2012 Paul Fultz II
+    function.h
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+==============================================================================*/
 
-#ifndef FUNCTION_H
-#define	FUNCTION_H
+#ifndef ZELDA_GUARD_ZELDA_FUNCTION_H
+#define	ZELDA_GUARD_ZELDA_FUNCTION_H
+
+#include <zelda/function/defer.h>
+#include <zelda/function/fuse.h>
+#include <zelda/function/general.h>
+#include <zelda/function/lazy.h>
+#include <zelda/function/partial.h>
+#include <zelda/function/pipable.h>
+#include <zelda/function/poly.h>
+#include <zelda/function/variadic.h>
+
+#if 0
 
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
@@ -503,7 +514,7 @@ partial_adaptor<F> partial(F f)
 //TODO: memoize
 }
 
-
+#endif
 
 
 #endif	/* FUNCTION_H */
