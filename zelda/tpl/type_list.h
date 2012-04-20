@@ -10,10 +10,8 @@
 
 namespace zelda { namespace tpl {
 
-class type_list
-{
-
-};
+template<class... Xs>
+struct type_list {};
 
 }}
 

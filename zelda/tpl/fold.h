@@ -10,10 +10,25 @@
 
 namespace zelda { namespace tpl {
 
-class fold
-{
+// foldl f z []     = z
+// foldl f z (x:xs) = foldl f (f z x) xs
 
+template<class TypeList, class Z, class MF>
+struct fold {};
+
+
+template<template <class...> class List, class Z, class MF>
+struct fold<List<>, Z, MF>
+{
+    typedef Z type;
 };
+
+template<template <class...> class List, class X, class Z, class MF, class... Args>
+struct fold<List<X, Args...>, Z, MF>
+: fold<List<Args...>, typename MF::template apply<Z, X>::type, MF> {};
+
+// foldr f z []     = z
+// foldr f z (x:xs) = f x (foldr f z xs)
 
 }}
 

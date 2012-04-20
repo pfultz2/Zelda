@@ -8,12 +8,14 @@
 #ifndef ZELDA_GUARD_TPL_NOT_H
 #define ZELDA_GUARD_TPL_NOT_H
 
+#include <zelda/tpl/integral_constant.h>
+
 namespace zelda { namespace tpl {
 
-class not
-{
+template<class B>
+struct not_
+: bool_<not B::type::value> {};
 
-};
 
 }}
 

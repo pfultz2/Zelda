@@ -8,6 +8,8 @@
 #ifndef ZELDA_GUARD_TPL_EQUAL_H
 #define ZELDA_GUARD_TPL_EQUAL_H
 
+#include <zelda/tpl/integral_constant.h>
+
 namespace zelda { namespace tpl {
 
 class equal
