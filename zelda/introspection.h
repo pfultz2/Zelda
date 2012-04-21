@@ -11,13 +11,11 @@
 #include "pp.h"
 #include "requires.h"
 #include "typeof.h"
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/static_assert.hpp>
+#include <zelda/tpl/integral_constant.h>
+#include <zelda/tpl/if.h>
+#include <zelda/tpl/or.h>
+#include <zelda/tpl/and.h>
 #include <boost/type_traits.hpp>
-#include <boost/mpl/has_xxx.hpp>
 
 
 namespace zelda{ namespace introspection {
@@ -26,11 +24,11 @@ struct void_ {};
 
 template<class From, class To>
 struct check_type 
-: boost::mpl::eval_if<boost::mpl::or_<
+: tpl::eval_if<tpl::or_<
     boost::is_same<To, void_>, 
     boost::is_same<To, void> 
     >,
-boost::mpl::bool_<true>,
+tpl::bool_<true>,
 boost::is_convertible<From, To> 
 >::type {};
 }
@@ -39,6 +37,9 @@ boost::is_convertible<From, To>
 
 #define ZELDA_HAS_MEMBER(...) \
 DETAIL_ZELDA_HAS_MEMBER(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
+
+#define ZELDA_HAS_STATIC_MEMBER(...) \
+DETAIL_ZELDA_HAS_STATIC_MEMBER(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
 
 #define ZELDA_HAS_TYPE(...) \
 DETAIL_ZELDA_HAS_TYPE(PP_HEAD(__VA_ARGS__), DETAIL_ZELDA_TRAIT_NAME(__VA_ARGS__))
@@ -61,14 +62,14 @@ struct trait \
     struct selector {}; \
 \
     template<class Zelda_I_U> \
-    static yes check( selector<ZELDA_TYPEOF( zelda::declval<Zelda_I_U>().member )> * ); \
+    static yes check( selector<ZELDA_XTYPEOF( zelda::declval<Zelda_I_U>().member )> * ); \
 \
     template<class Zelda_I_U> \
     static no check(...); \
     \
     static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
 \
-    typedef boost::mpl::bool_<value> type; \
+    typedef zelda::tpl::bool_<value> type; \
 }; \
 template<class Zelda_I_C, class Zelda_I_R, class... Zelda_I_Args> \
 struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
@@ -79,14 +80,14 @@ struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
     struct selector {}; \
 \
     template<class Zelda_I_U> \
-    static yes check( selector<ZELDA_TYPEOF( zelda::declval<Zelda_I_U>().member(zelda::declval<Zelda_I_Args>()...) )> * ); \
+    static yes check( selector<ZELDA_XTYPEOF( zelda::declval<Zelda_I_U>().member(zelda::declval<Zelda_I_Args>()...) )> * ); \
 \
     template<class Zelda_I_U> \
     static no check(...); \
     \
     static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
 \
-    typedef boost::mpl::bool_<value> type; \
+    typedef zelda::tpl::bool_<value> type; \
 }; \
 
 #define DETAIL_ZELDA_HAS_STATIC_MEMBER(member, trait) \
@@ -99,14 +100,14 @@ struct trait \
     struct selector {}; \
 \
     template<class Zelda_I_U> \
-    static yes check( selector<ZELDA_TYPEOF( Zelda_I_U::member )> * ); \
+    static yes check( selector<ZELDA_XTYPEOF( Zelda_I_U::member )> * ); \
 \
     template<class Zelda_I_U> \
     static no check(...); \
     \
     static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
 \
-    typedef boost::mpl::bool_<value> type; \
+    typedef zelda::tpl::bool_<value> type; \
 }; \
 template<class Zelda_I_C, class Zelda_I_R, class... Zelda_I_Args> \
 struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
@@ -117,15 +118,15 @@ struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
     struct selector {}; \
 \
     template<class Zelda_I_U> \
-    static yes check( selector<ZELDA_TYPEOF( Zelda_I_U::member(zelda::declval<Zelda_I_Args>()...) )> * ); \
+    static yes check( selector<ZELDA_XTYPEOF( Zelda_I_U::member(zelda::declval<Zelda_I_Args>()...) )> * ); \
 \
     template<class Zelda_I_U> \
     static no check(...); \
     \
     static const bool value = sizeof(check<Zelda_I_C>(0)) == sizeof(yes); \
 \
-    typedef boost::mpl::bool_<value> type; \
-}; \
+    typedef zelda::tpl::bool_<value> type; \
+};
 
 
 #define DETAIL_ZELDA_HAS_TYPE(type,trait) \
@@ -145,10 +146,10 @@ struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
     \
     static const bool value=sizeof(check<Zelda_I_C>(0))==sizeof(yes); \
     \
-    typedef boost::mpl::bool_<value> type; \
+    typedef zelda::tpl::bool_<value> type; \
     }; \
 
-#define DETAIL_ZELDA_HAS_TEMPLATE(tpl, trait) \
+#define DETAIL_ZELDA_HAS_TEMPLATE(tpl_name, trait) \
   template<class Zelda_I_C> \
   struct trait \
     { \
@@ -158,25 +159,27 @@ struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
     struct selector {}; \
     \
     template<class Zelda_I_U> \
-    static yes check(selector<Zelda_I_U::template tpl> *); \
+    static yes check(selector<Zelda_I_U::template tpl_name> *); \
     \
     template<class Zelda_I_U> \
     static no check(...); \
     \
     static const bool value=sizeof(check<Zelda_I_C>(0))==sizeof(yes); \
     \
-    typedef boost::mpl::bool_<value> type; \
+    typedef zelda::tpl::bool_<value> type; \
     }; \
 
-//#define ZELDA_TEST
+
 #ifdef ZELDA_TEST
 namespace zelda { namespace introspection_test{
 
+struct introspect_type {};
+
 struct introspection_pass_t
 {
-    typedef void type;
+    typedef introspect_type type;
     template<class T>
-    struct tpl
+    struct tpl_xxx
     {
         /* data */
     };
@@ -184,12 +187,12 @@ struct introspection_pass_t
     static void static_method();
     void method();
     int var;
-    static const int static_var;
+    static const introspect_type static_var;
 };
 
 struct introspection_fail_t
 {
-    typedef void tpl;
+    typedef introspect_type tpl_xxx;
     template<class T>
     struct type
     {
@@ -198,26 +201,26 @@ struct introspection_fail_t
 };
 
 ZELDA_HAS_TYPE(type);
-ZELDA_HAS_TEMPLATE(tpl);
+ZELDA_HAS_TEMPLATE(tpl_xxx);
 ZELDA_HAS_MEMBER(method);
 ZELDA_HAS_MEMBER(var);
 ZELDA_HAS_STATIC_MEMBER(static_method);
 ZELDA_HAS_STATIC_MEMBER(static_var);
 
 
-static_assert(has_type<introspection_pass_t, void>::value, "Type failed");
-static_assert(has_tpl<introspection_pass_t>::value, "Template failed");
+static_assert(has_type<introspection_pass_t, introspect_type>::value, "Type failed");
+static_assert(has_tpl_xxx<introspection_pass_t>::value, "Template failed");
 static_assert(has_method<introspection_pass_t, void()>::value, "Method failed");
 static_assert(has_var<introspection_pass_t, int>::value, "Var failed");
 static_assert(has_static_method<introspection_pass_t, void()>::value, "Static Method failed");
-static_assert(has_static_var<introspection_pass_t, int>::value, "Static Var failed");
+static_assert(has_static_var<introspection_pass_t, introspect_type>::value, "Static Var failed");
 
-static_assert(not has_type<introspection_fail_t, void>::value, "Type failed");
-static_assert(not has_tpl<introspection_fail_t>::value, "Template failed");
+static_assert(not has_type<introspection_fail_t, introspect_type>::value, "Type failed");
+static_assert(not has_tpl_xxx<introspection_fail_t>::value, "Template failed");
 static_assert(not has_method<introspection_fail_t, void()>::value, "Method failed");
 static_assert(not has_var<introspection_fail_t, int>::value, "Var failed");
 static_assert(not has_static_method<introspection_fail_t, void()>::value, "Static Method failed");
-static_assert(not has_static_var<introspection_fail_t, int>::value, "Static Var failed");
+static_assert(not has_static_var<introspection_fail_t, introspect_type>::value, "Static Var failed");
 
 }}
 #endif

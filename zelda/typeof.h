@@ -8,10 +8,13 @@
 #ifndef TYPEOF_H
 #define	TYPEOF_H
 
-#include <boost/typeof/typeof.hpp>
+//#include <boost/typeof/typeof.hpp>
 #include <boost/type_traits.hpp>
 
-#include "mpl.h"
+//#include "mpl.h"
+
+#include <zelda/tpl/if.h>
+#include <zelda/tpl/identity.h>
 
 #define ZELDA_TYPEOF decltype
 
@@ -32,7 +35,7 @@ struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
 };
 
 template<class T>
-typename zelda::mpl::if_<std::is_rvalue_reference<T&&>, value>
+typename tpl::if_<std::is_rvalue_reference<T&&>, value>
                                 ::template else_if<is_const2<T&&>, const_lvalue, lvalue >
                             ::type test(T&&);
 
@@ -51,18 +54,15 @@ template<class T>
 struct xtypeof<const_lvalue, T> : std::add_const< typename std::add_lvalue_reference<T>::type > {};
 
 template<class T>
-struct xtypeof<value, T> : boost::mpl::identity<T> {};
+struct xtypeof<value, T> : tpl::identity<T> {};
 
 template<class T>
-struct xtypeof<void, T> : boost::mpl::identity<void> {};
+struct xtypeof<void, T> : tpl::identity<void> {};
 }
 }
 
 #define ZELDA_XTYPEOF(...) \
 typename zelda::typeof_detail::xtypeof<ZELDA_TYPEOF(zelda::typeof_detail::test(__VA_ARGS__)), ZELDA_TYPEOF(__VA_ARGS__)>::type
-
-
-#define ZELDA_RETURNS(...) -> ZELDA_XTYPEOF(__VA_ARGS__) { return __VA_ARGS__; }
 
 #ifdef ZELDA_TEST
 namespace zelda {
@@ -150,19 +150,19 @@ struct wrap
 };
 
 template<class T>
-boost::mpl::true_ is_const(const T& x);
+boost::tpl::true_ is_const(const T& x);
 
 template<class T>
-boost::mpl::false_ is_const(T & x);
+boost::tpl::false_ is_const(T & x);
 
 template<class T>
 inline typename boost::is_array<T>::type is_array(T const &);
 
 template<class T>
-inline boost::mpl::false_ is_rvalue(T &, int);
+inline boost::tpl::false_ is_rvalue(T &, int);
 
 template<class T>
-inline boost::mpl::true_ is_rvalue(T const &, ...);
+inline boost::tpl::true_ is_rvalue(T const &, ...);
 
 //rvalue probe from Eric Niebler
 template<typename T>
@@ -170,8 +170,8 @@ struct rvalue_probe
 {
     struct private_type_ {};
     // can't ever return an array by value
-    typedef BOOST_DEDUCED_TYPENAME boost::mpl::if_<
-        boost::mpl::or_<boost::is_abstract<T>, boost::is_array<T> >, private_type_, T
+    typedef BOOST_DEDUCED_TYPENAME boost::tpl::if_<
+        boost::tpl::or_<boost::is_abstract<T>, boost::is_array<T> >, private_type_, T
     >::type value_type;
     operator value_type() { return *reinterpret_cast<value_type *>(this); } // never called
     operator T &() const { return *reinterpret_cast<T *>(const_cast<rvalue_probe *>(this)); } // never called
@@ -184,7 +184,7 @@ rvalue_probe<T> const make_probe(T const &)
 }
 
 template<class Cond, class T>
-struct add_const_if : boost::mpl::if_<Cond, typename boost::add_const<T>::type, T >
+struct add_const_if : boost::tpl::if_<Cond, typename boost::add_const<T>::type, T >
 {
 };
 
@@ -194,16 +194,16 @@ struct xtype_ref : add_const_if<IsConst, typename boost::add_reference<T>::type 
 };
 
 template<class T, class IsConst, class IsRvalue>
-struct xtype : boost::mpl::if_<IsRvalue, T, typename xtype_ref<IsConst, T>::type>
+struct xtype : boost::tpl::if_<IsRvalue, T, typename xtype_ref<IsConst, T>::type>
 {
 };
 
 #define ZELDA_TYPEOF_IS_RVALUE(x) \
-boost::mpl::and_<boost::mpl::not_<typeof(zelda::typeof_detail::is_array(x))>,\
+boost::tpl::and_<boost::tpl::not_<typeof(zelda::typeof_detail::is_array(x))>,\
 typeof(zelda::typeof_detail::is_rvalue(true ? zelda::typeof_detail::make_probe(x) : (x), 0))>
 
 #define ZELDA_TYPEOF_IS_RVALUE_TPL(x) \
-boost::mpl::and_<boost::mpl::not_<typeof_tpl(zelda::typeof_detail::is_array(x))>,\
+boost::tpl::and_<boost::tpl::not_<typeof_tpl(zelda::typeof_detail::is_array(x))>,\
 typeof_tpl(zelda::typeof_detail::is_rvalue(true ? zelda::typeof_detail::make_probe(x) : (x), 0))>
 
 #define ZELDA_TYPEOF_IS_CONST(x) \

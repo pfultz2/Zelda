@@ -3,8 +3,10 @@
 
 
 #include <tuple>
-#include "requires.h"
-#include "introspection.h"
+#include <zelda/requires.h>
+#include <zelda/returns.h>
+#include <zelda/introspection.h>
+#include <zelda/tpl/not.h>
 //#include <boost/fusion/adapted/std_tuple.hpp>
 
 namespace zelda{
@@ -80,8 +82,8 @@ struct tuple_rvalue_check_impl {};
 
 template<class T, int... N>
 struct tuple_rvalue_check_impl<T, seq<N...> >
-: zelda::mpl::if_< zelda::mpl::or_<std::is_rvalue_reference<typename zelda::tuple_element<N, T>::type>...>,
-zelda::mpl::not_<std::is_lvalue_reference<T> > 
+: zelda::tpl::if_< zelda::tpl::or_<std::is_rvalue_reference<typename zelda::tuple_element<N, T>::type>...>,
+zelda::tpl::not_<std::is_lvalue_reference<T> > 
 >::template else_< boost::mpl::bool_<true> >
 {};
 
@@ -106,7 +108,7 @@ struct tuple_cat_r_impl {};
 
 template<class T1, class T2, int ...N1, int ...N2>
 struct tuple_cat_r_impl<T1, T2, seq<N1...>, seq<N2...> >
-: zelda::mpl::identity<zelda::tuple<typename zelda::tuple_element<N1, T1>::type..., typename zelda::tuple_element<N2, T2>::type...> >
+: zelda::tpl::identity<zelda::tuple<typename zelda::tuple_element<N1, T1>::type..., typename zelda::tuple_element<N2, T2>::type...> >
 {};
 
 
@@ -135,7 +137,7 @@ ZELDA_FUNCTION_REQUIRES(not is_empty_tuple<T1>, is_empty_tuple<T2>)
 
 template<class T>
 struct unforward_type
-: zelda::mpl::identity<T> {};
+: zelda::tpl::identity<T> {};
 
 template<class T>
 struct unforward_type<T&&>
@@ -164,7 +166,7 @@ struct unforward_tuple_type {};
 
 template<class T, int... N>
 struct unforward_tuple_type<T, seq<N...> >
-: zelda::mpl::identity
+: zelda::tpl::identity
 < 
 zelda::tuple<typename unforward_type<typename zelda::tuple_element<N, T>::type>::type...>
 > {};
@@ -197,9 +199,9 @@ struct is_tuple<Tuple<T...> >
 
 template<class T1, class T2>
 struct tuple_cat_result
-: zelda::mpl::if_<detail::is_empty_tuple<T1>, zelda::mpl::lazy<std::remove_reference<T2> > >
-::template else_if<detail::is_empty_tuple<T2>, zelda::mpl::lazy<std::remove_reference<T1> > >
-::template else_< zelda::mpl::lazy<detail::tuple_cat_r_impl<T1, T2, typename detail::tuple_gens<T1>::type, typename detail::tuple_gens<T1>::type> > >
+: zelda::tpl::if_<detail::is_empty_tuple<T1>, zelda::tpl::lazy<std::remove_reference<T2> > >
+::template else_if<detail::is_empty_tuple<T2>, zelda::tpl::lazy<std::remove_reference<T1> > >
+::template else_< zelda::tpl::lazy<detail::tuple_cat_r_impl<T1, T2, typename detail::tuple_gens<T1>::type, typename detail::tuple_gens<T1>::type> > >
 {};
 
 // template<class T1, class T2>

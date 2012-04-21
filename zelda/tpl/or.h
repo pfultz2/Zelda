@@ -10,10 +10,19 @@
 
 namespace zelda { namespace tpl {
 
-class or
+namespace details{
+struct or_op
 {
-
+    template<class X, class Y>
+    struct apply
+    : bool_<X::type::value and Y::type::value> {};
 };
+}
+
+template<class... Ts>
+struct or_
+: fold<or_<Ts...>, bool_<true>, details::or_op > {};
+
 
 }}
 

@@ -18,7 +18,7 @@ namespace zelda {
 namespace details{
 template<class... T>
 struct is_phoenix_expression
-: zelda::mpl::or_<T...> {};
+: zelda::tpl::or_<T...> {};
 }
 template<class F>
 struct general_adaptor : function_base<F>

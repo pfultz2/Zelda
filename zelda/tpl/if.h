@@ -20,6 +20,9 @@ struct no_else {};
 template<bool C, class T = void, class E = detail::no_else>
 struct if_c;
 
+template<bool C, class T = void, class E = detail::no_else>
+struct eval_if_c;
+
 namespace detail
 {
 
@@ -28,13 +31,27 @@ struct if_clause
 {
     template<bool C1, class T1 = void, class E1 = no_else>
     struct else_if_c
-    : zelda::tpl::if_c<C || C1, typename zelda::tpl::if_c<C, T, T1>::type, E1> {};
+    : if_c<C || C1, typename if_c<C, T, T1>::type, E1> {};
 
     template<class C1, class T1 = void, class E1 = no_else>
     struct else_if: else_if_c<C1::type::value, T1, E1> {};
 
     template<class E>
-    struct else_: zelda::tpl::if_c<C, T, E> {};
+    struct else_: if_c<C, T, E> {};
+};
+
+template<bool C, class T>
+struct eval_if_clause
+{
+    template<bool C1, class T1 = void, class E1 = no_else>
+    struct else_if_c
+    : eval_if_c<C || C1, eval_if_c<C, T, T1>, E1> {};
+
+    template<class C1, class T1 = void, class E1 = no_else>
+    struct else_if: else_if_c<C1::type::value, T1, E1> {};
+
+    template<class E>
+    struct else_: eval_if_c<C, T, E> {};
 };
 
 }
@@ -57,6 +74,27 @@ struct if_c<true, T, detail::no_else>
 
 template<class C, class T = void, class E = detail::no_else>
 struct if_: if_c<C::type::value, T, E> {};
+
+//eval_if
+
+template<class T, class E>
+struct eval_if_c<false, T, E>
+: E {};
+
+template<class T, class E>
+struct eval_if_c<true, T, E>
+: T {};
+
+template<class T>
+struct eval_if_c<false, T, detail::no_else>
+: detail::eval_if_clause<false, T> {};
+
+template<class T>
+struct eval_if_c<true, T, detail::no_else> 
+: detail::eval_if_clause<true, T>, T {};
+
+template<class C, class T = void, class E = detail::no_else>
+struct eval_if: eval_if_c<C::type::value, T, E> {};
 
 }}
 

@@ -22,19 +22,19 @@ auto partial(F f, Sequence && seq) -> partial_adaptor<F, decltype(zelda::unforwa
 namespace partial_details {
 template<class F>
 struct seq 
-: zelda::mpl::identity<zelda::tuple<> > {};
+: zelda::tpl::identity<zelda::tuple<> > {};
 
 template<class F, class Sequence>
 struct seq<partial_adaptor<F, Sequence> >
-: zelda::mpl::identity<Sequence > {};
+: zelda::tpl::identity<Sequence > {};
 
 template<class F>
 struct fun 
-: zelda::mpl::identity<F> {};
+: zelda::tpl::identity<F> {};
 
 template<class F, class Sequence>
 struct fun<partial_adaptor<F, Sequence> >
-: zelda::mpl::identity<F> {};
+: zelda::tpl::identity<F> {};
 
 template<class F, class Sequence>
 Sequence get_tuple(partial_adaptor<F, Sequence> f)
@@ -67,7 +67,7 @@ F get_function(partial_adaptor<F, Sequence> f)
 
 // template<class F, class Sequence>
 // struct partial_join_tuple
-// : zelda::mpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
+// : zelda::tpl::identity<decltype(partial_join(zelda::declval<F>(), zelda::declval<Sequence>()))> 
 // {};
 
 template<class F, class T, class U>

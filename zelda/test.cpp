@@ -86,57 +86,27 @@ zelda::pipable_adaptor<void_class> void_pipable = {};
 
 mutable_class foo = {};
 
-//static_assert(boost::fusion::traits::is_sequence<zelda::tuple<int, int> >::value, "Failed");
 
-// template<class T>
-// int test_get(T && x)
+
+// struct static_class
 // {
-//     return zelda::get<0>(x);
-// }
+//     constexpr static_class() {}
+//     void operator()() const
+//     {
+//         printf("Static class\n");
+//     }
+// };
 
-// namespace test_detail {
-// template<class F, class T, int ...N>
-// int invoke_impl(F f, T && t, zelda::detail::seq<N...>) 
+// struct model_class
 // {
-//     return f(zelda::get<N>(std::forward<T>(t))...);
-// }
-
-// template<class F, class Tuple>
-// int invoke(F f, Tuple && t)
-// {
-//     return test_detail::invoke_impl(f, std::forward<Tuple>(t), typename zelda::detail::gens<zelda::tuple_size<Tuple>::value>::type() );
-// }
-// }
-
-template <typename T>
-void bar(T const& t)
-{
-    //std::move(zelda::get<0>(std::forward<const T>(t))) = 123;
-    //std::move(zelda::get<0>(t)) = 123;
-    //zelda::get<0>(std::forward<const T>(t)) = 123;
-    // std::forward<typename zelda::tuple_element<0, const T&>::type>(zelda::get<0>(std::forward<const T&>(t))) = 123;
-    // static_assert(std::is_same<decltype(zelda::get<0>(std::forward<const T>(t))), 
-    //     typename zelda::tuple_element<0, T>::type>::value, 
-    //     "Its different");
-    // //std::forward<typename zelda::tuple_element<0, T>::type>(zelda::get<0>(t)) = 123;
-    // auto tt = zelda::make_tuple(1, 2);
-    // auto z = zelda::tuple_cat(t, tt);
-}
+//     static static_class const static_ = static_class();
+// };
 
 int main()
 {
-    // auto t1 = zelda::forward_as_tuple(1,2);
-    // auto t2 = zelda::tuple<>();
-    // zelda::invoke(binary_class(), zelda::tuple_cat(t2, std::move(t1)));
-    // int i = 999;
-    // zelda::tuple<int&, int> t(i, 1);
-    // bar(t);
-    //auto s =  zelda::forward_as_tuple(1,2);
-    //int && i = std::forward<int>(zelda::get<0>(zelda::forward_as_tuple(1,2)));
-    //printf("%i\n", i);
-    //printf("%i\n", zelda::invoke(binary_class(), s));
-    //int i = zelda::details::invoke_impl(foo_t(), boost::fusion::begin(s), boost::fusion::end(s));
-    //printf("%i\n", zelda::invoke(binary_class(), zelda::forward_as_tuple(1,2)));
+
+    //model_class::static_();
+
     void_pipable(1);
     1 | void_pipable;
     //pipable
