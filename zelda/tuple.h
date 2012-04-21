@@ -180,22 +180,16 @@ auto unforward_tuple_impl(T && t, seq<N...>) ZELDA_RETURNS
 
 namespace tuple_detail {
 ZELDA_HAS_TYPE(value_type)
+ZELDA_HAS_STATIC_MEMBER(value)
 }
 }
 
 
 
 template<class T>
-struct is_tuple {};
-//TODO: Remove explicit override and use introspection instead
-template<template<class...> class Tuple, class... T>
-struct is_tuple<Tuple<T...> >
-: boost::mpl::bool_<true> {};
+struct is_tuple 
+: zelda::detail::tuple_detail::has_value<zelda::tuple_size<T> > {};
 
-
-// template<class T>
-// struct is_tuple
-// : detail::tuple_detail::has_value_type<zelda::tuple_size<T> > {};
 
 template<class T1, class T2>
 struct tuple_cat_result

@@ -8,6 +8,9 @@
 #ifndef ZELDA_GUARD_TPL_OR_H
 #define ZELDA_GUARD_TPL_OR_H
 
+#include <zelda/tpl/fold.h>
+#include <zelda/tpl/integral_constant.h>
+
 namespace zelda { namespace tpl {
 
 namespace details{
@@ -15,7 +18,7 @@ struct or_op
 {
     template<class X, class Y>
     struct apply
-    : bool_<X::type::value and Y::type::value> {};
+    : bool_<X::type::value or Y::type::value> {};
 };
 }
 

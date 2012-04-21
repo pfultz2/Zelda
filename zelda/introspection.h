@@ -22,15 +22,18 @@ namespace zelda{ namespace introspection {
 
 struct void_ {};
 
+
 template<class From, class To>
 struct check_type 
-: tpl::eval_if<tpl::or_<
-    boost::is_same<To, void_>, 
-    boost::is_same<To, void> 
-    >,
-tpl::bool_<true>,
-boost::is_convertible<From, To> 
->::type {};
+: boost::is_convertible<From, To> {};
+
+template<class From>
+struct check_type<From, void>
+: zelda::tpl::bool_<true> {};
+
+template<class From>
+struct check_type<From, void_>
+: zelda::tpl::bool_<true> {};
 }
 }
 
@@ -171,6 +174,11 @@ struct trait<Zelda_I_C, Zelda_I_R(Zelda_I_Args...)> \
 
 
 #ifdef ZELDA_TEST
+
+static_assert(zelda::introspection::check_type<int, void>::value, "Check type failed for conversion to void");
+static_assert(zelda::introspection::check_type<int, zelda::introspection::void_>::value, "Check type failed for conversion to void_");
+static_assert(zelda::introspection::check_type<int, double>::value, "Check type failed for conversion to double");
+
 namespace zelda { namespace introspection_test{
 
 struct introspect_type {};
@@ -184,13 +192,28 @@ struct introspection_pass_t
         /* data */
     };
 
-    static void static_method();
-    void method();
+    static introspect_type static_method();
+    introspect_type method();
     int var;
     static const introspect_type static_var;
 };
 
-struct introspection_fail_t
+struct introspection_mismatch_t
+{
+    typedef int type;
+    template<class T>
+    struct tpl_xxx
+    {
+        /* data */
+    };
+
+    static int static_method();
+    int method();
+    introspect_type var;
+    static const int static_var;
+};
+
+struct introspection_missing_t
 {
     typedef introspect_type tpl_xxx;
     template<class T>
@@ -210,17 +233,26 @@ ZELDA_HAS_STATIC_MEMBER(static_var);
 
 static_assert(has_type<introspection_pass_t, introspect_type>::value, "Type failed");
 static_assert(has_tpl_xxx<introspection_pass_t>::value, "Template failed");
-static_assert(has_method<introspection_pass_t, void()>::value, "Method failed");
+static_assert(has_method<introspection_pass_t, introspect_type()>::value, "Method failed");
 static_assert(has_var<introspection_pass_t, int>::value, "Var failed");
-static_assert(has_static_method<introspection_pass_t, void()>::value, "Static Method failed");
+static_assert(has_static_method<introspection_pass_t, introspect_type()>::value, "Static Method failed");
 static_assert(has_static_var<introspection_pass_t, introspect_type>::value, "Static Var failed");
 
-static_assert(not has_type<introspection_fail_t, introspect_type>::value, "Type failed");
-static_assert(not has_tpl_xxx<introspection_fail_t>::value, "Template failed");
-static_assert(not has_method<introspection_fail_t, void()>::value, "Method failed");
-static_assert(not has_var<introspection_fail_t, int>::value, "Var failed");
-static_assert(not has_static_method<introspection_fail_t, void()>::value, "Static Method failed");
-static_assert(not has_static_var<introspection_fail_t, introspect_type>::value, "Static Var failed");
+static_assert(has_var<introspection_pass_t>::value, "Simple Var failed");
+static_assert(has_static_var<introspection_pass_t>::value, "Simple Static Var failed");
+
+static_assert(not has_type<introspection_mismatch_t, introspect_type>::value, "Type failed");
+static_assert(not has_method<introspection_mismatch_t, introspect_type()>::value, "Method failed");
+static_assert(not has_var<introspection_mismatch_t, int>::value, "Var failed");
+static_assert(not has_static_method<introspection_mismatch_t, introspect_type()>::value, "Static Method failed");
+static_assert(not has_static_var<introspection_mismatch_t, introspect_type>::value, "Static Var failed");
+
+static_assert(not has_type<introspection_missing_t, introspect_type>::value, "Type failed");
+static_assert(not has_tpl_xxx<introspection_missing_t>::value, "Template failed");
+static_assert(not has_method<introspection_missing_t, introspect_type()>::value, "Method failed");
+static_assert(not has_var<introspection_missing_t, int>::value, "Var failed");
+static_assert(not has_static_method<introspection_missing_t, introspect_type()>::value, "Static Method failed");
+static_assert(not has_static_var<introspection_missing_t, introspect_type>::value, "Static Var failed");
 
 }}
 #endif
