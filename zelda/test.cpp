@@ -83,17 +83,17 @@ struct void_class
     }
 };
 
-zelda::forward_adaptor<void_class> void_forward;
+zelda::forward_adaptor<void_class> void_forward = {};
 
-zelda::pipable_adaptor<binary_class> binary_pipable;
+zelda::pipable_adaptor<binary_class> binary_pipable = {};
 //zelda::partial_adaptor<binary_class> binary_partial = {};
 
-zelda::pipable_adaptor<unary_class> unary_pipable;
+zelda::pipable_adaptor<unary_class> unary_pipable = {};
 //zelda::partial_adaptor<unary_class> unary_partial = {};
 
-zelda::pipable_adaptor<mutable_class> mutable_pipable;
+zelda::pipable_adaptor<mutable_class> mutable_pipable = {};
 
-zelda::pipable_adaptor<void_class> void_pipable;
+zelda::pipable_adaptor<void_class> void_pipable = {};
 
 mutable_class foo = {};
 
@@ -118,7 +118,7 @@ int main()
     void_forward(1);
 
     void_pipable(1);
-    // 1 | void_pipable;
+    1 | void_pipable;
     // pipable
     // ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
     // ZELDA_TEST_CHECK(3, binary_pipable(1, 2));

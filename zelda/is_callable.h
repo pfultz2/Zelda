@@ -46,10 +46,10 @@ template<class Fun> \
 struct funwrap<n, Fun> : Fun \
 { \
     funwrap(); \
-    typedef private_type const &(*pointer_to_function)(ZELDA_PP_PARAMS(n, dont_care BOOST_PP_INTERCEPT)); \
+    typedef private_type const &(*pointer_to_function)(ZELDA_PP_PARAMS_Z(z, n, dont_care BOOST_PP_INTERCEPT)); \
     operator pointer_to_function() const; \
 };
-BOOST_PP_REPEAT(10, ZELDA_FUNWRAP_BUILDER, ~)
+BOOST_PP_REPEAT_1(16, ZELDA_FUNWRAP_BUILDER, ~)
 #undef ZELDA_FUNWRAP_BUILDER
 
 // template<class Fun> struct funwrap<0, Fun> : Fun
@@ -70,18 +70,18 @@ BOOST_PP_REPEAT(10, ZELDA_FUNWRAP_BUILDER, ~)
 }
 
 #define ZELDA_IS_CALLABLE_BUILDER(z, n, data) \
-template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS(n, class T)> \
-struct is_callable<Fun(ZELDA_PP_PARAMS(n, T))> \
+template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
+struct is_callable<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> \
 { \
     static callable_detail::funwrap<n, Fun> & fun; \
-    ZELDA_PP_GEN(n, static T, x, ; BOOST_PP_INTERCEPT) \
+    ZELDA_PP_GEN_Z(z, n, static T, x, ; BOOST_PP_INTERCEPT) \
     static bool const value = \
     (\
-        sizeof(callable_detail::no_type) == sizeof(callable_detail::is_private_type( (fun(ZELDA_PP_PARAMS(n, x)), 0) )) \
+        sizeof(callable_detail::no_type) == sizeof(callable_detail::is_private_type( (fun(ZELDA_PP_PARAMS_Z(z, n, x)), 0) )) \
     ); \
     typedef boost::mpl::bool_<value> type; \
 };
-BOOST_PP_REPEAT(10, ZELDA_IS_CALLABLE_BUILDER, ~)
+BOOST_PP_REPEAT_1(16, ZELDA_IS_CALLABLE_BUILDER, ~)
 #undef ZELDA_IS_CALLABLE_BUILDER
 
 // template<class Fun > struct is_callable<Fun()>
@@ -124,15 +124,18 @@ struct is_callable<F(Args...)>
 #ifdef ZELDA_TEST
 struct is_callable_class
 {
-    template<class T>
-    void operator()(T) const
+    void operator()(int) const
     {
     }
 };
+struct callable_test_param {};
 
 typedef is_callable<is_callable_class(int)>::type is_callable_test;
 static_assert(is_callable_test::value, "Not callable");
 static_assert(is_callable<is_callable_class(const int&)>::type::value, "Not callable");
+static_assert(not is_callable<is_callable_class(callable_test_param)>::type::value, "callable failed");
+static_assert(not is_callable<is_callable_class()>::type::value, "callable failed");
+static_assert(not is_callable<is_callable_class(int, int)>::type::value, "callable failed");
 
 #endif
 
