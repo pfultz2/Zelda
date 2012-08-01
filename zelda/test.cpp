@@ -5,20 +5,22 @@
 //#include <boost/fusion/adapted/std_tuple.hpp>
 //#include "invoke.h"
 #include <zelda/pipable.h>
+#include <zelda/defer.h>
 
 #define ZELDA_TEST_CHECK(x, ...) \
 if ((__VA_ARGS__) != x) printf("FAILED@%i: %s\n", __LINE__, #__VA_ARGS__);
 
-struct binary_class
+struct binary_class_d
 {
-    template<class F>
-    struct result;
+    // template<class F>
+    // struct result;
 
-    template<class F, class T, class U>
-    struct result<F(T, U)>
-    {
-        typedef ZELDA_XTYPEOF_TPL(zelda::declval<T>() + zelda::declval<U>()) type;
-    };
+    // template<class F, class T, class U>
+    // struct result<F(T, U)>
+    // {
+    //     typedef ZELDA_XTYPEOF_TPL(zelda::declval<T>() + zelda::declval<U>()) type;
+    //     //typedef T type;
+    // };
 
     template<class T, class U>
     T operator()(T x, U y) const
@@ -27,6 +29,8 @@ struct binary_class
     }
 
 };
+
+typedef zelda::defer_adaptor<binary_class_d> binary_class;
 
 struct mutable_class
 {
@@ -83,43 +87,51 @@ struct void_class
     }
 };
 
+struct mono_class
+{
+    template<class F>
+    struct result;
+
+    template<class F, class T>
+    struct result<F(T)>
+    {
+        typedef int type;
+    };
+
+    int operator()(int x) const
+    {
+        return x+1;
+    }
+};
+
+zelda::forward_adaptor<binary_class> binary_forward = {};
+
 zelda::forward_adaptor<void_class> void_forward = {};
 
+zelda::forward_adaptor<mono_class> mono_forward = {};
+
 zelda::pipable_adaptor<binary_class> binary_pipable = {};
-//zelda::partial_adaptor<binary_class> binary_partial = {};
 
 zelda::pipable_adaptor<unary_class> unary_pipable = {};
-//zelda::partial_adaptor<unary_class> unary_partial = {};
 
 zelda::pipable_adaptor<mutable_class> mutable_pipable = {};
 
 zelda::pipable_adaptor<void_class> void_pipable = {};
 
+zelda::pipable_adaptor<mono_class> mono_pipable = {};
+
 mutable_class foo = {};
-
-
-// struct static_class
-// {
-//     constexpr static_class() {}
-//     void operator()() const
-//     {
-//         printf("Static class\n");
-//     }
-// };
-
-// struct model_class
-// {
-//     static static_class const static_ = static_class();
-// };
 
 int main()
 {
 
+    // forward
     void_forward(1);
-
+    ZELDA_TEST_CHECK(3, binary_forward(1, 2));
+    ZELDA_TEST_CHECK(3, mono_forward(2));
+    // pipable
     void_pipable(1);
     1 | void_pipable;
-    // pipable
     ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
     ZELDA_TEST_CHECK(3, binary_pipable(1, 2));
     ZELDA_TEST_CHECK(3, 3 | unary_pipable);
@@ -129,6 +141,8 @@ int main()
     ZELDA_TEST_CHECK(3, i1 | mutable_pipable(2));
     int i2 = 1;
     ZELDA_TEST_CHECK(3, mutable_pipable(i2, 2));
+    ZELDA_TEST_CHECK(3, mono_pipable(2));
+    ZELDA_TEST_CHECK(3, 2| mono_pipable);
 
     //partial
     // ZELDA_TEST_CHECK(3, binary_partial(1)(2));

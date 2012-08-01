@@ -73,7 +73,9 @@ operator()(ZELDA_FORWARD_PARAMS(cs, T, &x)) const \
 { \
     return f(ZELDA_FORWARD_ARGS(cs, T, x)); \
 }
+
 #elif defined(ZELDA_NO_VARIADIC_TEMPLATES)
+
 #define ZELDA_FORWARD_CALL_OPERATOR(F, f) BOOST_PP_REPEAT(8, ZELDA_DETAIL_FORWARD_CALL_OPERATOR_OP, (F, f))
 #define ZELDA_FORWARD_CALL_OPERATOR_ZR(z, r, F, f) BOOST_PP_REPEAT_ ## z(8, ZELDA_DETAIL_FORWARD_CALL_OPERATOR_OP, (F, f))
 
@@ -86,12 +88,14 @@ operator()(ZELDA_FORWARD_PARAMS(cs, T, &x)) const \
 template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
 struct result<X(ZELDA_PP_PARAMS_Z(z, n, T))> : zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T))> {}; \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-typename zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, T, && BOOST_PP_INTERCEPT))>::type \
-operator()(ZELDA_PP_PARAMS_Z(z, T, && x)) const \
+typename zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T, && BOOST_PP_INTERCEPT))>::type \
+operator()(ZELDA_PP_PARAMS_Z(z, n, T, && x)) const \
 { \
     return f(ZELDA_DETAIL_FORWARD_CALL_FORWARD_Z(z, n)); \
 }
+
 #else
+
 #define ZELDA_FORWARD_CALL_OPERATOR(F, f) ZELDA_DETAIL_FORWARD_CALL_OPERATOR(F, f)
 #define ZELDA_FORWARD_CALL_OPERATOR_ZR(z, r, F, f) ZELDA_DETAIL_FORWARD_CALL_OPERATOR(F, f)
 

@@ -19,7 +19,9 @@ struct pipe_na
 
 }
 
-
+//
+// pipe_closure
+//
 template<class F, ZELDA_PP_PARAMS(8, class T, = details::pipe_na BOOST_PP_INTERCEPT)>
 struct pipe_closure {};
 
@@ -59,8 +61,9 @@ struct pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>\
 BOOST_PP_REPEAT_FROM_TO(1, 8, ZELDA_DETAIL_PIPE_CLOSURE_BUILDER, ~)
 #undef ZELDA_DETAIL_PIPE_CLOSURE_BUILDER
 
-
-// TODO: Forward args @ ZELDA_PP_PARAMS_Z(z, n, x)
+//
+// pipable_adaptor_base
+//
 #define ZELDA_PIPABLE_ADAPTOR_BASE_BUILDER(z, n, data) \
 template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
 struct result<X(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(exclude is_callable<F(ZELDA_PP_PARAMS_Z(z, n, T))>)> \
@@ -117,6 +120,10 @@ BOOST_PP_REPEAT_FROM_TO(1, 8, ZELDA_PIPABLE_ADAPTOR_BASE_BUILDER, ~)
 
 #undef ZELDA_PIPABLE_ADAPTOR_BASE_BUILDER
 
+
+//
+// pipable_adaptor
+//
 ZELDA_FORWARD_MAKE_ADAPTOR(pipable_adaptor, pipable_adaptor_base)
 
 #ifdef ZELDA_NO_RVALUE_REFS
