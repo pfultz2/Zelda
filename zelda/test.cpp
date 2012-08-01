@@ -17,7 +17,7 @@ struct binary_class
     template<class F, class T, class U>
     struct result<F(T, U)>
     {
-        typedef T type;
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<T>() + zelda::declval<U>()) type;
     };
 
     template<class T, class U>
@@ -34,7 +34,7 @@ struct mutable_class
     struct result;
 
     template<class F, class T, class U>
-    struct result<F(T, U)>
+    struct result<F(T&, U)>
     {
         typedef T type;
     };
@@ -59,9 +59,9 @@ struct unary_class
     };
 
     template<class T>
-    T operator()(T x) const
+    ZELDA_FORWARD_REF(T) operator()(ZELDA_FORWARD_REF(T) x) const
     {
-        return x;
+        return zelda::forward<T>(x);
     }
 
 };
@@ -120,15 +120,15 @@ int main()
     void_pipable(1);
     1 | void_pipable;
     // pipable
-    // ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
-    // ZELDA_TEST_CHECK(3, binary_pipable(1, 2));
-    // ZELDA_TEST_CHECK(3, 3 | unary_pipable);
-    // ZELDA_TEST_CHECK(3, unary_pipable(3));
-    // int i1 = 1;
-    // ZELDA_TEST_CHECK(3, 2 | binary_pipable(i1));
-    // ZELDA_TEST_CHECK(3, i1 | mutable_pipable(2));
-    // int i2 = 1;
-    // ZELDA_TEST_CHECK(3, mutable_pipable(i2, 2));
+    ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
+    ZELDA_TEST_CHECK(3, binary_pipable(1, 2));
+    ZELDA_TEST_CHECK(3, 3 | unary_pipable);
+    ZELDA_TEST_CHECK(3, unary_pipable(3));
+    int i1 = 1;
+    ZELDA_TEST_CHECK(3, 2 | binary_pipable(i1));
+    ZELDA_TEST_CHECK(3, i1 | mutable_pipable(2));
+    int i2 = 1;
+    ZELDA_TEST_CHECK(3, mutable_pipable(i2, 2));
 
     //partial
     // ZELDA_TEST_CHECK(3, binary_partial(1)(2));

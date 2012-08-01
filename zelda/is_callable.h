@@ -5,9 +5,10 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
-#include <zelda/pp.h>
-#include <zelda/static_assert.h>
 #include <zelda/config.h>
+#include <zelda/pp.h>
+#include <zelda/typeof.h>
+#include <zelda/static_assert.h>
 #include <boost/mpl/bool.hpp>
 
 namespace zelda {

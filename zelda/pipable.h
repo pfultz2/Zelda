@@ -23,6 +23,29 @@ struct pipe_na
 template<class F, ZELDA_PP_PARAMS(8, class T, = details::pipe_na BOOST_PP_INTERCEPT)>
 struct pipe_closure {};
 
+#ifdef ZELDA_NO_RVALUE_REFS
+#define ZELDA_DETAIL_PIPE_CLOSURE_BUILDER_OPERATOR(z, n) \
+template<class A> \
+friend typename result_of<F(A&, ZELDA_PP_PARAMS_Z(z, n, T))>::type \
+operator|(A & a, const pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>& p) \
+{ return p.f(a, ZELDA_PP_PARAMS_Z(z, n, p.x)); } \
+\
+template<class A> \
+friend typename result_of<F(const A&, ZELDA_PP_PARAMS_Z(z, n, T))>::type \
+operator|(const A & a, const pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>& p) \
+{ return p.f(a, ZELDA_PP_PARAMS_Z(z, n, p.x)); }
+#else
+#define ZELDA_DETAIL_PIPE_CLOSURE_BUILDER_OPERATOR(z, n) \
+template<class A> \
+friend typename result_of<F(A&&, ZELDA_PP_PARAMS_Z(z, n, T))>::type \
+operator|(A && a, const pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>& p) \
+{ return p.f(a, ZELDA_PP_PARAMS_Z(z, n, p.x)); }
+#endif
+
+#define ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT(n) BOOST_PP_ENUM(n, ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT_EACH, data)
+#define ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT_Z(z, n) BOOST_PP_ENUM_ ## z(n, ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT_EACH, data)
+#define ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT_EACH(z, i, data) x ## i(zelda::forward<T ## i>(x ## i))
+
 #define ZELDA_DETAIL_PIPE_CLOSURE_BUILDER(z, n, data) \
 template<class F, ZELDA_PP_PARAMS_Z(z, n, class T)> \
 struct pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>\
@@ -30,15 +53,8 @@ struct pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>\
     F f; \
     ZELDA_PP_GEN(n, T, x, ; BOOST_PP_INTERCEPT) \
     pipe_closure(F f, ZELDA_PP_PARAMS_Z(z, n, T, x)) \
-    : f(f), ZELDA_PP_CONSTRUCT(n, x) {} \
-    template<class A> \
-    friend typename result_of<F(A&, ZELDA_PP_PARAMS_Z(z, n, T))>::type \
-    operator|(A & a, const pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>& p) \
-    { return p.f(a, ZELDA_PP_PARAMS_Z(z, n, p.x)); } \
-    template<class A> \
-    friend typename result_of<F(const A&, ZELDA_PP_PARAMS_Z(z, n, T))>::type \
-    operator|(const A & a, const pipe_closure<F, ZELDA_PP_FIXED_PARAMS(n, 8, T, details::pipe_na)>& p) \
-    { return p.f(a, ZELDA_PP_PARAMS_Z(z, n, p.x)); } \
+    : f(f), ZELDA_DETAIL_PIPE_CLOSURE_CONSTRUCT_Z(z, n) {} \
+    ZELDA_DETAIL_PIPE_CLOSURE_BUILDER_OPERATOR(z, n) \
 };
 BOOST_PP_REPEAT_FROM_TO(1, 8, ZELDA_DETAIL_PIPE_CLOSURE_BUILDER, ~)
 #undef ZELDA_DETAIL_PIPE_CLOSURE_BUILDER
@@ -57,13 +73,13 @@ struct result<X(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(is_callable<F(
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
 typename zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT))>::type \
 operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() x)) const \
-{ return this->get_function()(ZELDA_PP_PARAMS_Z(z, n, x)); } \
+{ return this->get_function()(ZELDA_SIMPLE_FORWARD_Z(z, n, T, x)); } \
 \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
 ZELDA_FUNCTION_REQUIRES(exclude is_callable<F(ZELDA_PP_PARAMS_Z(z, n, T))>) \
 (pipe_closure<F, ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT)>) \
 operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() x)) const \
-{ return pipe_closure<F, ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT)>(this->get_function(), ZELDA_PP_PARAMS_Z(z, n, x)); } \
+{ return pipe_closure<F, ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT)>(this->get_function(), ZELDA_SIMPLE_FORWARD_Z(z, n, T, x)); } \
 
 
 template<class F, class Enable = void>

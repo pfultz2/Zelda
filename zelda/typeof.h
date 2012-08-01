@@ -8,14 +8,14 @@
 #ifndef ZELDA_GUARD_TYPEOF_H
 #define	ZELDA_GUARD_TYPEOF_H
 
-
+#include <zelda/static_assert.h>
 #include <boost/type_traits.hpp>
-#include <boost/static_assert.hpp>
+#include <boost/mpl/assert.hpp>
 
-#ifndef ZELDA_NO_DECLTYPE
+#if !defined(ZELDA_NO_DECLTYPE)
 #define ZELDA_TYPEOF decltype
 #define ZELDA_TYPEOF_TPL decltype
-#elif ZELDA_HAS_TYPEOF
+#elif defined(ZELDA_HAS_TYPEOF)
 #define ZELDA_TYPEOF __typeof__
 #define ZELDA_TYPEOF_TPL __typeof__
 #else
@@ -47,8 +47,8 @@
 #define ZELDA_XTYPEOF(...) decltype((__VA_ARGS__))
 #define ZELDA_XTYPEOF_TPL(...) decltype((__VA_ARGS__))
 #else
-#define ZELDA_XTYPEOF(...) zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF(x), ZELDA_TYPEOF_IS_LVALUE(x), ZELDA_TYPEOF_IS_RVALUE(x)>::type
-#define ZELDA_XTYPEOF_TPL(...) typename zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF_TPL(x), ZELDA_TYPEOF_IS_LVALUE_TPL(x), ZELDA_TYPEOF_IS_RVALUE_TPL(x)>::type
+#define ZELDA_XTYPEOF(...) zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF(__VA_ARGS__), ZELDA_TYPEOF_IS_LVALUE(__VA_ARGS__), ZELDA_TYPEOF_IS_RVALUE(__VA_ARGS__)>::type
+#define ZELDA_XTYPEOF_TPL(...) typename zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF_TPL(__VA_ARGS__), ZELDA_TYPEOF_IS_LVALUE_TPL(__VA_ARGS__), ZELDA_TYPEOF_IS_RVALUE_TPL(__VA_ARGS__)>::type
 #endif
 
 namespace zelda {
@@ -77,33 +77,32 @@ struct rvalue_probe
         boost::mpl::or_<boost::is_abstract<T>, boost::is_array<T> >, private_type_, T
     >::type value_type;
     operator value_type();
-    operator const T &() const;
+    operator const T&() const;
 };
 
 template<typename T>
 rvalue_probe<T> const make_probe(T const &);
-template<typename T>
-void_ const make_probe(void_);
+void const make_probe(void_);
 
-#define ZELDA_TYPEOF_RVALUE_PROBE(x) true ? zelda::typeof_detail::make_probe(BSI_TYPEOF_AVOID(x)) : (x)
+#define ZELDA_TYPEOF_RVALUE_PROBE(x) true ? zelda::typeof_detail::make_probe(ZELDA_AVOID(x)) : (x)
 
 #define ZELDA_TYPEOF_IS_RVALUE(x) \
 boost::mpl::and_<boost::mpl::not_<boost::is_array<ZELDA_TYPEOF(x)> >,\
-boost::mpl::not_<boost::is_const<ZELDA_TYPEOF(BSI_TYPEOF_RVALUE_PROBE(x))> > >
+boost::mpl::not_<boost::is_const<ZELDA_TYPEOF(ZELDA_TYPEOF_RVALUE_PROBE(x))> > >
 
 #define ZELDA_TYPEOF_IS_RVALUE_TPL(x) \
 boost::mpl::and_<boost::mpl::not_<boost::is_array<ZELDA_TYPEOF_TPL(x)> >,\
-boost::mpl::not_<boost::is_const<ZELDA_TYPEOF_TPL(BSI_TYPEOF_RVALUE_PROBE(x))> > >
+boost::mpl::not_<boost::is_const<ZELDA_TYPEOF_TPL(ZELDA_TYPEOF_RVALUE_PROBE(x))> > >
 
 template<class T> boost::mpl::false_ is_lvalue(const T &);
 template<class T> boost::mpl::true_ is_lvalue(T&);
 inline boost::mpl::false_ is_lvalue(void_);
 
-#define BSI_TYPEOF_IS_LVALUE(x) \
-ZELDA_TYPEOF(zelda::typeof_detail::is_lvalue(BSI_TYPEOF_AVOID(x)))
+#define ZELDA_TYPEOF_IS_LVALUE(x) \
+ZELDA_TYPEOF(zelda::typeof_detail::is_lvalue(ZELDA_AVOID(x)))
 
-#define BSI_TYPEOF_IS_LVALUE_TPL(x) \
-ZELDA_TYPEOF_TPL(zelda::typeof_detail::is_lvalue(BSI_TYPEOF_AVOID(x)))
+#define ZELDA_TYPEOF_IS_LVALUE_TPL(x) \
+ZELDA_TYPEOF_TPL(zelda::typeof_detail::is_lvalue(ZELDA_AVOID(x)))
 
 template<class T, class IsLvalue, class IsRvalue>
 struct xtypeof_
@@ -128,7 +127,7 @@ struct is_const2 : boost::is_const<typename boost::remove_reference<T>::type >
 }
 
 #ifdef ZELDA_TEST
-namespace bsi {
+namespace zelda {
 namespace typeof_test {
 
 int by_value();
@@ -147,19 +146,19 @@ struct foo
 template<class T>
 struct tester
 {
-    typedef ZELDA_XTYPEOF(T::by_value()) test2;
+    typedef ZELDA_XTYPEOF_TPL(T::by_value()) test2;
 
     //On MSVC, static_assert is broken, so we use BOOST_MPL_ASSERT instead.
     BOOST_MPL_ASSERT_NOT((boost::is_reference<ZELDA_XTYPEOF_TPL(T::by_value())>));
-    BOOST_MPL_ASSERT_NOT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(T::by_value())>));
+    BOOST_MPL_ASSERT_NOT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF_TPL(T::by_value())>));
 
-    BOOST_MPL_ASSERT((boost::is_reference<ZELDA_XTYPEOF(T::by_ref())>));
-    BOOST_MPL_ASSERT_NOT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(T::by_ref())>));
+    BOOST_MPL_ASSERT((boost::is_reference<ZELDA_XTYPEOF_TPL(T::by_ref())>));
+    BOOST_MPL_ASSERT_NOT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF_TPL(T::by_ref())>));
 
-    BOOST_MPL_ASSERT((boost::is_reference<ZELDA_XTYPEOF(T::by_const_ref())>));
-    BOOST_MPL_ASSERT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF(T::by_const_ref())>));
+    BOOST_MPL_ASSERT((boost::is_reference<ZELDA_XTYPEOF_TPL(T::by_const_ref())>));
+    BOOST_MPL_ASSERT((zelda::typeof_detail::is_const2<ZELDA_XTYPEOF_TPL(T::by_const_ref())>));
 
-    BOOST_MPL_ASSERT((boost::is_same<ZELDA_XTYPEOF(T::by_void()), void>));
+    BOOST_MPL_ASSERT((boost::is_same<ZELDA_XTYPEOF_TPL(T::by_void()), void>));
 };
 
 static tester<foo> tested;
