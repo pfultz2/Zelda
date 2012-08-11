@@ -52,7 +52,7 @@
 #ifdef __GNUC__
 #define ZELDA_HAS_TYPEOF
 #ifndef __clang__
-#define ZELDA_NO_EXPRESSION_SFINAE
+//#define ZELDA_NO_EXPRESSION_SFINAE
 
 #define ZELDA_NO_DECLTYPE
 #define ZELDA_NO_LAMBDAS
