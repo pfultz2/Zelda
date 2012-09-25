@@ -233,33 +233,6 @@ make_poly_adaptor_base(F f, ZELDA_PP_PARAMS(n, F, f)) \
 }
 
 
-// template<class Base, class F, class BF>
-// ZELDA_FUNCTION_REQUIRES(exclude boost::is_empty<Base>)(void) 
-// set_poly_adaptor_base(Base& b, F f, BF bf)
-// {
-//     b.f = f;
-//     b.bf = bf;
-// }
-
-// template<class Base, class F, class BF>
-// ZELDA_FUNCTION_REQUIRES(boost::is_empty<Base>)(void) 
-// set_poly_adaptor_base(Base& b, F f, BF bf)
-// {
-// }
-
-// #define ZELDA_POLY_SET_POLY_ADAPTOR_BASE(z, i, data) \
-// template<class Base, class F, class BF>
-
-
-// template<class F, class BF>
-// typename poly_adaptor_base_type<F, BF>::type
-// make_poly_adaptor_base(F f, BF bf)
-// {
-//     typename poly_adaptor_base_type<F, BF>::type result;
-
-//     return result;
-// }
-
 #define ZELDA_DETAIL_POLY_ADAPTOR_BASE typename poly_adaptor_base_type<F, ZELDA_PP_PARAMS(10, F)>::type 
 
 template<class F, ZELDA_PP_PARAMS(10, class F, = details::poly_na BOOST_PP_INTERCEPT), class Enable = void>

@@ -10,6 +10,7 @@
 
 #include <zelda/is_callable.h>
 #include <zelda/requires.h>
+#include <boost/utility/result_of.hpp>
 
 namespace zelda {
 

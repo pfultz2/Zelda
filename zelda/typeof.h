@@ -11,6 +11,8 @@
 #include <zelda/static_assert.h>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/and.hpp>
 
 #if !defined(ZELDA_NO_DECLTYPE)
 #define ZELDA_TYPEOF decltype

@@ -24,7 +24,9 @@
 #define ZELDA_PP_EMPTY(...)
 #define ZELDA_PP_TRUE(...) 1
 #define ZELDA_PP_FALSE(...) 0
-
+#define ZELDA_PP_DEFER(...) __VA_ARGS__ ZELDA_PP_EMPTY()
+#define ZELDA_PP_OBSTRUCT(...) __VA_ARGS__ ZELDA_PP_DEFER(ZELDA_PP_EMPTY)()
+ 
  /**
  * ZELDA_PP_NARGS returns the number of args in __VA_ARGS__
  */
@@ -108,7 +110,7 @@
 //
 // ZELDA_PP_STRING_TOKEN
 //
-#define ZELDA_PP_STRING_TOKEN(x) BOOST_PP_IIF(ZELDA_PP_IS_PAREN(string), ZELDA_PP_STRING_TOKEN_PAREN, ZELDA_PP_STRING_TOKEN_KEYWORD)(x)
+#define ZELDA_PP_STRING_TOKEN(x) BOOST_PP_IIF(ZELDA_PP_IS_PAREN(x), ZELDA_PP_STRING_TOKEN_PAREN, ZELDA_PP_STRING_TOKEN_KEYWORD)(x)
 #define ZELDA_PP_STRING_TOKEN_KEYWORD(x) ZELDA_PP_STRING_TOKEN_KEYWORD_CHECK(BOOST_PP_CAT(ZELDA_PP_STRING_, x), x)
 #define ZELDA_PP_STRING_TOKEN_KEYWORD_CHECK(tokened, raw) BOOST_PP_IIF(ZELDA_PP_IS_PAREN(tokened), tokened, (raw))
 #define ZELDA_PP_STRING_TOKEN_PAREN(x) (ZELDA_PP_HEAD(x)) ZELDA_PP_TAIL(x) 
@@ -141,6 +143,22 @@
 #define ZELDA_PP_SEQ_TO_STRING_EACH(r, data, x) x 
 
 //
+// ZELDA_PP_SEQ_SPLIT
+//
+#define ZELDA_PP_SEQ_SPLIT(seq, pred, data) ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_M(BOOST_PP_SEQ_FOLD_LEFT(ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_O, (pred, data,,), seq))
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_O(s, state, x) ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_INVOKE((s, x, ZELDA_PP_REM state))
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_INVOKE(x) ZELDA_DETAIL_PP_SEQ_SPLIT_OP x
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_OP(s, x, pred, data, seq, elem) \
+    BOOST_PP_IF(pred(s, data, x), ZELDA_DETAIL_PP_SEQ_SPLIT_OP_TRUE, ZELDA_DETAIL_PP_SEQ_SPLIT_OP_FALSE)(x, pred, data, seq, elem)
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_OP_TRUE(x, pred, data, seq, elem) BOOST_PP_IIF(ZELDA_PP_IS_PAREN(elem), \
+    (pred, data, seq(elem),),\
+    (pred, data, seq,))
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_OP_FALSE(x, pred, data, seq, elem) (pred, data, seq, elem (x))
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_FOLD_LEFT_M(state) ZELDA_DETAIL_PP_SEQ_SPLIT_M state
+#define ZELDA_DETAIL_PP_SEQ_SPLIT_M(pred, data, seq, elem) seq BOOST_PP_IIF(ZELDA_PP_IS_PAREN(elem), (elem),)
+
+
+//
 // ZELDA_PP_EQUAL
 //
 #define ZELDA_PP_IS_COMPARABLE(x) BOOST_PP_IIF(ZELDA_PP_IS_PAREN(x), ZELDA_PP_FALSE, ZELDA_PP_PRIMITIVE_IS_COMPARABLE)(x)
@@ -153,7 +171,7 @@ ZELDA_PP_COMPARE_ ## x ( ZELDA_PP_COMPARE_ ## y ZELDA_PP_EMPTY()(()) ) \
 )
 
 #define ZELDA_PP_NOT_EQUAL(x, y) \
-BOOST_PP_IIF(BOOST_PP_BITAND( ZELDA_PP_PRIMITIVE_IS_COMPARABLE(x), ZELDA_PP_PRIMITIVE_IS_COMPARABLE(y) )), \
+BOOST_PP_IIF(BOOST_PP_BITAND( ZELDA_PP_IS_COMPARABLE(x), ZELDA_PP_IS_COMPARABLE(y) ), \
    ZELDA_PP_PRIMITIVE_COMPARE, \
    ZELDA_PP_TRUE \
 )(x, y)
@@ -218,8 +236,11 @@ DETAIL_ZELDA_PP_SEQ_FOR_EACH_PRODUCT_EACH_I(r, BOOST_PP_SEQ_ELEM(0, product), BO
 #define ZELDA_DETAIL_PP_VARN_INVOKE(data)  ZELDA_PP_MSVC_INVOKE(ZELDA_DETAIL_PP_VARN_CAT, data)
 #endif
 #define ZELDA_DETAIL_PP_VARN_CAT(n, a, b, c, d, e, f, g, h, ...) a ## n b ## n c ## n d ## n e ## n f ## n g ## n h ## n
+#define ZELDA_DETAIL_PP_VARN_CAT_EACH(a, n) BOOST_PP_IF(ZELDA_PP_IS_PAREN(a), ZELDA_DETAIL_PP_VARN_CAT_EACH_PAREN, ZELDA_DETAIL_PP_VARN_CAT_EACH_TOKEN)(a, n)
+#define ZELDA_DETAIL_PP_VARN_CAT_EACH_PAREN(a, n) (BOOST_PP_CAT(ZELDA_PP_REM a, n))
+#define ZELDA_DETAIL_PP_VARN_CAT_EACH_TOKEN(a, n)  a ## n
 
-
+// TODO: Remove when VARN_CAT can handle parenthesis
 #define ZELDA_PP_CONSTRUCT(n, ...) BOOST_PP_ENUM(n, ZELDA_DETAIL_PP_CONSTRUCT_EACH, (__VA_ARGS__)) 
 #define ZELDA_DETAIL_PP_CONSTRUCT_EACH(z, i, data) ZELDA_DETAIL_PP_CONSTRUCT_INVOKE((i, ZELDA_PP_REM data))
 #define ZELDA_DETAIL_PP_CONSTRUCT_INVOKE(data) ZELDA_DETAIL_PP_CONSTRUCT_OP data
@@ -232,6 +253,7 @@ BOOST_PP_ENUM_PARAMS(n,var)                                 \
 BOOST_PP_COMMA_IF(n)                                      \
 BOOST_PP_ENUM_PARAMS(BOOST_PP_SUB(max,n), fixed BOOST_PP_INTERCEPT)
 
+// TODO: Allow for a seq to be the first parmeter instead of just a number.
 #define ZELDA_PP_PARAMS(n, ...) BOOST_PP_ENUM(n, ZELDA_DETAIL_PP_PARAMS_EACH, (__VA_ARGS__))
 #define ZELDA_PP_PARAMS_Z(z, n, ...) BOOST_PP_ENUM_ ## z(n, ZELDA_DETAIL_PP_PARAMS_EACH, (__VA_ARGS__)) 
 #define ZELDA_DETAIL_PP_PARAMS_EACH(z, n, data) ZELDA_PP_VARN_CAT(n, data)
@@ -240,13 +262,14 @@ BOOST_PP_ENUM_PARAMS(BOOST_PP_SUB(max,n), fixed BOOST_PP_INTERCEPT)
 #define ZELDA_PP_GEN_Z(z, n, ...) BOOST_PP_REPEAT_ ## z(n, ZELDA_DETAIL_PP_GEN_EACH, (__VA_ARGS__)) 
 #define ZELDA_DETAIL_PP_GEN_EACH(z, n, data) ZELDA_PP_VARN_CAT(n, data)
 
+// TODO: Remove when VARN_CAT can handle parenthesis
 #define ZELDA_PP_SEQ_GEN(z, n, ...) BOOST_PP_REPEAT_ ## z(n, ZELDA_DETAIL_PP_GEN_SEQ_EACH, (__VA_ARGS__)) 
 #define ZELDA_DETAIL_PP_GEN_SEQ_EACH(z, n, data) (ZELDA_PP_VARN_CAT(n, data))
 
-#define ZELDA_PP_SEQ_PREFIX(prefix, seq) BOOST_PP_SEQ_TRANSFORM(op, prefix, seq)  
+#define ZELDA_PP_SEQ_PREFIX(prefix, seq) BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_PP_SEQ_PREFIX_OP, prefix, seq)  
 #define ZELDA_DETAIL_PP_SEQ_PREFIX_OP(d, prefix, x) prefix x
 
-#define ZELDA_PP_SEQ_POSTFIX(postfix, seq) BOOST_PP_SEQ_TRANSFORM(op, postfix, seq)  
+#define ZELDA_PP_SEQ_POSTFIX(postfix, seq) BOOST_PP_SEQ_TRANSFORM(ZELDA_DETAIL_PP_SEQ_POSTFIX_OP, postfix, seq)  
 #define ZELDA_DETAIL_PP_SEQ_POSTFIX_OP(d, postfix, x) postfix x
 
 #define ZELDA_PP_SEQ_POST_ENUM(seq, ...) BOOST_PP_SEQ_FOR_EACH_I(ZELDA_DETAIL_PP_SEQ_POST_ENUM_EACH, (__VA_ARGS__), seq) 
