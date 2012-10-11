@@ -14,7 +14,10 @@ gcc11:
 	g++-4.7 -std=gnu++11 -DZELDA_TEST -I/home/paul/github/Zelda -Wfatal-errors test.cpp
 
 pp:
-	clang++ -E -C -fmacro-backtrace-limit=0 -DZELDA_TEST -I/home/paul/github/Zelda is_callable.h
+	clang++ -E -C -fmacro-backtrace-limit=0 -DZELDA_TEST -DZELDA_PARAMS_LIMIT=6 -I/home/paul/github/Zelda function/detail/c03/perfect_facade.h
+
+forward:
+	clang++ -E -C -fmacro-backtrace-limit=0 -DZELDA_TEST -DZELDA_PARAMS_LIMIT=6 -I/home/paul/github/Zelda forward.h
     
 clean:
 	rm a.out

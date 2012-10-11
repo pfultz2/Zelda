@@ -64,4 +64,11 @@
 #define ZELDA_NO_VARIADIC_TEMPLATES
 #define ZELDA_NO_OVERRIDE_CONTROL
 #endif
+
+
+#ifndef ZELDA_PARAMS_LIMIT
+#define ZELDA_PARAMS_LIMIT 6
+#endif
+
+
 #endif
