@@ -10,6 +10,7 @@
 
 #include <zelda/pp.h>
 #include <zelda/config.h>
+#include <zelda/forward.h>
 
 // (()())       ((const)())
 // (()(const))  ((const)(const))

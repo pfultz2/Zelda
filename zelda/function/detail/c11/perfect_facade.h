@@ -9,6 +9,7 @@
 #define ZELDA_GUARD_C11_PERFECT_FACADE_H
 
 #include <zelda/result_of.h>
+#include <zelda/forward.h>
 
 namespace zelda { namespace detail {
 
