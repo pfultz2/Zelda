@@ -33,17 +33,18 @@
 #endif
 
 #ifndef ZELDA_NO_TRAILING_RETURN
-    #ifndef ZELDA_NO_NOEXCEPT
+    #if !defined(ZELDA_NO_NOEXCEPT) && !defined(ZELDA_NO_RVALUE_REFS)
     #define ZELDA_RETURNS(...) \
-        noexcept(noexcept(decltype(__VA_ARGS__)(std::move(__VA_ARGS__)))) \
+        noexcept(noexcept(decltype(__VA_ARGS__)(zelda::typeof_detail::move(ZELDA_AVOID(__VA_ARGS__))))) \
         -> decltype(__VA_ARGS__) \
-        { return (__VA_ARGS__); }
+        { return (__VA_ARGS__); } static_assert(true, "")
     #else
-    #define ZELDA_RETURNS(...) -> decltype(__VA_ARGS__) { return __VA_ARGS__; }
+    #define ZELDA_RETURNS(...) -> decltype(__VA_ARGS__) { return __VA_ARGS__; } static_assert(true, "")
     #endif
 #else
 #define ZELDA_RETURNS(...) ZELDA_ERROR_TRAILING_RETURNS_NOT_SUPPORTED
 #endif
+
 
 #ifndef ZELDA_NO_DECLTYPE
 #define ZELDA_XTYPEOF(...) decltype((__VA_ARGS__))
@@ -65,9 +66,20 @@ T declval();
 
 namespace typeof_detail {
 struct void_ {};
+#ifndef ZELDA_NO_RVALUE_REFS
+template<class T> T&& operator,(T&&, void_);
+#else
 template<class T> const T& operator,(T const&, void_);
 template<class T> T& operator,(T&, void_);
-#define ZELDA_AVOID(x) ((x), zelda::typeof_detail::void_())
+#endif
+#define ZELDA_AVOID(...) ((__VA_ARGS__), zelda::typeof_detail::void_())
+
+#ifndef ZELDA_NO_RVALUE_REFS
+template<typename T>
+typename std::remove_reference<T>::type&&
+move(T&& x) noexcept;
+void move(void_);
+#endif
 
 //rvalue probe from Eric Niebler
 template<typename T>

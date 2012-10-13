@@ -54,6 +54,7 @@
 #ifndef __clang__
 //#define ZELDA_NO_EXPRESSION_SFINAE
 
+#define ZELDA_NO_STD_TUPLE
 #define ZELDA_NO_DECLTYPE
 #define ZELDA_NO_LAMBDAS
 #define ZELDA_NO_RANGE_FOR

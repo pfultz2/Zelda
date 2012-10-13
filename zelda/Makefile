@@ -14,10 +14,13 @@ gcc11:
 	g++-4.7 -std=gnu++11 -DZELDA_TEST -I/home/paul/github/Zelda -Wfatal-errors test.cpp
 
 pp:
-	clang++ -E -C -fmacro-backtrace-limit=0 -DZELDA_TEST -DZELDA_PARAMS_LIMIT=6 -I/home/paul/github/Zelda function/detail/c03/perfect_facade.h
+	clang++ -E -C -fmacro-backtrace-limit=0 -Wfatal-errors -DZELDA_TEST -I/home/paul/github/Zelda tuple.h
 
-forward:
-	clang++ -E -C -fmacro-backtrace-limit=0 -DZELDA_TEST -DZELDA_PARAMS_LIMIT=6 -I/home/paul/github/Zelda forward.h
+tuple:
+	clang++ -fmacro-backtrace-limit=0 -Wfatal-errors -DZELDA_NO_STD_TUPLE -DZELDA_TEST -I/home/paul/github/Zelda test_tuple.cpp
+
+tuple11:
+	clang++ -fmacro-backtrace-limit=0 -std=c++11 -DZELDA_TEST -I/home/paul/github/Zelda test_tuple.cpp
     
 clean:
 	rm a.out
