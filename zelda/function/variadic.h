@@ -9,19 +9,22 @@
 #define ZELDA_GUARD_FUNCTION_VARIADIC_H
 
 #include <zelda/function/adaptor.h>
+#include <zelda/function/perfect.h>
 #include <zelda/result_of.h>
 #include <zelda/tuple.h>
 
+
 namespace zelda { 
 
+namespace detail {
 // TODO: Add a lightweight vardiac adaptor that takes the parameters by value
 template<class F>
-struct variadic_adaptor : function_adaptor_base<F>
+struct variadic_adaptor_base : function_adaptor_base<F>
 {
-    variadic_adaptor() {}
+    variadic_adaptor_base() {}
 
     template<class X>
-    variadic_adaptor(X x) : function_adaptor_base<F>(x)
+    variadic_adaptor_base(X x) : function_adaptor_base<F>(x)
     {}
 
     template<class X>
@@ -59,6 +62,17 @@ struct variadic_adaptor : function_adaptor_base<F>
 BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
 
 #endif
+};
+}
+
+template<class F>
+struct variadic_adaptor : perfect_adaptor<detail::variadic_adaptor_base<F> >
+{
+    variadic_adaptor() {}
+
+    template<class X>
+    variadic_adaptor(X x) : perfect_adaptor<detail::variadic_adaptor_base<F> >(x)
+    {}
 };
 
 template<class F>
