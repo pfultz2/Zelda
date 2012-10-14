@@ -47,7 +47,45 @@ ZELDA_FORWARD_REF(T) forward( typename boost::remove_reference<T>::type& t )
     return static_cast<ZELDA_FORWARD_REF(T)>(t);
 }
 
+
+#ifdef ZELDA_NO_RVALUE_REFS
+template<class T>
+struct add_forward_reference
+{
+    typedef const T& type;
+};
+
+template<class T>
+struct add_forward_reference<T&>
+{
+    typedef T& type;
+};
+
+template<class T>
+struct add_forward_reference<const T&>
+{
+    typedef const T& type;
+};
+
+template<class T>
+struct add_forward_reference<const T>
+{
+    typedef const T& type;
+};
+
+#else
+template<class T>
+struct add_forward_reference
+{
+    typedef T&& type;
+};
+
+#endif
+
+
 }
+
+
 
 
 
