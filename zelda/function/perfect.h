@@ -8,14 +8,40 @@
 #ifndef ZELDA_GUARD_FUNCTION_PERFECT_H
 #define ZELDA_GUARD_FUNCTION_PERFECT_H
 
-namespace zelda { namespace function {
+#include <zelda/function/adaptor.h>
+#include <zelda/result_of.h>
 
+#if !defined(ZELDA_NO_VARIADIC_TEMPLATES) && !defined(ZELDA_NO_RVALUE_REFS)
+#include <zelda/function/detail/c11/perfect_facade.h>
+#elif !defined(ZELDA_NO_RVALUE_REFS)
+#include <zelda/function/detail/msvc/perfect_facade.h>
+#else
+#include <zelda/function/detail/c03/perfect_facade.h>
+#endif
 
-struct perfect
+namespace zelda {
+
+template<class F>
+struct perfect_adaptor : function_adaptor_base<F>, detail::perfect_facade<perfect_adaptor<F>, F>
 {
+    perfect_adaptor() {}
 
+    template<class X>
+    perfect_adaptor(X x) : function_adaptor_base<F>(x)
+    {}
+
+    template<class S>
+    struct result
+    : result_of<S>::template apply<F>
+    {};
 };
 
-}}
+template<class F>
+perfect_adaptor<F> perfect(F f)
+{
+    return perfect_adaptor<F>(f);
+}
+
+}
 
 #endif
