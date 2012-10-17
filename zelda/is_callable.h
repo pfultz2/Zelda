@@ -5,6 +5,9 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
+#ifndef ZELDA_GUARD_IS_CALLABLE_H
+#define ZELDA_GUARD_IS_CALLABLE_H
+
 #include <zelda/config.h>
 #include <zelda/pp.h>
 #include <zelda/typeof.h>
@@ -142,3 +145,5 @@ static_assert(not is_callable<is_callable_class(int, int)>::type::value, "callab
 
 
 }
+
+#endif
