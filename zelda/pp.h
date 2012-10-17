@@ -10,9 +10,9 @@
 
 //#define BOOST_PP_VARIADICS 1
 #include <boost/preprocessor.hpp>
-#include <boost/preprocessor/variadic.hpp>
+//#include <boost/preprocessor/variadic.hpp>
 #include <boost/preprocessor/facilities/is_empty.hpp>
-#include <boost/preprocessor/facilities/overload.hpp>
+//#include <boost/preprocessor/facilities/overload.hpp>
 #include "tokens.h"
 
 //Utility

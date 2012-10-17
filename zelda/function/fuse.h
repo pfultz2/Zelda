@@ -8,13 +8,43 @@
 #ifndef ZELDA_GUARD_FUNCTION_FUSE_H
 #define ZELDA_GUARD_FUNCTION_FUSE_H
 
-namespace zelda { namespace function {
+#include <zelda/tuple.h>
+#include <zelda/function/adaptor.h>
 
-class fuse
+namespace zelda {
+
+template<class F>
+struct fuse_adaptor : function_adaptor_base<F>
 {
+    fuse_adaptor() 
+    {}
 
+    template<class X>
+    fuse_adaptor(X x) : function_adaptor_base<F>(x) 
+    {}
+
+#ifndef ZELDA_NO_RVALUE_REFS
+    template<class T>
+    typename invoke_result<F, T>::type operator()(T && x) const
+    {
+        return invoke(this->get_function(), x);
+    }
+#else
+    template<class T>
+    typename invoke_result<F, T>::type operator()(const T & x) const
+    {
+        return invoke(this->get_function(), x);
+    }
+
+#endif
 };
 
-}}
+template<class F>
+fuse_adaptor<F> fuse(F f)
+{
+    return fuse_adaptor<F>(f);
+}
+
+}
 
 #endif
