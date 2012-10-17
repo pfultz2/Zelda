@@ -158,7 +158,7 @@ namespace detail {
 template<class F>
 struct poly_fuse
 {
-    typedef F type;
+    typedef fuse_adaptor<F> type;
 };
 
 template<>
