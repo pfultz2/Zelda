@@ -23,15 +23,23 @@ struct fuse_adaptor : function_adaptor_base<F>
     fuse_adaptor(X x) : function_adaptor_base<F>(x) 
     {}
 
+    template<class X>
+    struct result;
+
+    template<class X, class T>
+    struct result<X(T)>
+    : invoke_result<F, typename boost::decay<T>::type > 
+    {}; 
+
 #ifndef ZELDA_NO_RVALUE_REFS
     template<class T>
-    typename invoke_result<F, T>::type operator()(T && x) const
+    typename result<F(T)>::type operator()(T && x) const
     {
         return invoke(this->get_function(), x);
     }
 #else
     template<class T>
-    typename invoke_result<F, T>::type operator()(const T & x) const
+    typename result<F(T)>::type operator()(const T & x) const
     {
         return invoke(this->get_function(), x);
     }
