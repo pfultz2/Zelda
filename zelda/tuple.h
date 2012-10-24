@@ -102,7 +102,12 @@ struct tuple_catter<0>
 }
 
 template<class Tuple1, class Tuple2>
-typename detail::tuple_catter<tuple_size<Tuple1>::value-1>::template cat_result<Tuple1, Tuple2>::type
+struct tuple_cat_result
+: detail::tuple_catter<tuple_size<Tuple1>::value-1>::template cat_result<Tuple1, Tuple2>
+{};
+
+template<class Tuple1, class Tuple2>
+typename tuple_cat_result<Tuple1, Tuple2>::type
 tuple_cat(const Tuple1& t1, const Tuple2& t2)
 {
     return detail::tuple_catter<tuple_size<Tuple1>::value-1>()(t1, t2);
@@ -129,6 +134,12 @@ struct tuple_size
 template<std::size_t I, class T>
 struct tuple_element
 : std::tuple_element<I, T> {};
+
+template<class Tuple1, class Tuple2>
+struct tuple_cat_result
+{
+    typedef decltype(tuple_cat(zelda::declval<Tuple1>(), zelda::declval<Tuple1>())) type;
+};
 
 #endif
 

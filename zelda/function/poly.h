@@ -70,7 +70,18 @@ struct poly_kernel : poly_kernel_base<F1, F2>
     poly_kernel(A f1, B f2) : poly_kernel_base<F1, F2>(f1, f2)
     {}
 
-    // TODO: result
+    template<class X>
+    struct result;
+
+    template<class X, class T>
+    struct result<X(T)>
+    : boost::mpl::eval_if
+    <
+        is_callable<F1(ZELDA_FORWARD_REF(T))>, 
+        zelda::result_of<F1(ZELDA_FORWARD_REF(T))>, 
+        zelda::result_of<F2(ZELDA_FORWARD_REF(T))> 
+    >
+    {};
 
     template<class T>
     typename zelda::result_of<F1(ZELDA_FORWARD_REF(T))>::type 
