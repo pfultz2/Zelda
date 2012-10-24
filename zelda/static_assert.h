@@ -9,6 +9,8 @@
 #ifndef ZELDA_GUARD_STATIC_ASSERT_H
 #define ZELDA_GUARD_STATIC_ASSERT_H
 
+#include <zelda/config.h>
+
 #ifdef ZELDA_NO_STATIC_ASSERT
 #include <boost/static_assert.hpp>
 #define ZELDA_DETAIL_STATIC_ASSERT_SEQ(seq) \

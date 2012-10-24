@@ -4,8 +4,9 @@
 //#include <boost/fusion/functional/invocation/invoke.hpp>
 //#include <boost/fusion/adapted/std_tuple.hpp>
 //#include "invoke.h"
-#include <zelda/pipable.h>
-#include <zelda/defer.h>
+#include <zelda/function/pipable.h>
+#include <zelda/function/static.h>
+#include <zelda/function/defer.h>
 
 #define ZELDA_TEST_CHECK(x, ...) \
 if ((__VA_ARGS__) != x) printf("FAILED@%i: %s\n", __LINE__, #__VA_ARGS__);
@@ -104,21 +105,21 @@ struct mono_class
     }
 };
 
-zelda::forward_adaptor<binary_class> binary_forward = {};
+zelda::static_<binary_class> binary_forward = {};
 
-zelda::forward_adaptor<void_class> void_forward = {};
+zelda::static_<void_class> void_forward = {};
 
-zelda::forward_adaptor<mono_class> mono_forward = {};
+zelda::static_<mono_class> mono_forward = {};
 
-zelda::pipable_adaptor<binary_class> binary_pipable = {};
+zelda::static_<zelda::pipable_adaptor<binary_class> > binary_pipable = {};
 
-zelda::pipable_adaptor<unary_class> unary_pipable = {};
+zelda::static_<zelda::pipable_adaptor<unary_class> > unary_pipable = {};
 
-zelda::pipable_adaptor<mutable_class> mutable_pipable = {};
+zelda::static_<zelda::pipable_adaptor<mutable_class> > mutable_pipable = {};
 
-zelda::pipable_adaptor<void_class> void_pipable = {};
+zelda::static_<zelda::pipable_adaptor<void_class> > void_pipable = {};
 
-zelda::pipable_adaptor<mono_class> mono_pipable = {};
+zelda::static_<zelda::pipable_adaptor<mono_class> > mono_pipable = {};
 
 mutable_class foo = {};
 

@@ -177,6 +177,12 @@ struct tuple_forward_result
     typedef decltype(zelda::get<N>(zelda::declval<T>()))&& type;
 };
 
+template<int N, class T>
+auto tuple_forward(T && t) 
+ZELDA_RETURNS(zelda::forward<decltype(zelda::get<N>(zelda::forward<T>(t)))>(zelda::get<N>(std::forward<T>(t))));
+
+#endif
+
 template<int N>
 struct tuple_invoke_forward_result
 {
@@ -184,12 +190,6 @@ struct tuple_invoke_forward_result
     struct apply
     : tuple_forward_result<N, T> {};
 };
-
-template<int N, class T>
-auto tuple_forward(T && t) 
-ZELDA_RETURNS(zelda::forward<decltype(zelda::get<N>(zelda::forward<T>(t)))>(zelda::get<N>(std::forward<T>(t))));
-
-#endif
 
 }
 
@@ -241,17 +241,22 @@ struct tuple_invoker<n> \
 };
 BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_TUPLE_INVOKE, ~)
 
+// template<class F, class T, int N>
+// struct invoke_result_impl;
+
+// #define ZELDA_TUPLE_INVOKE_RESULT(z, n, data) \
+// template<class F, class T> \
+// struct invoke_result_impl<F, T, n > \
+// : zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, typename tuple_invoke_forward_result<0, >::template apply<T>::type BOOST_PP_INTERCEPT))> \
+// {};
+// BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_TUPLE_INVOKE_RESULT, ~)
+
 }
 
-template<class F, class T, int N>
-struct invoke_result_impl;
-
-#define ZELDA_TUPLE_INVOKE_RESULT(z, n, data) \
-template<class F, class T> \
-struct invoke_result_impl<F, T, n > \
-: zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, typename tuple_invoke_forward_result<0, >::template apply<T>::type BOOST_PP_INTERCEPT))> \
+template<class F, class T>
+struct invoke_result
+: detail::tuple_invoker<tuple_size<T>::value>::template invoke_result<F, T>
 {};
-BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_TUPLE_INVOKE_RESULT, ~)
 
 template<class F, class T>
 typename detail::tuple_invoker<tuple_size<T>::value>::template invoke_result<F, T>::type

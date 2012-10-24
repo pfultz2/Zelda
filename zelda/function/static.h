@@ -22,12 +22,9 @@
 namespace zelda { 
 
 template<class F>
-struct static_ : detail::perfect_facade<static_<F>, F>
+struct static_
 {
-    F get_function() const
-    {
-        return F();
-    }
+    ZELDA_PERFECT_FACADE(F, F())
 };
 
 }

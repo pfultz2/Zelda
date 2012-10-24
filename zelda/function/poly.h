@@ -187,10 +187,10 @@ struct poly_adaptor
 {
     poly_adaptor() {}
 
-#define ZELDA_POLY_ADAPTOR_CONSTRUTOR(z, n, data)
+#define ZELDA_POLY_ADAPTOR_CONSTRUTOR(z, n, data) \
     template<ZELDA_PP_PARAMS_Z(z, n, class X)> \
     poly_adaptor(ZELDA_PP_PARAMS_Z(z, n, X, fs)) \
-    : variadic_adaptor<detail::poly_base<ZELDA_PP_PARAMS_Z(1, ZELDA_POLY_LIMIT, typename detail::poly_fuse<Fs,>::type BOOST_PP_INTERCEPT)> > \
+    : variadic_adaptor<detail::poly_base<ZELDA_PP_PARAMS_Z(z, ZELDA_POLY_LIMIT, typename detail::poly_fuse<Fs,>::type BOOST_PP_INTERCEPT)> > \
     (detail::poly_base<ZELDA_PP_PARAMS_Z(z, ZELDA_POLY_LIMIT, typename detail::poly_fuse<Fs,>::type BOOST_PP_INTERCEPT)>(ZELDA_PP_PARAMS_Z(z, n, fs))) \
     {}
     BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_POLY_LIMIT, ZELDA_POLY_ADAPTOR_CONSTRUTOR, ~)
@@ -202,7 +202,7 @@ poly_adaptor<ZELDA_PP_PARAMS_Z(z, n, Fs)> poly(ZELDA_PP_PARAMS_Z(z, n, Fs, fs)) 
 { \
     return poly_adaptor<ZELDA_PP_PARAMS_Z(z, n, Fs)>(ZELDA_PP_PARAMS_Z(z, n, fs)); \
 }
-BOOST_PP_REPEAT_1(1, ZELDA_POLY_LIMIT, ~)
+BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_POLY_LIMIT, ZELDA_POLY_FUNCTION, ~)
 
 #endif
 

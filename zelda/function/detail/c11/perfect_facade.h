@@ -11,20 +11,28 @@
 #include <zelda/result_of.h>
 #include <zelda/forward.h>
 
-namespace zelda { namespace detail {
+#define ZELDA_PERFECT_FACADE(type, f) \
+template<class... T> \
+typename zelda::result_of<F(T&&...)>::type \
+operator()(T && ... x) const \
+{ \
+    return f(zelda::forward<T>(x)...); \
+}
 
-template<class Derived, class F>
-struct perfect_facade
-{
+// namespace zelda { namespace detail {
 
-    template<class... T>
-    typename zelda::result_of<F(T&&...)>::type
-    operator()(T && ... x) const
-    {
-        return static_cast<Derived*>(this)->get_function()(zelda::forward<T>(x)...);
-    }
-};
+// template<class Derived, class F>
+// struct perfect_facade
+// {
 
-}}
+//     template<class... T>
+//     typename zelda::result_of<F(T&&...)>::type
+//     operator()(T && ... x) const
+//     {
+//         return static_cast<Derived*>(this)->get_function()(zelda::forward<T>(x)...);
+//     }
+// };
+
+// }}
 
 #endif

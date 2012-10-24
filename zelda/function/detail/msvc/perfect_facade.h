@@ -13,20 +13,28 @@
 #include <zelda/result_of.h>
 #include <zelda/forward.h>
 
-namespace zelda { namespace detail {
-
-template<class Derived, class F>
-struct perfect_facade
-{
-#define ZELDA_PERFECT_FACADE(z, n, data) \
+#define ZELDA_DETAIL_PERFECT_FACADE(z, n, function) \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
 zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T, && BOOST_PP_INTERCEPT))> \
 operator()(ZELDA_PP_PARAMS_Z(z, n, T, && x)) const \
-{ return static_cast<Derived*>(this)->get_function()( ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) ); }
-BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_PERFECT_FACADE, ~)
+{ return function( ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) ); }
 
-};
+#define ZELDA_PERFECT_FACADE(type, f) BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_PERFECT_FACADE, f)
 
-}}
+// namespace zelda { namespace detail {
+
+// template<class Derived, class F>
+// struct perfect_facade
+// {
+// #define ZELDA_PERFECT_FACADE(z, n, data) \
+// template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
+// zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T, && BOOST_PP_INTERCEPT))> \
+// operator()(ZELDA_PP_PARAMS_Z(z, n, T, && x)) const \
+// { return static_cast<Derived*>(this)->get_function()( ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) ); }
+// BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_PERFECT_FACADE, ~)
+
+// };
+
+// }}
 
 #endif

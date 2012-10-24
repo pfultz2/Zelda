@@ -49,8 +49,8 @@
 
 
 #define ZELDA_PERFECT_FACADE_SEQ(seq) ZELDA_PERFECT_ITERATE_END(ZELDA_PERFECT_FACADE_SEQ_1 seq)
-#define ZELDA_PERFECT_FACADE_SEQ_1(seq) ZELDA_PERFECT_FACADE(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2
-#define ZELDA_PERFECT_FACADE_SEQ_2(seq) ZELDA_PERFECT_FACADE(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1
+#define ZELDA_PERFECT_FACADE_SEQ_1(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2
+#define ZELDA_PERFECT_FACADE_SEQ_2(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1
 #define ZELDA_PERFECT_FACADE_SEQ_1_EOF
 #define ZELDA_PERFECT_FACADE_SEQ_2_EOF
 
@@ -62,23 +62,39 @@
 zelda::forward<BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 0, data), i)>\
 ( BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 1, data), i) )
 
-namespace zelda { namespace detail {
-
-template<class Derived, class F>
-struct perfect_facade
-{
-#define ZELDA_PERFECT_FACADE(n, seq) \
-template<ZELDA_PP_PARAMS_Z(1, n, class T)> \
+#define ZELDA_PERFECT_FACADE_OP(n, seq) \
+template<ZELDA_PP_PARAMS_Z(2, n, class T)> \
 zelda::result_of<F(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))> \
 operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
-{ return static_cast<Derived*>(this)->get_function()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
+{ return this->zelda_private_perfect_facade_function()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
 
-ZELDA_PERFECT_FACADE_SEQ(ZELDA_PERFECT_PRODUCT_SEQ(ZELDA_PARAMS_LIMIT))
+#define ZELDA_DETAIL_PERFECT_FACADE(z, n, data) \
+ZELDA_PERFECT_FACADE_SEQ(ZELDA_PERFECT_PRODUCT_SEQ(n))
+
+#define ZELDA_PERFECT_FACADE(type, f) \
+type zelda_private_perfect_facade_function() const \
+{ \
+    return f; \
+} \
+BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE, ~)
 
 
-//ZELDA_PERFECT_PRODUCT_SEQ(2)
-};
+// namespace zelda { namespace detail {
 
-}}
+// template<class Derived, class F>
+// struct perfect_facade
+// {
+// #define ZELDA_PERFECT_FACADE_OP(n, seq) \
+// template<ZELDA_PP_PARAMS_Z(1, n, class T)> \
+// zelda::result_of<F(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))> \
+// operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
+// { return static_cast<Derived*>(this)->get_function()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
+
+// ZELDA_PERFECT_FACADE_SEQ(ZELDA_PERFECT_PRODUCT_SEQ(ZELDA_PARAMS_LIMIT))
+
+
+// };
+
+// }}
 
 #endif
