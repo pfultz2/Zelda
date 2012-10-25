@@ -21,6 +21,7 @@
 #include <zelda/forward.h>
 #include <zelda/typeof.h>
 #include <zelda/result_of.h>
+#include <zelda/requires.h>
 
 namespace zelda { 
 
@@ -253,19 +254,21 @@ namespace detail {
 template<int N>
 struct tuple_invoker;
 
+#define ZELDA_TUPLE_INVOKE_ELEM(z, n, tuple) typename tuple_element<n, tuple>::type
 #define ZELDA_TUPLE_INVOKE(z, n, data) \
 template<> \
 struct tuple_invoker<n> \
 { \
-    template<class F, class T> \
+    template<class F, class T, ZELDA_REQUIRES(zelda::is_callable<F(BOOST_PP_ENUM_ ## z(n, ZELDA_TUPLE_INVOKE_ELEM, T))>)> \
     struct invoke_result \
     { \
-        static T& t; \
         static F& f; \
-        typedef ZELDA_XTYPEOF_TPL(f(ZELDA_PP_PARAMS_Z(z, n, tuple_forward<0,>(t) BOOST_PP_INTERCEPT))) type;\
+        static const T& t; \
+        typedef ZELDA_XTYPEOF_TPL(f(ZELDA_PP_PARAMS_Z(z, n, tuple_forward<0,>(t) BOOST_PP_INTERCEPT))) type; \
     }; \
     template<class F, class T> \
-    typename invoke_result<F, T>::type operator()(F f, const T& t) const \
+    typename invoke_result<F, T>::type \
+    operator()(F f, const T& t) const \
     { \
         return f(ZELDA_PP_PARAMS_Z(z, n, tuple_forward<0,>(t) BOOST_PP_INTERCEPT)); \
     } \
@@ -325,16 +328,21 @@ template<class T>
 struct tuple_gens
 : gens<zelda::tuple_size<T>::value> {};
 
-template<class F, class T, class S>
-struct invoke_result_impl;
-
 template<class F, class T, int ...N>
-struct invoke_result_impl<F, T, seq<N...> >
-: zelda::result_of<F(typename tuple_forward_result<N, T>::type...)>
+auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(tuple_forward<N>(std::forward<T>(t))...));
+
+template<class F, class T, class S, class Enable = void>
+struct invoke_result_impl
 {};
 
 template<class F, class T, int ...N>
-auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(tuple_forward<N>(std::forward<T>(t))...));
+struct invoke_result_impl<F, T, seq<N...>, ZELDA_CLASS_REQUIRES(zelda::is_callable<F(typename tuple_forward_result<N, T>::type...)>) >
+//: zelda::result_of<F(typename tuple_forward_result<N, T>::type...)>
+{
+    typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(tuple_forward<N>(zelda::declval<T>())...)) type;
+};
+
+
 
 }
 
