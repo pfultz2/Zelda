@@ -78,7 +78,7 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
         return zelda::invoke(p, zelda::tuple_cat
         (
             zelda::forward_as_tuple(zelda::forward<A>(a)), 
-            zelda::forward<Sequence>(p.get_sequence())
+            p.get_sequence()
         ));
     }
 #else
@@ -89,7 +89,7 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
         return zelda::invoke(p, zelda::tuple_cat
         (
             zelda::forward_as_tuple(zelda::forward<A>(a)), 
-            zelda::forward<Sequence>(p.get_sequence())
+            p.get_sequence()
         ));
     }
 
@@ -99,8 +99,8 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
     {
         return zelda::invoke(p, zelda::tuple_cat
         (
-            zelda::forward_as_tuple(zelda::forward<A>(a)), 
-            zelda::forward<Sequence>(p.get_sequence())
+            zelda::forward_as_tuple(zelda::forward<const A>(a)), 
+            p.get_sequence()
         ));
     }
 #endif
