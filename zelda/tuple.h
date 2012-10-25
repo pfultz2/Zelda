@@ -166,7 +166,7 @@ struct tuple_element
 template<class Tuple1, class Tuple2>
 struct tuple_cat_result
 {
-    typedef decltype(tuple_cat(zelda::declval<Tuple1>(), zelda::declval<Tuple1>())) type;
+    typedef decltype(tuple_cat(zelda::declval<Tuple1>(), zelda::declval<Tuple2>())) type;
 };
 
 #endif
