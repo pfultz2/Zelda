@@ -108,6 +108,7 @@ struct poly_base : poly_kernel<F, poly_base<Fs...> >
     template<class X, class... Xs>
     poly_base(X f1, Xs... fs) : poly_kernel<F, poly_base<Fs...> >(f1, poly_base<Fs...>(fs...))
     {}
+
 };
 
 #else
@@ -136,6 +137,14 @@ struct poly_base<F> : function_adaptor_base<F>
     template<class X>
     poly_base(X f) : function_adaptor_base<F>(f)
     {}
+
+    template<class X>
+    struct result;
+
+    template<class X, class T>
+    struct result<X(T)>
+    : zelda::result_of<F(T)>
+    {};
 
     template<class T>
     typename zelda::result_of<F(ZELDA_FORWARD_REF(T))>::type 
