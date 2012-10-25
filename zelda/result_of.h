@@ -19,16 +19,16 @@ namespace detail {
 template<class F, class Enable = void>
 struct result_of_impl
 {
-    typedef typename boost::result_of<F>::type type;
+    // typedef typename boost::result_of<F>::type type;
 };
 
 
-// template<class F>
-// struct result_of_impl<F, ZELDA_CLASS_REQUIRES(is_callable<F>)>
-// : boost::result_of<F> 
-// {
-//     //typedef typename boost::result_of<F>::type type;
-// };
+template<class F>
+struct result_of_impl<F, ZELDA_CLASS_REQUIRES(is_callable<F>)>
+: boost::result_of<F> 
+{
+    //typedef typename boost::result_of<F>::type type;
+};
 
 }
 
