@@ -105,11 +105,38 @@ struct mono_class
     }
 };
 
-zelda::static_<binary_class> binary_forward = {};
+struct tuple_class
+{
+    template<class F>
+    struct result;
 
-zelda::static_<void_class> void_forward = {};
+    template<class F, class T>
+    struct result<F(T)>
+    {
+        typedef int type;
+    };
 
-zelda::static_<mono_class> mono_forward = {};
+    template<class T>
+    int operator()(T t) const
+    {
+        return zelda::get<0>(t) + 1;
+    }
+};
+
+typedef zelda::variadic_adaptor<tuple_class> vard_class;
+typedef zelda::perfect_adaptor<tuple_class> perfect_class;
+
+typedef zelda::perfect_adaptor<binary_class> binary_perfect;
+
+typedef zelda::perfect_adaptor<void_class> void_perfect;
+
+typedef zelda::perfect_adaptor<mono_class> mono_perfect;
+
+zelda::static_<binary_class> binary_static = {};
+
+zelda::static_<void_class> void_static = {};
+
+zelda::static_<mono_class> mono_static = {};
 
 zelda::static_<zelda::pipable_adaptor<binary_class> > binary_pipable = {};
 
@@ -121,29 +148,35 @@ zelda::static_<zelda::pipable_adaptor<void_class> > void_pipable = {};
 
 zelda::static_<zelda::pipable_adaptor<mono_class> > mono_pipable = {};
 
-mutable_class foo = {};
+// mutable_class foo = {};
 
 int main()
 {
+    // perfect
+    void_perfect()(1);
+    ZELDA_TEST_CHECK(3, binary_perfect()(1, 2));
+    ZELDA_TEST_CHECK(3, mono_perfect()(2));
 
-    // forward
-    void_forward(1);
-    ZELDA_TEST_CHECK(3, binary_forward(1, 2));
-    ZELDA_TEST_CHECK(3, mono_forward(2));
+    // static
+    void_static(1);
+    ZELDA_TEST_CHECK(3, binary_static(1, 2));
+    ZELDA_TEST_CHECK(3, mono_static(2));
+    // variadic
+    ZELDA_TEST_CHECK(3, vard_class()(2));
     // pipable
-    void_pipable(1);
-    1 | void_pipable;
-    ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
-    ZELDA_TEST_CHECK(3, binary_pipable(1, 2));
-    ZELDA_TEST_CHECK(3, 3 | unary_pipable);
-    ZELDA_TEST_CHECK(3, unary_pipable(3));
-    int i1 = 1;
-    ZELDA_TEST_CHECK(3, 2 | binary_pipable(i1));
-    ZELDA_TEST_CHECK(3, i1 | mutable_pipable(2));
-    int i2 = 1;
-    ZELDA_TEST_CHECK(3, mutable_pipable(i2, 2));
-    ZELDA_TEST_CHECK(3, mono_pipable(2));
-    ZELDA_TEST_CHECK(3, 2| mono_pipable);
+    // void_pipable(1);
+    // 1 | void_pipable;
+    // ZELDA_TEST_CHECK(3, 1 | binary_pipable(2));
+    // ZELDA_TEST_CHECK(3, binary_pipable(1, 2));
+    // ZELDA_TEST_CHECK(3, 3 | unary_pipable);
+    // ZELDA_TEST_CHECK(3, unary_pipable(3));
+    // int i1 = 1;
+    // ZELDA_TEST_CHECK(3, 2 | binary_pipable(i1));
+    // ZELDA_TEST_CHECK(3, i1 | mutable_pipable(2));
+    // int i2 = 1;
+    // ZELDA_TEST_CHECK(3, mutable_pipable(i2, 2));
+    // ZELDA_TEST_CHECK(3, mono_pipable(2));
+    // ZELDA_TEST_CHECK(3, 2| mono_pipable);
 
     //partial
     // ZELDA_TEST_CHECK(3, binary_partial(1)(2));
