@@ -52,6 +52,12 @@ struct add_tuple_forward_reference<const T>
     typedef const T& type;
 };
 
+#ifndef ZELDA_NO_RVALUE_REFS
+template<class T>
+struct add_tuple_forward_reference<T&&>
+: add_tuple_forward_reference<T> {};
+#endif
+
 using boost::tuples::tuple;
 using boost::tuples::make_tuple;
 using boost::tuples::tie;
@@ -236,10 +242,10 @@ zelda::tuple<> forward_as_tuple()
 }
 #define ZELDA_TUPLE_FORWARD_AS_TUPLE(z, n, data) \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_TUPLE_FORWARD_REF() BOOST_PP_INTERCEPT)> \
+zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
 forward_as_tuple(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) \
 { \
-    return  zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_TUPLE_FORWARD_REF() BOOST_PP_INTERCEPT)> \
+    return zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
     ( \
         ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
     ); \
@@ -259,8 +265,11 @@ struct tuple_invoker;
 template<> \
 struct tuple_invoker<n> \
 { \
-    template<class F, class T, ZELDA_REQUIRES(zelda::is_callable<F(BOOST_PP_ENUM_ ## z(n, ZELDA_TUPLE_INVOKE_ELEM, T))>)> \
+    template<class F, class T, class Enable = void> \
     struct invoke_result \
+    {}; \
+    template<class F, class T> \
+    struct invoke_result<F, T, ZELDA_CLASS_REQUIRES(zelda::is_callable<F(BOOST_PP_ENUM_ ## z(n, ZELDA_TUPLE_INVOKE_ELEM, T))>)> \
     { \
         static F& f; \
         static const T& t; \

@@ -23,7 +23,7 @@ struct pipe_closure_base : F
     F f;
     sequence seq;
     
-    template<class X, class S>
+    template<class S>
     pipe_closure_base(const S& seq) : seq(seq) {};
     
     template<class X, class S>
@@ -56,11 +56,15 @@ template<class F, class Sequence>
 struct pipe_closure : pipe_closure_base<F, Sequence>
 {
     
+    // template<class X, class S>
+    // pipe_closure(const pipe_closure<X, S>& rhs) : pipe_closure_base<F, Sequence>(rhs, rhs.get_sequence())
+    // {}
+
     template<class S>
     pipe_closure(const S& seq) : pipe_closure_base<F, Sequence>(seq) {};
     
-    template<class S>
-    pipe_closure(F f, const S& seq) : pipe_closure_base<F, Sequence>(f, seq) {};
+    template<class X, class S>
+    pipe_closure(X f, const S& seq) : pipe_closure_base<F, Sequence>(f, seq) {};
 
     template<class A>
     struct pipe_result
@@ -122,7 +126,7 @@ struct make_pipe_closure : function_adaptor_base<F>
     template<class X, class T>
     struct result<X(T)>
     {
-        typedef pipe_closure<F, T> type;
+        typedef pipe_closure<F, typename boost::decay<T>::type> type;
     };
 
     template<class T>
