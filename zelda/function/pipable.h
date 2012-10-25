@@ -70,7 +70,7 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
     struct pipe_result
     : zelda::invoke_result<F, typename zelda::tuple_cat_result
         <
-            zelda::tuple<A>,
+            zelda::tuple<typename add_tuple_forward_reference<A>::type>,
             Sequence
         >::type >
     {};
