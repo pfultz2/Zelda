@@ -41,25 +41,26 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     typename zelda::result_of<F(zelda::tuple<T&&...>)>::type
     operator()(T && ... x) const
     {
-        this->get_function()(zelda::tuple<T&&...>(zelda::forward<T>(x)...));
+        return this->get_function()(zelda::tuple<T&&...>(zelda::forward<T>(x)...));
     }
 #else
 
+// TODO: Add support for nullary functions
 #define ZELDA_FUNCTION_VARIADIC_ADAPTOR(z, n, data) \
     template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
     struct result<X(ZELDA_PP_PARAMS_Z(z, n, T))> \
-    : zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_forward_reference<T, >::type BOOST_PP_INTERCEPT)>)> \
+    : zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)>)> \
     {}; \
     template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-    typename zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT)>) >::type \
+    typename zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)>) >::type \
     operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) const \
     { \
-        this->get_function()(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT)> \
+        return this->get_function()(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
             ( \
                 ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
             )); \
-    } \
-BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
+    }
+BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
 
 #endif
 };

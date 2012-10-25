@@ -35,13 +35,13 @@ struct defer_adaptor_base : function_adaptor_base<F>
 
 #ifndef ZELDA_NO_RVALUE_REFS
     template<class T>
-    typename result<F(T)>::type operator()(T && x) const
+    typename result<F(T&&)>::type operator()(T && x) const
     {
         return invoke(this->get_function(), x);
     }
 #else
     template<class T>
-    typename result<F(T)>::type operator()(const T & x) const
+    typename result<F(const T&)>::type operator()(const T & x) const
     {
         return invoke(this->get_function(), x);
     }

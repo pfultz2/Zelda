@@ -59,12 +59,12 @@
 
 #define ZELDA_PERFECT_FACADE_FORWARD_R(r, seq, T, x) BOOST_PP_SEQ_FOR_EACH_I_R(r, ZELDA_PERFECT_FACADE_FORWARD_EACH, (T, x), seq)
 #define ZELDA_PERFECT_FACADE_FORWARD_EACH(r, data, i, const_) BOOST_PP_COMMA_IF(i) \
-zelda::forward<BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 0, data), i)>\
+zelda::forward<const_ BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 0, data), i)>\
 ( BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 1, data), i) )
 
 #define ZELDA_PERFECT_FACADE_OP(n, seq) \
 template<ZELDA_PP_PARAMS_Z(2, n, class T)> \
-zelda::result_of<F(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))> \
+typename zelda::result_of<zelda_private_perfect_facade_function_type(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))>::type \
 operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
 { return this->zelda_private_perfect_facade_function()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
 
@@ -72,6 +72,7 @@ operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
 ZELDA_PERFECT_FACADE_SEQ(ZELDA_PERFECT_PRODUCT_SEQ(n))
 
 #define ZELDA_PERFECT_FACADE(type, f) \
+typedef type zelda_private_perfect_facade_function_type; \
 type zelda_private_perfect_facade_function() const \
 { \
     return f; \

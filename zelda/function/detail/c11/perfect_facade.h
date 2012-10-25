@@ -11,7 +11,7 @@
 #include <zelda/result_of.h>
 #include <zelda/forward.h>
 
-#define ZELDA_PERFECT_FACADE(type, f) \
+#define ZELDA_PERFECT_FACADE(F, f) \
 template<class... T> \
 typename zelda::result_of<F(T&&...)>::type \
 operator()(T && ... x) const \

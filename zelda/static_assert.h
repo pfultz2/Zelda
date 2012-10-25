@@ -19,4 +19,20 @@ BOOST_STATIC_ASSERT((BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_POP_BACK(seq))))
 #define static_assert(...) ZELDA_DETAIL_STATIC_ASSERT_SEQ(ZELDA_PP_ARGS_TO_SEQ(__VA_ARGS__))
 #endif
 
+namespace zelda {
+
+namespace detail {
+
+template<class T>
+struct static_depend
+{
+    typedef static_depend type;
+    static const bool value = false;
+};    
+}
+
+#define ZELDA_STATIC_DEBUG(T, msg) static_assert(zelda::detail::static_depend<T>::value, msg)
+
+}
+
 #endif

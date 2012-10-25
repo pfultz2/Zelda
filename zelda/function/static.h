@@ -21,9 +21,15 @@
 
 namespace zelda { 
 
+// TODO: Add support for forwarding nullary functions as well
 template<class F>
 struct static_
 {
+    template<class S>
+    struct result
+    : zelda::result_of<S>::template apply_function<F>
+    {};
+
     ZELDA_PERFECT_FACADE(F, F())
 };
 

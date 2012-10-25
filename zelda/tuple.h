@@ -27,6 +27,29 @@ namespace zelda {
 #ifdef ZELDA_NO_STD_TUPLE
 
 #define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &
+template<class T>
+struct add_tuple_forward_reference
+{
+    typedef const T& type;
+};
+
+template<class T>
+struct add_tuple_forward_reference<T&>
+{
+    typedef T& type;
+};
+
+template<class T>
+struct add_tuple_forward_reference<const T&>
+{
+    typedef const T& type;
+};
+
+template<class T>
+struct add_tuple_forward_reference<const T>
+{
+    typedef const T& type;
+};
 
 using boost::tuples::tuple;
 using boost::tuples::make_tuple;
@@ -118,6 +141,11 @@ tuple_cat(const Tuple1& t1, const Tuple2& t2)
 #else
 
 #define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &&
+template<class T>
+struct add_tuple_forward_reference
+{
+    typedef T&& type;
+};
 
 using std::tuple;
 using std::make_tuple;

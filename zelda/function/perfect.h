@@ -21,6 +21,7 @@
 
 namespace zelda {
 
+
 // TODO: Add support for forwarding nullary functions as well
 template<class F>
 struct perfect_adaptor : function_adaptor_base<F>
@@ -33,7 +34,7 @@ struct perfect_adaptor : function_adaptor_base<F>
 
     template<class S>
     struct result
-    : zelda::result_of<S>::template apply<F>
+    : zelda::result_of<S, F>
     {};
 
     ZELDA_PERFECT_FACADE(F, this->get_function())
