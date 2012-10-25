@@ -171,6 +171,9 @@ struct tuple_cat_result
 
 #endif
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace detail {
 #ifdef ZELDA_NO_RVALUE_REFS
 
@@ -233,7 +236,7 @@ zelda::tuple<> forward_as_tuple()
 #define ZELDA_TUPLE_FORWARD_AS_TUPLE(z, n, data) \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
 zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_TUPLE_FORWARD_REF() BOOST_PP_INTERCEPT)> \
-forward_as_tuple(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_TUPLE_FORWARD_REF() BOOST_PP_INTERCEPT, x)) \
+forward_as_tuple(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) \
 { \
     return  zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_TUPLE_FORWARD_REF() BOOST_PP_INTERCEPT)> \
     ( \
