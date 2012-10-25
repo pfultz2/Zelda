@@ -10,17 +10,19 @@
 
 #include <zelda/tuple.h>
 #include <zelda/function/adaptor.h>
+#include <zelda/function/perfect.h>
 
 namespace zelda {
 
+namespace detail {
 template<class F>
-struct fuse_adaptor : function_adaptor_base<F>
+struct fuse_adaptor_base : function_adaptor_base<F>
 {
-    fuse_adaptor() 
+    fuse_adaptor_base() 
     {}
 
     template<class X>
-    fuse_adaptor(X x) : function_adaptor_base<F>(x) 
+    fuse_adaptor_base(X x) : function_adaptor_base<F>(x) 
     {}
 
     template<class X>
@@ -45,6 +47,17 @@ struct fuse_adaptor : function_adaptor_base<F>
     }
 
 #endif
+};
+}
+
+template<class F>
+struct fuse_adaptor : perfect_adaptor<detail::fuse_adaptor_base<F> >
+{
+    fuse_adaptor() {};
+
+    template<class X>
+    fuse_adaptor(X x) : perfect_adaptor<detail::fuse_adaptor_base<F> >(x)
+    {};
 };
 
 template<class F>

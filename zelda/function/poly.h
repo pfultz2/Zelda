@@ -77,25 +77,25 @@ struct poly_kernel : poly_kernel_base<F1, F2>
     struct result<X(T)>
     : boost::mpl::eval_if
     <
-        is_callable<F1(ZELDA_FORWARD_REF(T))>, 
-        zelda::result_of<F1(ZELDA_FORWARD_REF(T))>, 
-        zelda::result_of<F2(ZELDA_FORWARD_REF(T))> 
+        is_callable<F1(T)>, 
+        zelda::result_of<F1(T)>, 
+        zelda::result_of<F2(T)> 
     >
     {};
 
     template<class T>
-    typename zelda::result_of<F1(ZELDA_FORWARD_REF(T))>::type 
-    operator()(ZELDA_FORWARD_REF(T) t) const
+    typename zelda::result_of<F1(const T&)>::type 
+    operator()(const T& t) const
     {
-        return this->get_function1()(zelda::forward<T>(t));
+        return this->get_function1()(t);
     }
 
     template<class T>
     ZELDA_FUNCTION_REQUIRES(exclude is_callable<F1(ZELDA_FORWARD_REF(T))>)
-    (typename zelda::result_of<F2(ZELDA_FORWARD_REF(T))>::type)
-    operator()(ZELDA_FORWARD_REF(T) t) const
+    (typename zelda::result_of<F2(const T&)>::type)
+    operator()(const T& t) const
     {
-        return this->get_function2()(zelda::forward<T>(t));
+        return this->get_function2()(t);
     }
 };
 

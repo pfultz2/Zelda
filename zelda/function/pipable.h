@@ -19,16 +19,17 @@ namespace detail {
 template<class F, class Sequence = zelda::tuple<>, class Enable = void>
 struct pipe_closure_base : F
 {
+    typedef const typename boost::remove_cv<typename boost::decay<Sequence>::type>::type& sequence; 
     F f;
-    Sequence seq;
+    sequence seq;
     
     template<class X, class S>
-    pipe_closure_base(ZELDA_FORWARD_REF(S) seq) : seq(zelda::forward<S>(seq)) {};
+    pipe_closure_base(const S& seq) : seq(seq) {};
     
     template<class X, class S>
-    pipe_closure_base(X f, ZELDA_FORWARD_REF(S) seq) : F(f), seq(zelda::forward<S>(seq)) {};
+    pipe_closure_base(X f, const S& seq) : F(f), seq(seq) {};
 
-    Sequence get_sequence() const
+    sequence get_sequence() const
     {
         return seq;
     }
@@ -39,10 +40,10 @@ template<class F, class Sequence>
 struct pipe_closure_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::is_empty<F>, boost::mpl::bool_<zelda::tuple_size<Sequence>::value == 0>)> : F
 {    
     template<class S>
-    pipe_closure_base(ZELDA_FORWARD_REF(S)) {};
+    pipe_closure_base(S) {};
     
     template<class X, class S>
-    pipe_closure_base(X, ZELDA_FORWARD_REF(S)) {};
+    pipe_closure_base(X, S) {};
 
     Sequence get_sequence() const
     {
@@ -56,18 +57,18 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
 {
     
     template<class S>
-    pipe_closure(ZELDA_FORWARD_REF(S) seq) : pipe_closure_base<F, Sequence>(zelda::forward<S>(seq)) {};
+    pipe_closure(const S& seq) : pipe_closure_base<F, Sequence>(seq) {};
     
     template<class S>
-    pipe_closure(F f, ZELDA_FORWARD_REF(S) seq) : pipe_closure_base<F, Sequence>(f, zelda::forward<S>(seq)) {};
+    pipe_closure(F f, const S& seq) : pipe_closure_base<F, Sequence>(f, seq) {};
 
     template<class A>
     struct pipe_result
-    : zelda::invoke_result<F, zelda::tuple_cat_result
+    : zelda::invoke_result<F, typename zelda::tuple_cat_result
         <
             zelda::tuple<A>,
             Sequence
-        > >
+        >::type >
     {};
 #ifndef ZELDA_NO_RVALUE_REFS
     template<class A>
@@ -125,10 +126,10 @@ struct make_pipe_closure : function_adaptor_base<F>
     };
 
     template<class T>
-    pipe_closure<F, ZELDA_FORWARD_REF(T)> 
-    operator()(ZELDA_FORWARD_REF(T) t) const
+    pipe_closure<F, T> 
+    operator()(const T& t) const
     {
-        return pipe_closure<F, ZELDA_FORWARD_REF(T)>(this->get_function(), zelda::forward<T>(t));
+        return pipe_closure<F, T>(this->get_function(), t);
     }
 };
 
