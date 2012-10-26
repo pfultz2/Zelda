@@ -37,43 +37,26 @@ struct remove_rvalue_reference<T&&>
 : remove_rvalue_reference<T> {};
 #endif
 
+
+template<class T>
+struct bind_rvalue_reference
+{
+    typedef T type;
+};
+#ifndef ZELDA_NO_RVALUE_REFS
+template<class T>
+struct bind_rvalue_reference<T&&>
+{
+    typedef const typename boost::decay<T>::type& type;
+};
+#endif
+
 #ifdef ZELDA_NO_STD_TUPLE
 template<class T>
 struct add_tuple_forward_reference
-: remove_rvalue_reference<typename add_forward_reference<T>::type>
+: bind_rvalue_reference<typename add_forward_reference<T>::type>
 {
 };
-
-// #define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &
-// template<class T>
-// struct add_tuple_forward_reference
-// {
-//     typedef const T& type;
-// };
-
-// template<class T>
-// struct add_tuple_forward_reference<T&>
-// {
-//     typedef T& type;
-// };
-
-// template<class T>
-// struct add_tuple_forward_reference<const T&>
-// {
-//     typedef const T& type;
-// };
-
-// template<class T>
-// struct add_tuple_forward_reference<const T>
-// {
-//     typedef const T& type;
-// };
-
-// #ifndef ZELDA_NO_RVALUE_REFS
-// template<class T>
-// struct add_tuple_forward_reference<T&&>
-// : add_tuple_forward_reference<T> {};
-// #endif
 
 using boost::tuples::tuple;
 using boost::tuples::make_tuple;
@@ -164,7 +147,6 @@ tuple_cat(const Tuple1& t1, const Tuple2& t2)
 
 #else
 
-//#define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &&
 template<class T>
 struct add_tuple_forward_reference
 {
@@ -305,16 +287,6 @@ struct tuple_invoker<n> \
 };
 BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_TUPLE_INVOKE, ~)
 
-// template<class F, class T, int N>
-// struct invoke_result_impl;
-
-// #define ZELDA_TUPLE_INVOKE_RESULT(z, n, data) \
-// template<class F, class T> \
-// struct invoke_result_impl<F, T, n > \
-// : zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, typename tuple_invoke_forward_result<0, >::template apply<T>::type BOOST_PP_INTERCEPT))> \
-// {};
-// BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_TUPLE_INVOKE_RESULT, ~)
-
 }
 
 template<class F, class T>
@@ -367,7 +339,6 @@ struct invoke_result_impl
 
 template<class F, class T, int ...N>
 struct invoke_result_impl<F, T, seq<N...>, ZELDA_CLASS_REQUIRES(zelda::is_callable<F(typename tuple_element<N, typename boost::decay<T>::type>::type...)>) >
-//: zelda::result_of<F(typename tuple_forward_result<N, T>::type...)>
 {
     typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(get<N>(zelda::declval<T>())...)) type;
 };
