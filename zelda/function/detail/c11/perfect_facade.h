@@ -19,20 +19,5 @@ operator()(T && ... x) const \
     return f(zelda::forward<T>(x)...); \
 }
 
-// namespace zelda { namespace detail {
-
-// template<class Derived, class F>
-// struct perfect_facade
-// {
-
-//     template<class... T>
-//     typename zelda::result_of<F(T&&...)>::type
-//     operator()(T && ... x) const
-//     {
-//         return static_cast<Derived*>(this)->get_function()(zelda::forward<T>(x)...);
-//     }
-// };
-
-// }}
 
 #endif

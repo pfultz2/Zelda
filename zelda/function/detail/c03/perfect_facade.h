@@ -80,22 +80,4 @@ type zelda_private_perfect_facade_function() const \
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE, ~)
 
 
-// namespace zelda { namespace detail {
-
-// template<class Derived, class F>
-// struct perfect_facade
-// {
-// #define ZELDA_PERFECT_FACADE_OP(n, seq) \
-// template<ZELDA_PP_PARAMS_Z(1, n, class T)> \
-// zelda::result_of<F(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))> \
-// operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
-// { return static_cast<Derived*>(this)->get_function()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
-
-// ZELDA_PERFECT_FACADE_SEQ(ZELDA_PERFECT_PRODUCT_SEQ(ZELDA_PARAMS_LIMIT))
-
-
-// };
-
-// }}
-
 #endif
