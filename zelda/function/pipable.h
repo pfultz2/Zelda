@@ -71,7 +71,7 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
     : zelda::invoke_result<F, typename zelda::tuple_cat_result
         <
             zelda::tuple<typename add_tuple_forward_reference<A>::type>,
-            Sequence
+            typename boost::decay<Sequence>::type
         >::type >
     {};
 #ifndef ZELDA_NO_RVALUE_REFS
@@ -137,6 +137,15 @@ struct make_pipe_closure : function_adaptor_base<F>
     }
 };
 
+// struct make_pipe_closure_f
+// {
+//     template<class T>
+//     T operator()(T x)
+//     {
+//         return x;
+//     }
+// };
+// typedef zelda::result_of<make_pipe_closure<make_pipe_closure_f>(zelda::tuple<>)>::type make_pipe_closure_test;
 
     
 }

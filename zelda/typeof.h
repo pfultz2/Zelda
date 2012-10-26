@@ -96,7 +96,7 @@ struct rvalue_probe
 
 template<typename T>
 rvalue_probe<T> const make_probe(T const &);
-void const make_probe(void_);
+void make_probe(void_);
 
 #define ZELDA_TYPEOF_RVALUE_PROBE(x) true ? zelda::typeof_detail::make_probe(ZELDA_AVOID(x)) : (x)
 

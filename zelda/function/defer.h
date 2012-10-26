@@ -29,25 +29,30 @@ struct defer_adaptor_base : function_adaptor_base<F>
 
     template<class X, class T>
     struct result<X(T)>
-    : invoke_result<F, T>
+    : invoke_result<F, const typename boost::decay<T>::type&>
     {
-        // typedef ZELDA_XTYPEOF_TPL(invoke(zelda::declval<F>(), zelda::declval<T>())) type;
     }; 
 
-#ifndef ZELDA_NO_RVALUE_REFS
     template<class T>
-    typename result<F(T)>::type operator()(T && x) const
-    {
-        return invoke(this->get_function(), x);
-    }
-#else
-    template<class T>
-    typename result<F(T)>::type operator()(const T & x) const
+    typename result<F(const T&)>::type operator()(const T & x) const
     {
         return invoke(this->get_function(), x);
     }
 
-#endif
+// #ifndef ZELDA_NO_RVALUE_REFS
+//     template<class T>
+//     typename result<F(T)>::type operator()(T && x) const
+//     {
+//         return invoke(this->get_function(), x);
+//     }
+// #else
+//     template<class T>
+//     typename result<F(T)>::type operator()(const T & x) const
+//     {
+//         return invoke(this->get_function(), x);
+//     }
+
+// #endif
 };
 
 }
@@ -62,6 +67,8 @@ struct defer_adaptor : variadic_adaptor<detail::defer_adaptor_base<F> >
     template<class X>
     defer_adaptor(X x) : variadic_adaptor<detail::defer_adaptor_base<F> >(x)
     {}
+
+
 };
 
 

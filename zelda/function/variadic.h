@@ -40,7 +40,9 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     template<class... T>
     typename zelda::result_of<F(zelda::tuple<T&&...>)>::type
     operator()(T && ... x) const
-    {
+    {   
+        // static_assert(boost::is_same<typename zelda::result_of<F(zelda::tuple<T&&...>)>::type,
+        //     decltype(this->get_function()(zelda::tuple<T&&...>(zelda::forward<T>(x)...)))>::value, "Not the same type");
         return this->get_function()(zelda::tuple<T&&...>(zelda::forward<T>(x)...));
     }
 #else
@@ -52,10 +54,10 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     : zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)>)> \
     {}; \
     template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-    typename zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)>) >::type \
+    typename zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)>) >::type \
     operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) const \
     { \
-        return this->get_function()(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
+        return this->get_function()(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)> \
             ( \
                 ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
             )); \

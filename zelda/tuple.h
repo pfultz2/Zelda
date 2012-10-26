@@ -25,38 +25,55 @@
 
 namespace zelda { 
 
-#ifdef ZELDA_NO_STD_TUPLE
-
-#define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &
+// TODO: Move to another header
 template<class T>
-struct add_tuple_forward_reference
+struct remove_rvalue_reference
 {
-    typedef const T& type;
+    typedef T type;
 };
-
-template<class T>
-struct add_tuple_forward_reference<T&>
-{
-    typedef T& type;
-};
-
-template<class T>
-struct add_tuple_forward_reference<const T&>
-{
-    typedef const T& type;
-};
-
-template<class T>
-struct add_tuple_forward_reference<const T>
-{
-    typedef const T& type;
-};
-
 #ifndef ZELDA_NO_RVALUE_REFS
 template<class T>
-struct add_tuple_forward_reference<T&&>
-: add_tuple_forward_reference<T> {};
+struct remove_rvalue_reference<T&&>
+: remove_rvalue_reference<T> {};
 #endif
+
+#ifdef ZELDA_NO_STD_TUPLE
+template<class T>
+struct add_tuple_forward_reference
+: remove_rvalue_reference<typename add_forward_reference<T>::type>
+{
+};
+
+// #define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &
+// template<class T>
+// struct add_tuple_forward_reference
+// {
+//     typedef const T& type;
+// };
+
+// template<class T>
+// struct add_tuple_forward_reference<T&>
+// {
+//     typedef T& type;
+// };
+
+// template<class T>
+// struct add_tuple_forward_reference<const T&>
+// {
+//     typedef const T& type;
+// };
+
+// template<class T>
+// struct add_tuple_forward_reference<const T>
+// {
+//     typedef const T& type;
+// };
+
+// #ifndef ZELDA_NO_RVALUE_REFS
+// template<class T>
+// struct add_tuple_forward_reference<T&&>
+// : add_tuple_forward_reference<T> {};
+// #endif
 
 using boost::tuples::tuple;
 using boost::tuples::make_tuple;
@@ -147,7 +164,7 @@ tuple_cat(const Tuple1& t1, const Tuple2& t2)
 
 #else
 
-#define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &&
+//#define ZELDA_TUPLE_FORWARD_REF(...) __VA_ARGS__ &&
 template<class T>
 struct add_tuple_forward_reference
 {
@@ -212,7 +229,11 @@ ZELDA_FORWARD_REF(typename tuple_forward_result<N, T>::type) tuple_forward(const
 template<int N, class T>
 struct tuple_forward_result
 {
-    typedef decltype(zelda::get<N>(zelda::declval<T>()))&& type;
+    template<class X>
+    static auto tuple_forward(X && t) 
+    ZELDA_RETURNS(zelda::forward<decltype(zelda::get<N>(zelda::forward<X>(t)))>(zelda::get<N>(std::forward<X>(t))));
+
+    typedef decltype(tuple_forward(zelda::declval<T>())) type;
 };
 
 template<int N, class T>
@@ -242,10 +263,10 @@ zelda::tuple<> forward_as_tuple()
 }
 #define ZELDA_TUPLE_FORWARD_AS_TUPLE(z, n, data) \
 template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
+zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)> \
 forward_as_tuple(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) \
 { \
-    return zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)> \
+    return zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)> \
     ( \
         ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
     ); \
@@ -277,7 +298,7 @@ struct tuple_invoker<n> \
     }; \
     template<class F, class T> \
     typename invoke_result<F, T>::type \
-    operator()(F f, const T& t) const \
+    operator()(F f, const T& BOOST_PP_IF(n,t,)) const \
     { \
         return f(ZELDA_PP_PARAMS_Z(z, n, tuple_forward<0,>(t) BOOST_PP_INTERCEPT)); \
     } \
@@ -338,17 +359,17 @@ struct tuple_gens
 : gens<zelda::tuple_size<T>::value> {};
 
 template<class F, class T, int ...N>
-auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(tuple_forward<N>(std::forward<T>(t))...));
+auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(get<N>(std::forward<T>(t))...));
 
 template<class F, class T, class S, class Enable = void>
 struct invoke_result_impl
 {};
 
 template<class F, class T, int ...N>
-struct invoke_result_impl<F, T, seq<N...>, ZELDA_CLASS_REQUIRES(zelda::is_callable<F(typename tuple_forward_result<N, T>::type...)>) >
+struct invoke_result_impl<F, T, seq<N...>, ZELDA_CLASS_REQUIRES(zelda::is_callable<F(typename tuple_element<N, typename boost::decay<T>::type>::type...)>) >
 //: zelda::result_of<F(typename tuple_forward_result<N, T>::type...)>
 {
-    typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(tuple_forward<N>(zelda::declval<T>())...)) type;
+    typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(get<N>(zelda::declval<T>())...)) type;
 };
 
 

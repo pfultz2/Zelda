@@ -16,10 +16,27 @@ namespace zelda {
 
 namespace detail {
 
+template<class F>
+struct result_check : boost::mpl::bool_<true>
+{
+};
+
+#ifndef ZELDA_NO_VARIADIC_TEMPLATES
+template<class F, class... T>
+struct result_check<F(T...)>
+: boost::is_convertible
+< 
+    ZELDA_XTYPEOF_TPL(zelda::declval<F>()(zelda::declval<T>()...)),
+    typename boost::result_of<F(T...)>::type
+>
+{
+};
+
+#endif
+
 template<class F, class Enable = void>
 struct result_of_impl
 {
-    // typedef typename boost::result_of<F>::type type;
 };
 
 
@@ -27,7 +44,7 @@ template<class F>
 struct result_of_impl<F, ZELDA_CLASS_REQUIRES(is_callable<F>)>
 : boost::result_of<F> 
 {
-    //typedef typename boost::result_of<F>::type type;
+    static_assert(result_check<F>::type::value, "result_of protocol has incorrect return type");
 };
 
 }

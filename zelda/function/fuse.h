@@ -33,31 +33,61 @@ struct fuse_adaptor_base : function_adaptor_base<F>
     : invoke_result<F, typename boost::decay<T>::type > 
     {}; 
 
-#ifndef ZELDA_NO_RVALUE_REFS
-    template<class T>
-    typename result<F(T)>::type operator()(T && x) const
-    {
-        return invoke(this->get_function(), x);
-    }
-#else
     template<class T>
     typename result<F(T)>::type operator()(const T & x) const
     {
         return invoke(this->get_function(), x);
     }
 
-#endif
+// #ifndef ZELDA_NO_RVALUE_REFS
+//     template<class T>
+//     typename result<F(T)>::type operator()(T && x) const
+//     {
+//         return invoke(this->get_function(), x);
+//     }
+// #else
+//     template<class T>
+//     typename result<F(T)>::type operator()(const T & x) const
+//     {
+//         return invoke(this->get_function(), x);
+//     }
+// #endif
+
 };
 }
 
+// template<class F>
+// struct fuse_adaptor : perfect_adaptor<detail::fuse_adaptor_base<F> >
+// {
+//     fuse_adaptor() {};
+
+//     template<class X>
+//     fuse_adaptor(X x) : perfect_adaptor<detail::fuse_adaptor_base<F> >(x)
+//     {};
+// };
+
 template<class F>
-struct fuse_adaptor : perfect_adaptor<detail::fuse_adaptor_base<F> >
+struct fuse_adaptor : function_adaptor_base<F>
 {
     fuse_adaptor() {};
 
     template<class X>
-    fuse_adaptor(X x) : perfect_adaptor<detail::fuse_adaptor_base<F> >(x)
+    fuse_adaptor(X x) : function_adaptor_base<F>(x)
     {};
+
+    template<class X>
+    struct result;
+
+    template<class X, class T>
+    struct result<X(T)>
+    : invoke_result<F, const typename boost::decay<T>::type&> 
+    {}; 
+
+    template<class T>
+    typename result<F(const T&)>::type operator()(const T & x) const
+    {
+        return invoke(this->get_function(), x);
+    }
 };
 
 template<class F>
