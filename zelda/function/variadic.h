@@ -10,7 +10,7 @@
 
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
-#include <zelda/result_of.h>
+#include <zelda/function/result_of.h>
 #include <zelda/tuple.h>
 
 

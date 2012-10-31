@@ -9,7 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_PERFECT_H
 
 #include <zelda/function/adaptor.h>
-#include <zelda/result_of.h>
+#include <zelda/function/result_of.h>
 
 #if !defined(ZELDA_NO_VARIADIC_TEMPLATES) && !defined(ZELDA_NO_RVALUE_REFS)
 #include <zelda/function/detail/c11/perfect_facade.h>

@@ -9,7 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_DEFER_H
 
 #include <zelda/function/adaptor.h>
-#include <zelda/is_callable.h>
+#include <zelda/function/is_callable.h>
 
 namespace zelda {
 

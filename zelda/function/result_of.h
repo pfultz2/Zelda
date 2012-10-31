@@ -8,7 +8,7 @@
 #ifndef ZELDA_GUARD_RESULT_OF_H
 #define ZELDA_GUARD_RESULT_OF_H
 
-#include <zelda/is_callable.h>
+#include <zelda/function/is_callable.h>
 #include <zelda/requires.h>
 #include <boost/utility/result_of.hpp>
 

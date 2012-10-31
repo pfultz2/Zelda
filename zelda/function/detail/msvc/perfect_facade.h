@@ -10,7 +10,7 @@
 
 #include <zelda/pp.h>
 #include <zelda/config.h>
-#include <zelda/result_of.h>
+#include <zelda/function/result_of.h>
 #include <zelda/forward.h>
 
 #define ZELDA_DETAIL_PERFECT_FACADE(z, n, F, function) \

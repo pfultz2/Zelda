@@ -8,7 +8,7 @@
 #ifndef ZELDA_GUARD_C11_PERFECT_FACADE_H
 #define ZELDA_GUARD_C11_PERFECT_FACADE_H
 
-#include <zelda/result_of.h>
+#include <zelda/function/result_of.h>
 #include <zelda/forward.h>
 
 #define ZELDA_PERFECT_FACADE(F, f) \
