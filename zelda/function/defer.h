@@ -8,51 +8,39 @@
 #ifndef ZELDA_GUARD_FUNCTION_DEFER_H
 #define ZELDA_GUARD_FUNCTION_DEFER_H
 
-#include <zelda/function/variadic.h>
+#include <zelda/function/adaptor.h>
+#include <zelda/is_callable.h>
 
 namespace zelda {
 
-namespace detail {
-
 template<class F>
-struct defer_adaptor_base : function_adaptor_base<F>
-{
-    defer_adaptor_base() 
-    {}
-
-    template<class X>
-    defer_adaptor_base(X x) : function_adaptor_base<F>(x) 
-    {}
-
-    template<class X>
-    struct result;
-
-    template<class X, class T>
-    struct result<X(T)>
-    : invoke_result<F, const typename boost::decay<T>::type&>
-    {
-    }; 
-
-    template<class T>
-    typename result<F(const T&)>::type operator()(const T & x) const
-    {
-        return invoke(this->get_function(), x);
-    }
-};
-
-}
-
-
-template<class F>
-struct defer_adaptor : variadic_adaptor<detail::defer_adaptor_base<F> >
+struct defer_adaptor : F
 {
     defer_adaptor()
     {};
 
     template<class X>
-    defer_adaptor(X x) : variadic_adaptor<detail::defer_adaptor_base<F> >(x)
+    defer_adaptor(X x) : F(x)
     {}
 
+    template<class X, class Enable = void>
+    struct result;
+
+#ifndef ZELDA_NO_VARIADIC_TEMPLATES
+    template<class X, class... T>
+    struct result<X(T...), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(T...)>)>
+    {
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<X>()(zelda::declval<T>()...)) type;
+    };
+#else
+    #define ZELDA_DEFER_ADAPTOR(z, n, data) \
+    template<class X BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    struct result<X(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(ZELDA_PP_PARAMS_Z(z, n, T))>)> \
+    { \
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<X>()(ZELDA_PP_PARAMS_Z(z, n, zelda::declval<T, >() BOOST_PP_INTERCEPT))) type; \
+    };
+    BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_DEFER_ADAPTOR, ~)
+#endif
 
 };
 
