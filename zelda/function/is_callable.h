@@ -11,6 +11,7 @@
 #include <zelda/config.h>
 #include <zelda/pp.h>
 #include <zelda/typeof.h>
+#include <zelda/forward.h>
 #include <zelda/static_assert.h>
 #include <boost/mpl/bool.hpp>
 
@@ -78,7 +79,7 @@ template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
 struct is_callable<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> \
 { \
     static callable_detail::funwrap<n, Fun> & fun; \
-    ZELDA_PP_GEN_Z(z, n, static T, x, ; BOOST_PP_INTERCEPT) \
+    ZELDA_PP_GEN_Z(z, n, static typename add_forward_reference<T, >::type BOOST_PP_INTERCEPT, x, ; BOOST_PP_INTERCEPT) \
     static bool const value = \
     (\
         sizeof(callable_detail::no_type) == sizeof(callable_detail::is_private_type( (fun(ZELDA_PP_PARAMS_Z(z, n, x)), 0) )) \

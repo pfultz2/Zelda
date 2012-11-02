@@ -54,6 +54,7 @@
 #ifndef __clang__
 //#define ZELDA_NO_EXPRESSION_SFINAE
 
+#ifndef ZELDA_GCC_11
 #define ZELDA_NO_STD_TUPLE
 #define ZELDA_NO_DECLTYPE
 #define ZELDA_NO_LAMBDAS
@@ -64,6 +65,7 @@
 #define ZELDA_NO_TRAILING_RETURN
 #define ZELDA_NO_VARIADIC_TEMPLATES
 #define ZELDA_NO_OVERRIDE_CONTROL
+#endif
 #endif
 
 

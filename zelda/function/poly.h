@@ -11,7 +11,7 @@
 #include <zelda/function/adaptor.h>
 #include <zelda/function/variadic.h>
 #include <zelda/function/fuse.h>
-#include <zelda/is_callable.h>
+#include <zelda/function/is_callable.h>
 
 #ifndef ZELDA_POLY_LIMIT
 #define ZELDA_POLY_LIMIT 16
@@ -165,6 +165,8 @@ struct poly_adaptor : variadic_adaptor<detail::poly_base<fuse_adaptor<Fs>...> >
     template<class... X>
     poly_adaptor(X... fs) : variadic_adaptor<detail::poly_base<fuse_adaptor<Fs>...> >(detail::poly_base<fuse_adaptor<Fs>...>(fs...))
     {}
+
+    //auto get_primary_function() const ZELDA_RETURNS(this->get_function().get_function().get_function1().get_function());
 };
 
 template<class... Fs>

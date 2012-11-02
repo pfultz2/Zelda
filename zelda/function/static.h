@@ -25,6 +25,8 @@ namespace zelda {
 template<class F>
 struct static_
 {
+
+    typedef F function;
     template<class S>
     struct result
     : zelda::result_of<S>::template apply_function<F>

@@ -8,6 +8,20 @@
 #include <zelda/function/static.h>
 #include <zelda/function/defer.h>
 
+#include <boost/fusion/container/generation/make_vector.hpp>
+
+namespace boost { namespace fusion { namespace detail
+{
+
+#ifndef ZELDA_NO_RVALUE_REFS
+    template <typename T>
+    struct call_param<T &&>
+    {
+        typedef T&& type;
+    };
+#endif
+}}}
+
 #define ZELDA_TEST_CHECK(x, ...) \
 if ((__VA_ARGS__) != x) printf("FAILED@%i: %s\n", __LINE__, #__VA_ARGS__);
 
@@ -60,7 +74,7 @@ struct unary_class
     template<class F, class T>
     struct result<F(T)>
     {
-        typedef T type;
+        typedef typename zelda::add_forward_reference<T>::type type;
     };
 
     template<class T>
@@ -119,7 +133,7 @@ struct tuple_class
     template<class T>
     int operator()(T t) const
     {
-        return zelda::get<0>(t) + 1;
+        return boost::fusion::at_c<0>(t) + 1;
     }
 };
 
@@ -166,8 +180,10 @@ int main()
     // variadic
     ZELDA_TEST_CHECK(3, vard_class()(2));
     // fuse
-    ZELDA_TEST_CHECK(3, zelda::fuse(unary_class())(zelda::make_tuple(3)));
-    ZELDA_TEST_CHECK(3, unary_fuse(zelda::make_tuple(3)));
+    int ifu = 3;
+    ZELDA_TEST_CHECK(3, zelda::fuse(unary_class())(boost::fusion::make_vector(3)));
+    ZELDA_TEST_CHECK(3, unary_fuse(boost::fusion::make_vector(3)));
+    ZELDA_TEST_CHECK(3, unary_fuse(boost::fusion::vector<int&>(ifu)));
     // pipable
     void_pipable(1);
     1 | void_pipable;
