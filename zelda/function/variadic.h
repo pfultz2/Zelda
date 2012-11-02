@@ -17,7 +17,6 @@
 #else
 #include <boost/fusion/container/vector.hpp>
 #endif
-//#include <zelda/tuple.h>
 
 
 namespace zelda { 
@@ -90,17 +89,10 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     typename zelda::result_of<F(std::tuple<typename tuple_reference<T>::type...>)>::type
     operator()(T && ... x) const
     {   
-        // static_assert(boost::is_same<typename zelda::result_of<F(zelda::tuple<T&&...>)>::type,
-        //     decltype(this->get_function()(zelda::tuple<T&&...>(zelda::forward<T>(x)...)))>::value, "Not the same type");
         return this->get_function()(std::tuple<typename tuple_reference<T>::type...>(std::forward<T>(x)...));
     }
 #else
 
-// #ifndef ZELDA_NO_RVALUE_REFS
-// #define ZELDA_FUNCTION_VARIADIC_FORWARD_REF(...) __VA_ARGS__
-// #else
-// #define ZELDA_FUNCTION_VARIADIC_FORWARD_REF(...) __VA_ARGS__ &
-// #endif
 // TODO: Add support for nullary functions
 #define ZELDA_FUNCTION_VARIADIC_ADAPTOR(z, n, data) \
     template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
@@ -116,21 +108,6 @@ struct variadic_adaptor_base : function_adaptor_base<F>
                 ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
             )); \
     }
-
-// #define ZELDA_FUNCTION_VARIADIC_ADAPTOR(z, n, data) \
-//     template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
-//     struct result<X(ZELDA_PP_PARAMS_Z(z, n, T))> \
-//     : zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, >::type BOOST_PP_INTERCEPT)>)> \
-//     {}; \
-//     template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
-//     typename zelda::result_of<F(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)>) >::type \
-//     operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) const \
-//     { \
-//         return this->get_function()(zelda::tuple<ZELDA_PP_PARAMS_Z(z, n, typename add_tuple_forward_reference<T, ZELDA_FORWARD_REF()>::type BOOST_PP_INTERCEPT)> \
-//             ( \
-//                 ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
-//             )); \
-//     }
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
 
 #endif

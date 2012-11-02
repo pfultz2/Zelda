@@ -36,9 +36,6 @@ struct pipe_closure_base : F
     typedef typename boost::remove_cv<typename boost::decay<Sequence>::type>::type sequence; 
     sequence seq;
     
-    // template<class X>
-    // pipe_closure_base(const X& x) : F(x), seq(x.get_sequence()) {};
-    
     template<class X, class S>
     pipe_closure_base(X f, const S& seq) : F(f), seq(seq) {};
 
@@ -52,8 +49,6 @@ struct pipe_closure_base : F
 template<class F, class Sequence>
 struct pipe_closure_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::is_empty<F>, boost::mpl::bool_<boost::fusion::result_of::size<Sequence>::value == 0>)> : F
 {    
-    // template<class X>
-    // pipe_closure_base(X) {};
     
     template<class X, class S>
     pipe_closure_base(X, S) {};
@@ -68,13 +63,6 @@ struct pipe_closure_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::is_empty<F>, b
 template<class F, class Sequence>
 struct pipe_closure : pipe_closure_base<F, Sequence>
 {
-    
-    // template<class X, class S>
-    // pipe_closure(const pipe_closure<X, S>& rhs) : pipe_closure_base<F, Sequence>(rhs, rhs.get_sequence())
-    // {}
-
-    //template<class X>
-    //pipe_closure(const static_<pipe_closure_base<F, Sequence> >& x) : pipe_closure_base<F, Sequence>(x.get_function()) {};
     
     template<class X, class S>
     pipe_closure(X f, const S& seq) : pipe_closure_base<F, Sequence>(f, seq) {};
@@ -106,89 +94,6 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
 #ifdef ZELDA_NO_RVALUE_REFS
     ZELDA_PIPE_CLOSURE_OP(const A)
 #endif
-
-// #ifndef ZELDA_NO_RVALUE_REFS
-//     ZELDA_PIPE_CLOSURE_OP(A)
-
-//     // template<class A>
-//     // friend typename pipe_result<A>::type 
-//     // operator|(A && a, const pipe_closure<F, Sequence>& p)
-//     // {
-//     //     return zelda::invoke(p, boost::fusion::as_vector(boost::fusion::join
-//     //     (
-//     //         ZELDA_PIPABLE_SEQUENCE<A>(zelda::forward<A>(a)), 
-//     //         p.get_sequence()
-//     //     )));
-//     // }
-// #else
-//     ZELDA_PIPE_CLOSURE_OP(const A)
-//     ZELDA_PIPE_CLOSURE_OP(A)
-
-//     // template<class A>
-//     // friend typename pipe_result<A&>::type 
-//     // operator|(A & a, const pipe_closure<F, Sequence>& p)
-//     // {
-//     //     return zelda::invoke(p, boost::fusion::as_vector(boost::fusion::join
-//     //     (
-//     //         ZELDA_PIPABLE_SEQUENCE<A&>(zelda::forward<A>(a)), 
-//     //         p.get_sequence()
-//     //     )));
-//     // }
-
-//     // template<class A>
-//     // friend typename pipe_result<const A&>::type 
-//     // operator|(const A & a, const pipe_closure<F, Sequence>& p)
-//     // {
-//     //     return zelda::invoke(p, boost::fusion::as_vector(boost::fusion::join
-//     //     (
-//     //         ZELDA_PIPABLE_SEQUENCE<const A&>(zelda::forward<const A>(a)), 
-//     //         p.get_sequence()
-//     //     )));
-//     // }
-// #endif
-
-//     template<class A>
-//     struct pipe_result
-//     : zelda::invoke_result<F, typename zelda::tuple_cat_result
-//         <
-//             zelda::tuple<typename add_tuple_forward_reference<A>::type>,
-//             typename boost::decay<Sequence>::type
-//         >::type >
-//     {};
-// #ifndef ZELDA_NO_RVALUE_REFS
-//     template<class A>
-//     friend typename pipe_result<A&&>::type 
-//     operator|(A && a, const pipe_closure<F, Sequence>& p)
-//     {
-//         return zelda::invoke(p, zelda::tuple_cat
-//         (
-//             zelda::forward_as_tuple(zelda::forward<A>(a)), 
-//             p.get_sequence()
-//         ));
-//     }
-// #else
-//     template<class A>
-//     friend typename pipe_result<A&>::type 
-//     operator|(A & a, const pipe_closure<F, Sequence>& p)
-//     {
-//         return zelda::invoke(p, zelda::tuple_cat
-//         (
-//             zelda::forward_as_tuple(zelda::forward<A>(a)), 
-//             p.get_sequence()
-//         ));
-//     }
-
-//     template<class A>
-//     friend typename pipe_result<const A&>::type 
-//     operator|(const A & a, const pipe_closure<F, Sequence>& p)
-//     {
-//         return zelda::invoke(p, zelda::tuple_cat
-//         (
-//             zelda::forward_as_tuple(zelda::forward<const A>(a)), 
-//             p.get_sequence()
-//         ));
-//     }
-// #endif
 };
 
 template<class F>
@@ -217,17 +122,6 @@ struct make_pipe_closure : function_adaptor_base<F>
         return pipe_closure<F, T>(this->get_function(), t);
     }
 };
-
-// struct make_pipe_closure_f
-// {
-//     template<class T>
-//     T operator()(T x)
-//     {
-//         return x;
-//     }
-// };
-// typedef zelda::result_of<make_pipe_closure<make_pipe_closure_f>(zelda::tuple<>)>::type make_pipe_closure_test;
-
     
 }
 
