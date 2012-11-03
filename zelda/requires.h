@@ -16,32 +16,35 @@
 #include <boost/mpl/vector.hpp>
 #include <zelda/pp.h>
 #include <zelda/static_assert.h>
+#include <iso646.h>
 
 namespace zelda{namespace requires_detail{
 struct not_tag {};
 
+template<class X>
+struct not_state : X {};
+
+
+struct requires_op
+{
+    template<class X, class Y>
+    struct apply
+    : boost::mpl::bool_<X::type::value and Y::type::value> {};
+
+    template<class X>
+    struct apply<X, not_tag>
+    : boost::mpl::identity<not_state<X> > {};
+
+    template<class X, class Y>
+    struct apply<not_state<X>, Y>
+    : boost::mpl::bool_<X::type::value and not Y::type::value> {};
+};
+
 template<class Sequence>
 struct requires_
 {
-    template<class X>
-    struct not_state : X {};
-
-    struct op
-    {
-        template<class X, class Y>
-        struct apply
-        : boost::mpl::bool_<X::type::value and Y::type::value> {};
-
-        template<class X>
-        struct apply<X, not_tag>
-        : boost::mpl::identity<not_state<X> > {};
-
-        template<class X, class Y>
-        struct apply<not_state<X>, Y>
-        : boost::mpl::bool_<X::type::value and not Y::type::value> {};
-    };
-
-    typedef typename boost::mpl::fold<Sequence, boost::mpl::bool_<true>, op>::type type;
+    
+    typedef typename boost::mpl::fold<Sequence, boost::mpl::bool_<true>, requires_op>::type type;
 
     static const bool value = type::value;
 
