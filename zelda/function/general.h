@@ -8,13 +8,84 @@
 #ifndef ZELDA_GUARD_FUNCTION_GENERAL_H
 #define ZELDA_GUARD_FUNCTION_GENERAL_H
 
-namespace zelda { namespace function {
+#include <zelda/function/lazy.h>
+#include <zelda/function/perfect.h>
+#include <zelda/function/variadic.h>
+#include <zelda/function/poly.h>
+#include <zelda/function/invoke.h>
 
-class general
+#include <boost/phoenix/function/function.hpp>
+#include <boost/phoenix/core/is_actor.hpp>
+#include <boost/mpl/find_if.hpp>
+#include <boost/mpl/quote.hpp>
+#include <boost/mpl/begin_end.hpp>
+
+namespace zelda { 
+
+namespace detail {
+
+struct is_actor_quote
 {
-
+    template<class T>
+    struct apply : boost::phoenix::is_actor<T>
+    {};
 };
 
-}}
+
+template<class Sequence, class Enable = void>
+struct sequence_has_actor : boost::mpl::false_
+{};
+
+template<class Sequence>
+struct sequence_has_actor<Sequence, ZELDA_CLASS_REQUIRES(boost::fusion::traits::is_sequence<Sequence>)> 
+: boost::mpl::not_
+<
+    boost::is_same<boost::mpl::find_if<Sequence, is_actor_quote>, typename boost::mpl::end<Sequence>::type>
+>
+{};
+
+template<class F>
+struct general_adaptor_base : function_adaptor_base<F>
+{
+    general_adaptor_base() {};
+
+    template<class X>
+    general_adaptor_base(X x) : function_adaptor_base<F>(x)
+    {};
+
+    template<class X, class Enable = void>
+    struct result;
+
+    template<class X, class T>
+    struct result<X(T), ZELDA_CLASS_REQUIRES(sequence_has_actor<typename boost::decay<T>::type>)>
+    : invoke_result<F, const typename boost::decay<T>::type&> 
+    {}; 
+
+    template<class T>
+    typename result<F(const T&)>::type operator()(const T & x) const
+    {
+        return invoke(this->get_function(), x);
+    }
+};
+}
+
+template<class F>
+struct general_adaptor 
+: poly_adaptor<variadic_adaptor<detail::general_adaptor_base<F> >, lazy_adaptor<F> >
+{
+    general_adaptor() {}
+
+    template<class X>
+    general_adaptor(X x) : poly_adaptor<detail::general_adaptor_base<F>, lazy_adaptor<F> >(x, x)
+    {}
+};
+
+template<class F>
+general_adaptor<F> general(F f)
+{
+    return general_adaptor<F>(f);
+}
+
+}
 
 #endif

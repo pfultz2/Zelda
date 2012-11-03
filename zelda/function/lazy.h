@@ -8,13 +8,30 @@
 #ifndef ZELDA_GUARD_FUNCTION_LAZY_H
 #define ZELDA_GUARD_FUNCTION_LAZY_H
 
-namespace zelda { namespace function {
+#include <zelda/function/adaptor.h>
+#include <boost/phoenix/function/function.hpp>
+#include <boost/phoenix/core/is_actor.hpp>
 
-class lazy
+namespace zelda { 
+
+template<class F>
+struct lazy_adaptor : boost::phoenix::function<F>
 {
+    lazy_adaptor() {}
 
+    template<class X>
+    lazy_adaptor(X x) : boost::phoenix::function<F>(x)
+    {}
 };
 
-}}
+//lazy
+//TODO: Use boost::phoenix::detail::expression::function_eval instead
+template<class F>
+lazy_adaptor<F> lazy(F f)
+{
+    return boost::phoenix::function<F>(f);
+}
+
+}
 
 #endif
