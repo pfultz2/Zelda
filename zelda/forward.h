@@ -31,7 +31,7 @@ namespace zelda {
 // }
 
 #else
-#define ZELDA_FORWARD_REF(...) __VA_ARGS__ &&
+#define ZELDA_FORWARD_REF(x) x &&
 
 template< class T >
 T&& forward( typename boost::remove_reference<T>::type&& t )
