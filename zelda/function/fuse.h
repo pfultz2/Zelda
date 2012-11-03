@@ -8,7 +8,6 @@
 #ifndef ZELDA_GUARD_FUNCTION_FUSE_H
 #define ZELDA_GUARD_FUNCTION_FUSE_H
 
-//#include <zelda/tuple.h>
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
