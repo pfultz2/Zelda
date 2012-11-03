@@ -75,12 +75,12 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
     struct pipe_result
     : zelda::invoke_result<F, typename boost::fusion::result_of::as_vector<typename boost::fusion::result_of::join
         <
-            ZELDA_PIPABLE_SEQUENCE<typename remove_rvalue_reference<A>::type>,
+            ZELDA_PIPABLE_SEQUENCE<typename tuple_reference<A>::type>,
             typename boost::decay<Sequence>::type
         >::type>::type >
     {};
 
-    typedef static_<pipe_closure<F, Sequence> > static_pipe_closure;
+
 // TODO: Use rvalue references when boost::fusion can handle them
 // TODO: Update invoke to work on Forward Sequences
 #define ZELDA_PIPE_CLOSURE_OP(T) \
@@ -90,7 +90,7 @@ struct pipe_closure : pipe_closure_base<F, Sequence>
     { \
         return zelda::invoke(p, boost::fusion::as_vector(boost::fusion::join \
         ( \
-            ZELDA_PIPABLE_SEQUENCE<typename remove_rvalue_reference<ZELDA_FORWARD_REF(T)>::type>(zelda::forward<T>(a)), \
+            ZELDA_PIPABLE_SEQUENCE<typename tuple_reference<ZELDA_FORWARD_REF(T)>::type>(zelda::forward<T>(a)), \
             p.get_sequence() \
         ))); \
     }
