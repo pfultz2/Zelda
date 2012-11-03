@@ -36,6 +36,10 @@ struct pipe_closure_base : F
     typedef typename boost::remove_cv<typename boost::decay<Sequence>::type>::type sequence; 
     sequence seq;
     
+	// We need the static_cast to the base class, 
+	// because MSVC generates an incorrect copy constructor
+	pipe_closure_base(const pipe_closure_base& rhs) : F(static_cast<const F&>(rhs)), seq(rhs.seq) {}
+
     template<class X, class S>
     pipe_closure_base(X f, const S& seq) : F(f), seq(seq) {};
 
