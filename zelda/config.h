@@ -5,12 +5,20 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
+#ifndef ZELDA_GUARD_CONFIG_H
+#define ZELDA_GUARD_CONFIG_H
+
+#ifndef ZELDA_PARAMS_LIMIT
+#define ZELDA_PARAMS_LIMIT 6
+#endif
+
 #ifdef _MSC_VER
 
 #define ZELDA_NO_RANGE_FOR
 #define ZELDA_NO_VARIADIC_TEMPLATES
 #define ZELDA_NO_OVERRIDE_CONTROL
 #define ZELDA_NO_EXPRESSION_SFINAE
+#define ZELDA_NO_NOEXCEPT
 
 
 #endif
@@ -69,9 +77,6 @@
 #endif
 
 
-#ifndef ZELDA_PARAMS_LIMIT
-#define ZELDA_PARAMS_LIMIT 6
 #endif
-
 
 #endif

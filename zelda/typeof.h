@@ -74,7 +74,7 @@ template<class T> T& operator,(T&, void_);
 #endif
 #define ZELDA_AVOID(...) ((__VA_ARGS__), zelda::typeof_detail::void_())
 
-#ifndef ZELDA_NO_RVALUE_REFS
+#if !defined(ZELDA_NO_NOEXCEPT) && !defined(ZELDA_NO_RVALUE_REFS)
 template<typename T>
 typename std::remove_reference<T>::type&&
 move(T&& x) noexcept;
