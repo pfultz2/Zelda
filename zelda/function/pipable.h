@@ -34,7 +34,7 @@ template<class F, class Sequence = ZELDA_PIPABLE_SEQUENCE<>, class Enable = void
 struct pipe_closure_base : F
 {
     typedef typename boost::remove_cv<typename boost::decay<Sequence>::type>::type sequence; 
-    sequence seq;
+    const sequence& seq;
     
 	// We need the static_cast to the base class, 
 	// because MSVC generates an incorrect copy constructor
@@ -51,11 +51,11 @@ struct pipe_closure_base : F
 };
 
 template<class F, class Sequence>
-struct pipe_closure_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::is_empty<F>, boost::mpl::bool_<boost::fusion::result_of::size<Sequence>::value == 0>)> : F
+struct pipe_closure_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<Sequence>::value == 0>)> : F
 {    
     
     template<class X, class S>
-    pipe_closure_base(X, S) {};
+    pipe_closure_base(X x, S) : F(x) {};
 
     Sequence get_sequence() const
     {
