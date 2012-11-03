@@ -197,14 +197,23 @@ DETAIL_ZELDA_PP_SEQ_FOR_EACH_PRODUCT_EACH_I(r, BOOST_PP_SEQ_ELEM(0, product), BO
 
 #define ZELDA_PP_DETAIL_MSVC_CALL_P(n) ZELDA_PP_IS_PAREN( ZELDA_PP_MSVC_INVOKE_ ## n((),) )
 
-#define ZELDA_PP_MSVC_INVOKE_1(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_2(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_3(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_4(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_5(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_6(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_7(macro, args) macro args
-#define ZELDA_PP_MSVC_INVOKE_8(macro, args) macro args
+#define ZELDA_PP_MSVC_INVOKE_1(macro, args) ZELDA_PP_MSVC_INVOKE_X_1(macro args)
+#define ZELDA_PP_MSVC_INVOKE_2(macro, args) ZELDA_PP_MSVC_INVOKE_X_2(macro args)
+#define ZELDA_PP_MSVC_INVOKE_3(macro, args) ZELDA_PP_MSVC_INVOKE_X_3(macro args)
+#define ZELDA_PP_MSVC_INVOKE_4(macro, args) ZELDA_PP_MSVC_INVOKE_X_4(macro args)
+#define ZELDA_PP_MSVC_INVOKE_5(macro, args) ZELDA_PP_MSVC_INVOKE_X_5(macro args)
+#define ZELDA_PP_MSVC_INVOKE_6(macro, args) ZELDA_PP_MSVC_INVOKE_X_6(macro args)
+#define ZELDA_PP_MSVC_INVOKE_7(macro, args) ZELDA_PP_MSVC_INVOKE_X_7(macro args)
+#define ZELDA_PP_MSVC_INVOKE_8(macro, args) ZELDA_PP_MSVC_INVOKE_X_8(macro args)
+
+#define ZELDA_PP_MSVC_INVOKE_X_1(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_2(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_3(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_4(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_5(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_6(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_7(x) x
+#define ZELDA_PP_MSVC_INVOKE_X_8(x) x
 
 //
 // ZELDA_PP_ARGS_TO_SEQ converts args to a seq
@@ -233,12 +242,12 @@ DETAIL_ZELDA_PP_SEQ_FOR_EACH_PRODUCT_EACH_I(r, BOOST_PP_SEQ_ELEM(0, product), BO
 #define ZELDA_DETAIL_PP_VARN_INVOKE(data)  ZELDA_DETAIL_PP_VARN_CAT data
 #else
 // MSVC Workarounds
-#define ZELDA_DETAIL_PP_VARN_INVOKE(data)  ZELDA_PP_MSVC_INVOKE(ZELDA_DETAIL_PP_VARN_CAT, data)
+#define ZELDA_DETAIL_PP_VARN_INVOKE(data) ZELDA_PP_MSVC_INVOKE(ZELDA_DETAIL_PP_VARN_CAT, data)
 #endif
 #define ZELDA_DETAIL_PP_VARN_CAT(n, a, b, c, d, e, f, g, h, ...) ZELDA_DETAIL_PP_VARN_CAT_EACH(a, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(b, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(c, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(d, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(e, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(f, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(g, n) ZELDA_DETAIL_PP_VARN_CAT_EACH(h, n)
 #define ZELDA_DETAIL_PP_VARN_CAT_EACH(a, n) BOOST_PP_IF(ZELDA_PP_IS_PAREN(a), ZELDA_DETAIL_PP_VARN_CAT_EACH_PAREN, ZELDA_DETAIL_PP_VARN_CAT_EACH_TOKEN)(a, n)
 #define ZELDA_DETAIL_PP_VARN_CAT_EACH_PAREN(a, n) (BOOST_PP_CAT(ZELDA_PP_REM a, n))
-#define ZELDA_DETAIL_PP_VARN_CAT_EACH_TOKEN(a, n)  a ## n
+#define ZELDA_DETAIL_PP_VARN_CAT_EACH_TOKEN(a, n)  BOOST_PP_CAT(a, n)
 
 // TODO: Remove when VARN_CAT can handle parenthesis
 #define ZELDA_PP_CONSTRUCT(n, ...) BOOST_PP_ENUM(n, ZELDA_DETAIL_PP_CONSTRUCT_EACH, (__VA_ARGS__)) 
