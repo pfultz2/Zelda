@@ -41,15 +41,13 @@ namespace detail {
 template<class T>
 struct tuple_reference
 {
-    typedef const T& type;
+    typedef T type;
 };
 #ifndef ZELDA_NO_RVALUE_REFS
 template<class T>
 struct tuple_reference<T&&>
 : tuple_reference<T>
-{
-    typedef const T& type;
-};
+{};
 #endif
 template<class T>
 struct tuple_reference<T&>
@@ -86,10 +84,10 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     {};
 
     template<class... T>
-    typename zelda::result_of<F(std::tuple<typename tuple_reference<T>::type...>)>::type
+    typename zelda::result_of<F(std::tuple<typename tuple_reference<T&&>::type...>)>::type
     operator()(T && ... x) const
     {   
-        return this->get_function()(std::tuple<typename tuple_reference<T>::type...>(std::forward<T>(x)...));
+        return this->get_function()(std::tuple<typename tuple_reference<T&&>::type...>(std::forward<T>(x)...));
     }
 #else
 
