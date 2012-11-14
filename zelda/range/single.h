@@ -8,13 +8,23 @@
 #ifndef ZELDA_GUARD_RANGE_SINGLE_H
 #define ZELDA_GUARD_RANGE_SINGLE_H
 
-namespace zelda { namespace range {
+#include <boost/utility/addressof.hpp>
+#include <zelda/range/iterator_range.h>
 
-class single
+namespace zelda { 
+
+template <class T>
+iterator_range<const T*> single(const T& x)
 {
+    return make_iterator_range(boost::addressof(x), boost::addressof(x) + 1);
+}
 
-};
+template <class T>
+iterator_range<T*> single(T& x)
+{
+    return make_iterator_range(boost::addressof(x), boost::addressof(x) + 1);
+}
 
-}}
+}
 
 #endif
