@@ -8,6 +8,9 @@
 #ifndef ZELDA_GUARD_ITERATOR_RANGE_H
 #define ZELDA_GUARD_ITERATOR_RANGE_H
 
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
+
 namespace zelda {
 
 template<class Iterator>
@@ -54,15 +57,15 @@ struct sub_range
 {
 	typedef iterator_range<typename boost::range_iterator<Range>::type> base;
 
-	sub_range(Iterator first, Iterator last) : base(first, last)
+	sub_range(typename base::iterator first, typename base::iterator last) : base(first, last)
 	{}
 
-	template<class Range>
-	sub_range(const Range& r) : base(r)
+	template<class X>
+	sub_range(const X& r) : base(r)
 	{}
 
-	template<class Range>
-	sub_range(Range& r) : base(r)
+	template<class X>
+	sub_range(X& r) : base(r)
 	{}
 };
 
