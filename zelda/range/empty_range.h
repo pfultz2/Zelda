@@ -8,13 +8,20 @@
 #ifndef ZELDA_GUARD_RANGE_EMPTY_RANGE_H
 #define ZELDA_GUARD_RANGE_EMPTY_RANGE_H
 
-namespace zelda { namespace range {
+#include <zelda/range/iterator_range.h>
 
-class empty_range
+namespace zelda {
+
+template<class Value>
+struct empty_range
+: iterator_range<Value *>
 {
+    typedef iterator_range<Value *> base;
 
+    empty_range() : base(0,0)
+    {}
 };
 
-}}
+}
 
 #endif
