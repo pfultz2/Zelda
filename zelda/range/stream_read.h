@@ -8,13 +8,22 @@
 #ifndef ZELDA_GUARD_RANGE_STREAM_READ_H
 #define ZELDA_GUARD_RANGE_STREAM_READ_H
 
-namespace zelda { namespace range {
+#include <iterator>
+#include <zelda/range/iterator_range.h>
 
-class stream_read
+namespace zelda {
+
+template< class Type, class Elem, class Traits >
+iterator_range< std::istream_iterator<Type, Elem, Traits> >
+istream_read(std::basic_istream<Elem, Traits>& in)
 {
+    return iterator_range< std::istream_iterator<Type, Elem, Traits> >
+    (
+        std::istream_iterator<Type, Elem, Traits>(in),
+        std::istream_iterator<Type, Elem, Traits>()
+    );
+}
 
-};
-
-}}
+}
 
 #endif
