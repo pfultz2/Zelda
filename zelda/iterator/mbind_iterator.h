@@ -70,6 +70,12 @@ struct mbind_iterator
 
 };
 
+template<class Iterator, class Selector>
+mbind_iterator<Iterator, Selector> make_mbind_iterator(Selector selector, Iterator iterator, Iterator last)
+{
+    return mbind_iterator<Iterator, Selector>(selector, iterator, last);
+}
+
 }
 
 #endif
