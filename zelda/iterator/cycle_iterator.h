@@ -9,6 +9,7 @@
 #define ZELDA_GUARD_ITERATOR_CYCLE_ITERATOR_H
 
 #include <utility>
+#include <limits>
 #include <boost/assert.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/mpl/and.hpp>
@@ -35,7 +36,7 @@ std::pair<Difference, Difference> positive_rem_div(Difference a, Difference b)
 
 }
 
-template< class ForwardIterator, class Incrementable >
+template< class ForwardIterator, class Incrementable=unsigned int >
 struct cycle_iterator :
     boost::iterator_adaptor<cycle_iterator<ForwardIterator, Incrementable>, ForwardIterator>
 {
@@ -48,6 +49,23 @@ struct cycle_iterator :
 
     cycle_iterator()
     { }
+
+    cycle_iterator(
+        ForwardIterator first, ForwardIterator last
+    ) :
+        super(first), depth(0),
+        first(first), last(last)
+    {
+    }
+
+    cycle_iterator(
+        ForwardIterator it,
+        ForwardIterator first, ForwardIterator last
+    ) :
+        super(it), depth(std::numeric_limits<Incrementable>::max()),
+        first(first), last(last)
+    {
+    }
 
     cycle_iterator(
         ForwardIterator it, Incrementable depth,
