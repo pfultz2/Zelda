@@ -28,8 +28,10 @@
 
 #ifndef ZELDA_NO_AUTO
 #define ZELDA_AUTO(var, ...) auto var = __VA_ARGS__
+#define ZELDA_AUTO_TPL(var, ...) auto var = __VA_ARGS__
 #else
 #define ZELDA_AUTO(var, ...) ZELDA_TYPEOF(__VA_ARGS__) var = __VA_ARGS__
+#define ZELDA_AUTO_TPL(var, ...) ZELDA_TYPEOF_TPL(__VA_ARGS__) var = __VA_ARGS__
 #endif
 
 #ifndef ZELDA_NO_TRAILING_RETURN
@@ -52,6 +54,15 @@
 #else
 #define ZELDA_XTYPEOF(...) zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF(__VA_ARGS__), ZELDA_TYPEOF_IS_LVALUE(__VA_ARGS__), ZELDA_TYPEOF_IS_RVALUE(__VA_ARGS__)>::type
 #define ZELDA_XTYPEOF_TPL(...) typename zelda::typeof_detail::xtypeof_<ZELDA_TYPEOF_TPL(__VA_ARGS__), ZELDA_TYPEOF_IS_LVALUE_TPL(__VA_ARGS__), ZELDA_TYPEOF_IS_RVALUE_TPL(__VA_ARGS__)>::type
+#endif
+
+
+#ifndef ZELDA_NO_AUTO
+#define ZELDA_XAUTO(var, ...) auto&& var = __VA_ARGS__
+#define ZELDA_XAUTO_TPL(var, ...) auto&& var = __VA_ARGS__        
+#else
+#define ZELDA_XAUTO(var, ...) ZELDA_XTYPEOF(__VA_ARGS__) var = __VA_ARGS__
+#define ZELDA_XAUTO_TPL(var, ...) ZELDA_XTYPEOF_TPL(__VA_ARGS__) var = __VA_ARGS__
 #endif
 
 namespace zelda {
