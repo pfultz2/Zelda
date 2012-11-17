@@ -17,10 +17,13 @@
 #include <boost/range/has_range_iterator.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/fusion/support/is_sequence.hpp>
 #include <zelda/static_assert.h>
 #include <zelda/requires.h>
 
 namespace zelda { 
+
+using boost::fusion::traits::is_sequence;
 
 namespace detail {
 
