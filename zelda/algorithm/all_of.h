@@ -13,7 +13,7 @@
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
-#include <boost/fusion/algorithm/query/all.hpp>
+#include <zelda/algorithm/any_of.h>
 #include <algorithm>
 
 #include <boost/bind.hpp>
@@ -22,9 +22,10 @@
 namespace zelda { 
 
 ZELDA_FUNCTION_PIPE_OBJECT((all_of)(r, f)
-        if (is_sequence<r>)(boost::fusion::all(r, f))
-        else if (is_range<r>)(std::find_if(boost::begin(r), boost::end(r), boost::bind(std::logical_not<bool>(), boost::bind(f, _1))) != boost::end(r))
-
+        if (is_range_or_sequence<r>)
+            (
+                any_of(r, boost::bind(std::logical_not<bool>(), boost::bind(f, _1)))
+            )
     )
 
 }
