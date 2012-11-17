@@ -90,7 +90,17 @@ struct is_range_of
 
 template<class Range, class T>
 struct is_range_of<Range, T, ZELDA_CLASS_REQUIRES(is_range<Range>)> 
-: boost::is_convertible<typename boost::range_value<Range>::type, T>
+: boost::is_convertible<T, typename boost::range_value<Range>::type>
+{};
+
+template<class Range1, class Range2, class Eanble = void>
+struct is_sub_range
+: boost::mpl::bool_<false>
+{};
+
+template<class Range, class SubRange>
+struct is_sub_range<Range, SubRange, ZELDA_CLASS_REQUIRES(is_range<Range>, is_range<SubRange>)>
+: boost::is_convertible<typename boost::range_value<SubRange>::type, typename boost::range_value<Range>::type>
 {};
 
 template<class T, class Traversal, class Enable = void>
