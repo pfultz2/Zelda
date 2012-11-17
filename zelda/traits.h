@@ -124,6 +124,11 @@ struct is_map_range<T, ZELDA_CLASS_REQUIRES(is_range<T>)>
 : is_pair<typename boost::range_value<T>::type >
 {};
 
+template<class T>
+struct is_range_or_sequence
+: boost::mpl::or_<is_range<T>, is_sequence<T> >
+{};
+
 
 }
 
