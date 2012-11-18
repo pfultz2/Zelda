@@ -20,7 +20,7 @@
 
 namespace zelda { 
 
-ZELDA_FUNCTION_PIPE_OBJECT((reverse)(r)
+ZELDA_FUNCTION_PIPE_OBJECT((reverse)(auto r)
     if (has_range_traversal<r, boost::bidirectional_traversal_tag>)
     (
         make_iterator_range
