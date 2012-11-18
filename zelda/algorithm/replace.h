@@ -23,7 +23,7 @@ ZELDA_FUNCTION_CLASS((replacer)(auto x, auto old_value, auto new_value)
 }
 
 ZELDA_FUNCTION_PIPE_OBJECT((replace)(auto r, auto old_value, auto new_value)
-    if (is_range<r>)(zelda::transform(r, boost::bind(detail::replacer(), _1, old_value, new_value)))
+    if (is_range_or_sequence<r>)(zelda::transform(r, boost::bind(detail::replacer(), _1, old_value, new_value)))
 
     )
 
