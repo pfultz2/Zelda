@@ -34,22 +34,10 @@ adl_find(const Range& r, const T& x)
     return find(r, x);
 }
 
-template<class T>
-struct has_faux_find
-: boost::mpl::bool_<false>
-{};
-
-
-template<class C, class A, class T>
-struct has_faux_find<std::basic_string<C, A, T> >
-: boost::mpl::bool_<true>
-{};
-
 }
 
 ZELDA_FUNCTION_PIPE_OBJECT((find)(r, x)
         if (is_sub_range<r, x>)(std::search(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
-        else if (detail::has_faux_find<r>)(std::search(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
         else if (is_range<r>)(detail::adl_find(r, x))
     )   
 
