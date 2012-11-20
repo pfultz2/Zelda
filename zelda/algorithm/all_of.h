@@ -24,7 +24,7 @@ namespace zelda {
 ZELDA_FUNCTION_PIPE_OBJECT((all_of)(r, f)
         if (is_range_or_sequence<r>)
         (
-            any_of(r, boost::bind(std::logical_not<bool>(), boost::bind(f, _1)))
+            not any_of(r, boost::bind(std::logical_not<bool>(), boost::bind(f, _1)))
         )
     )
 
