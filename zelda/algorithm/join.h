@@ -20,7 +20,7 @@
 
 namespace zelda { 
 
-ZELDA_FUNCTION_PIPE_OBJECT((join)(x, y)
+ZELDA_FUNCTION_PIPE_OBJECT((join)(auto x, auto y)
     if (is_range<x>, is_range<y>)(boost::range::join(x, y))
     else if (is_sequence<x>, is_sequence<y>)(boost::fusion::join(x, y))
 
