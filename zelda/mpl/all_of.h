@@ -18,14 +18,36 @@
 
 namespace zelda { 
 
+namespace detail {
+
+template<class MF>
+struct all_of_pred
+{
+    template<class T>
+    struct apply
+    : boost::mpl::not_<typename boost::mpl::apply<MF, T>::type>
+    {};
+};
+
+}
+
 template<class Sequence, class MF>
 struct all_of
 : boost::mpl::not_<any_of
 <
     Sequence,
-    boost::mpl::not_<boost::mpl::apply<MF, boost::mpl::_1 > >
+    boost::mpl::protect<detail::all_of_pred<MF> >
 > >
 {};
+
+// template<class Sequence, class MF>
+// struct all_of
+// : boost::mpl::not_<any_of
+// <
+//     Sequence,
+//     boost::mpl::not_<boost::mpl::apply<MF, boost::mpl::arg<1> > >
+// > >
+// {};
 
 }
 
@@ -50,7 +72,7 @@ typedef boost::mpl::vector<foo, foo, foo> all_foo;
 typedef boost::mpl::vector<foo, bar, foo> some_foo;
 typedef boost::mpl::vector<bar, bar> no_foo;
 
-typedef is_foo<boost::mpl::_1 > is_foo_lambda;
+typedef is_foo<boost::mpl::arg<1> > is_foo_lambda;
 
 static_assert((zelda::all_of<all_foo, is_foo_lambda >::type::value), "Failed");
 static_assert((!zelda::all_of<some_foo, is_foo_lambda >::type::value), "Failed");
