@@ -16,7 +16,7 @@
 #include <boost/mpl/not.hpp>
 #include <zelda/mpl/any_of.h>
 
-namespace zelda { 
+namespace zelda { namespace mpl {
 
 namespace detail {
 
@@ -49,7 +49,7 @@ struct all_of
 // > >
 // {};
 
-}
+}}
 
 #ifdef ZELDA_TEST
 #include <boost/mpl/vector.hpp>
@@ -74,9 +74,9 @@ typedef boost::mpl::vector<bar, bar> no_foo;
 
 typedef is_foo<boost::mpl::arg<1> > is_foo_lambda;
 
-static_assert((zelda::all_of<all_foo, is_foo_lambda >::type::value), "Failed");
-static_assert((!zelda::all_of<some_foo, is_foo_lambda >::type::value), "Failed");
-static_assert((!zelda::all_of<no_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((zelda::mpl::all_of<all_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((!zelda::mpl::all_of<some_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((!zelda::mpl::all_of<no_foo, is_foo_lambda >::type::value), "Failed");
 
 }}
 

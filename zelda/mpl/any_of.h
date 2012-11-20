@@ -14,7 +14,7 @@
 #include <boost/mpl/begin_end.hpp>
 
 
-namespace zelda { 
+namespace zelda { namespace mpl {
 
 template<class Sequence, class MF>
 struct any_of
@@ -24,7 +24,7 @@ struct any_of
 >
 {};
 
-}
+}}
 
 #ifdef ZELDA_TEST
 #include <boost/mpl/vector.hpp>
@@ -49,9 +49,9 @@ typedef boost::mpl::vector<bar, bar> no_foo;
 
 typedef is_foo<boost::mpl::arg<1> > is_foo_lambda;
 
-static_assert((zelda::any_of<all_foo, is_foo_lambda >::type::value), "Failed");
-static_assert((zelda::any_of<some_foo, is_foo_lambda >::type::value), "Failed");
-static_assert((!zelda::any_of<no_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((zelda::mpl::any_of<all_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((zelda::mpl::any_of<some_foo, is_foo_lambda >::type::value), "Failed");
+static_assert((!zelda::mpl::any_of<no_foo, is_foo_lambda >::type::value), "Failed");
 
 }}
 

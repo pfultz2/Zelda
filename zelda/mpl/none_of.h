@@ -13,13 +13,13 @@
 #include <boost/mpl/quote.hpp>
 #include <boost/mpl/begin_end.hpp>
 
-namespace zelda { 
+namespace zelda { namespace mpl {
 
 template<class Sequence, class MF>
 struct none_of
 : boost::is_same<typename boost::mpl::find_if<Sequence, MF>::type, typename boost::mpl::end<Sequence>::type>
 {};
 
-}
+}}
 
 #endif
