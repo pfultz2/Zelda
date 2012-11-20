@@ -16,33 +16,15 @@
 
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
+#include <zelda/mpl/any_of.h>
 #include <boost/mpl/find_if.hpp>
+#include <boost/mpl/lambda.hpp>
 #include <boost/mpl/quote.hpp>
 #include <boost/mpl/begin_end.hpp>
 
 namespace zelda { 
 
 namespace detail {
-
-struct is_actor_quote
-{
-    template<class T>
-    struct apply : boost::phoenix::is_actor<T>
-    {};
-};
-
-
-template<class Sequence, class Enable = void>
-struct sequence_has_actor : boost::mpl::false_
-{};
-
-template<class Sequence>
-struct sequence_has_actor<Sequence, ZELDA_CLASS_REQUIRES(boost::fusion::traits::is_sequence<Sequence>)> 
-: boost::mpl::not_
-<
-    boost::is_same<boost::mpl::find_if<Sequence, is_actor_quote>, typename boost::mpl::end<Sequence>::type>
->
-{};
 
 template<class F>
 struct general_adaptor_base : function_adaptor_base<F>
@@ -57,7 +39,7 @@ struct general_adaptor_base : function_adaptor_base<F>
     struct result;
 
     template<class X, class T>
-    struct result<X(T), ZELDA_CLASS_REQUIRES(sequence_has_actor<typename boost::decay<T>::type>)>
+    struct result<X(T), ZELDA_CLASS_REQUIRES(zelda::mpl::any_of<typename boost::decay<T>::type, boost::phoenix::is_actor<boost::mpl::_1> >)>
     : invoke_result<F, const typename boost::decay<T>::type&> 
     {}; 
 
