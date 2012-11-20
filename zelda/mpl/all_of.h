@@ -18,36 +18,14 @@
 
 namespace zelda { 
 
-namespace detail {
-
-template<class MF>
-struct all_of_pred
-{
-    template<class T>
-    struct apply
-    : boost::mpl::not_<typename boost::mpl::apply<MF, T>::type>
-    {};
-};
-
-}
-
 template<class Sequence, class MF>
 struct all_of
 : boost::mpl::not_<any_of
 <
     Sequence,
-    boost::mpl::protect<detail::all_of_pred<MF> >
+    boost::mpl::not_<boost::mpl::apply<MF, boost::mpl::_1 > >
 > >
 {};
-
-// template<class Sequence, class MF>
-// struct all_of
-// : boost::mpl::not_<any_of
-// <
-//     Sequence,
-//     boost::mpl::not_<boost::mpl::apply<MF, boost::mpl::arg<1> > >
-// > >
-// {};
 
 }
 
