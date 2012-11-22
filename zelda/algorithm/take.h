@@ -8,13 +8,16 @@
 #ifndef ZELDA_GUARD_ALGORITHM_TAKE_H
 #define ZELDA_GUARD_ALGORITHM_TAKE_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/at.h>
+#include <zelda/range/iterator_range.h>
 
-class take
-{
+namespace zelda { 
 
-};
+ZELDA_FUNCTION_PIPE_OBJECT((take)(r, n)
+    if (is_range<r>)(make_iterator_range(boost::begin(r), detail::iterator_at(r)))
 
-}}
+)
+
+}
 
 #endif
