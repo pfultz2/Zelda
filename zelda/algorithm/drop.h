@@ -1,4 +1,4 @@
-/*=============================================================================
+ /*=============================================================================
     Copyright (c) 2012 Paul Fultz II
     drop.h
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -8,13 +8,16 @@
 #ifndef ZELDA_GUARD_ALGORITHM_DROP_H
 #define ZELDA_GUARD_ALGORITHM_DROP_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/at.h>
+#include <zelda/range/iterator_range.h>
 
-class drop
-{
+namespace zelda { 
 
-};
+ZELDA_FUNCTION_PIPE_OBJECT((drop)(r, n)
+    if (is_range<r>)(make_iterator_range(detail::iterator_at(r), boost::end(r)))
 
-}}
+)
+
+}
 
 #endif
