@@ -20,8 +20,11 @@
 #include <boost/type_traits.hpp>
 
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
+#include <tuple>
+#include <boost/fusion/adapted/std_tuple.hpp>
 #define ZELDA_PIPABLE_SEQUENCE std::tuple
 #else
+#include <boost/fusion/vector.hpp>
 #define ZELDA_PIPABLE_SEQUENCE boost::fusion::vector
 
 #endif
