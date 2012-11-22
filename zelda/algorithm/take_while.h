@@ -8,13 +8,16 @@
 #ifndef ZELDA_GUARD_ALGORITHM_TAKE_WHILE_H
 #define ZELDA_GUARD_ALGORITHM_TAKE_WHILE_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/find_if.h>
+#include <zelda/range/iterator_range.h>
 
-class take_while
-{
+namespace zelda { 
 
-};
+ZELDA_FUNCTION_PIPE_OBJECT((take_while)(r, n)
+    if (is_range<r>)(make_iterator_range(boost::begin(r), find_if(r, f)))
 
-}}
+)
+
+}
 
 #endif
