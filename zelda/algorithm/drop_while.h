@@ -8,13 +8,16 @@
 #ifndef ZELDA_GUARD_ALGORITHM_DROP_WHILE_H
 #define ZELDA_GUARD_ALGORITHM_DROP_WHILE_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/find_if.h>
+#include <zelda/range/iterator_range.h>
 
-class drop_while
-{
+namespace zelda { 
 
-};
+ZELDA_FUNCTION_PIPE_OBJECT((drop_while)(r, f)
+    if (is_range<r>)(make_iterator_range(find_if(r, f), boost::end(r)))
 
-}}
+)
+
+}
 
 #endif
