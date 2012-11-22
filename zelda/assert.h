@@ -26,9 +26,12 @@
 
 #else
 
-#define ZELDA_DETAIL_ASSERT_1(cond) ((cond) ? ((void)0) : ::zelda::assertion::failed(zelda::assertion::void_(), #cond, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
-#define ZELDA_DETAIL_ASSERT_2(cond, msg) ((cond) ? ((void)0) : ::zelda::assertion::failed_msg(zelda::assertion::void_(), #cond, msg, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
-#define ZELDA_ASSERT_EXPR(cond, expr) ((cond) ? (expr) : ::zelda::assertion::failed((ZELDA_AVOID(expr)), #cond, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
+#define ZELDA_DETAIL_ASSERT_1(cond) \
+    ((cond) ? ((void)0) : ::zelda::assertion::failed(zelda::assertion::void_(), #cond, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
+#define ZELDA_DETAIL_ASSERT_2(cond, msg) \
+    ((cond) ? ((void)0) : ::zelda::assertion::failed_msg(zelda::assertion::void_(), #cond, msg, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
+#define ZELDA_ASSERT_EXPR(cond, expr) \
+    ((cond) ? (expr) : ::zelda::assertion::failed((ZELDA_AVOID(expr)), #cond, BOOST_CURRENT_FUNCTION, __FILE__, __LINE__))
 
 #endif
 
@@ -48,8 +51,14 @@ struct result<void_>
     typedef void type;
 };
 
+template<>
+struct result<const void_>
+{
+    typedef void type;
+};
+
 template<class T>
-typename result<T>::type failed_msg(const T&, char const * cond, char const * msg, char const * function, char const * file, long line)
+typename result<T>::type failed_msg(T&, char const * cond, char const * msg, char const * function, char const * file, long line)
 {
     std::cerr
       << "***** Internal Program Error - assertion (" << cond << ") failed in "
@@ -59,7 +68,27 @@ typename result<T>::type failed_msg(const T&, char const * cond, char const * ms
 }
 
 template<class T>
-typename result<T>::type failed(const T&, char const * cond, char const * function, char const * file, long line)
+typename result<const T>::type failed_msg(const T&, char const * cond, char const * msg, char const * function, char const * file, long line)
+{
+    std::cerr
+      << "***** Internal Program Error - assertion (" << cond << ") failed in "
+      << function << ":\n"
+      << file << '(' << line << "): " << msg << std::endl;
+    std::abort();
+}
+
+template<class T>
+typename result<T>::type failed(T&, char const * cond, char const * function, char const * file, long line)
+{
+    std::cerr
+      << "***** Internal Program Error - assertion (" << cond << ") failed in "
+      << function << ":\n"
+      << file << '(' << line << ")" << std::endl;
+    std::abort();
+}
+
+template<class T>
+typename result<const T>::type failed(const T&, char const * cond, char const * function, char const * file, long line)
 {
     std::cerr
       << "***** Internal Program Error - assertion (" << cond << ") failed in "
@@ -76,7 +105,7 @@ int& by_ref();
 const int& by_const_ref();
 void by_void();
 
-void check()
+void assert_check()
 {
     ZELDA_ASSERT(true);
     ZELDA_ASSERT(true, "This should work");
