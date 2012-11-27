@@ -8,13 +8,15 @@
 #ifndef ZELDA_GUARD_ALGORITHM_FUSED_FOR_EACH_H
 #define ZELDA_GUARD_ALGORITHM_FUSED_FOR_EACH_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/for_each.h>
+#include <zelda/function/fuse.h>
 
-class fused_for_each
-{
+namespace zelda {
 
-};
+ZELDA_FUNCTION_PIPE_OBJECT((fused_for_each)(auto r, f)
+    (zelda::for_each(r, zelda::fuse(f)))
+)
 
-}}
+}
 
 #endif
