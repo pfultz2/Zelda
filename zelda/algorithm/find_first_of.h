@@ -8,13 +8,20 @@
 #ifndef ZELDA_GUARD_ALGORITHM_FIND_FIRST_OF_H
 #define ZELDA_GUARD_ALGORITHM_FIND_FIRST_OF_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/function/builder.h>
+#include <zelda/traits.h>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
 
-class find_first_of
-{
+#include <algorithm>
 
-};
+namespace zelda { 
 
-}}
+ZELDA_FUNCTION_PIPE_OBJECT((find_first_of)(auto r, x)
+        if (is_sub_range<r, x>)(std::find_end(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
+    )   
+
+
+}
 
 #endif
