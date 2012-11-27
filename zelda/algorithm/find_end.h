@@ -8,13 +8,20 @@
 #ifndef ZELDA_GUARD_ALGORITHM_FIND_END_H
 #define ZELDA_GUARD_ALGORITHM_FIND_END_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/function/builder.h>
+#include <zelda/traits.h>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
 
-class find_end
-{
+#include <algorithm>
 
-};
+namespace zelda { 
 
-}}
+ZELDA_FUNCTION_PIPE_OBJECT((find_end)(r, x)
+        if (is_sub_range<r, x>)(std::find_end(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
+    )   
+
+
+}
 
 #endif
