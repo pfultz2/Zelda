@@ -62,6 +62,11 @@
 #define ZELDA_FUNCTION_PARAMS_STATIC_GEN_1_END
 #define ZELDA_FUNCTION_PARAMS_STATIC_GEN_2_END
 
+#define ZELDA_FUNCTION_DECAY(seq) BOOST_PP_CAT(ZELDA_FUNCTION_DECAY_1 seq, _END)
+#define ZELDA_FUNCTION_DECAY_1(x) (typename boost::decay<x>::type)  ZELDA_FUNCTION_DECAY_2
+#define ZELDA_FUNCTION_DECAY_2(x) (typename boost::decay<x>::type)  ZELDA_FUNCTION_DECAY_1
+#define ZELDA_FUNCTION_DECAY_1_END
+#define ZELDA_FUNCTION_DECAY_2_END
 
 #define ZELDA_FUNCTION_PREFIX_CLASS(seq) BOOST_PP_CAT(ZELDA_FUNCTION_PREFIX_CLASS_1 seq, _END)
 #define ZELDA_FUNCTION_PREFIX_CLASS_1(x) (class x)  ZELDA_FUNCTION_PREFIX_CLASS_2
@@ -95,7 +100,7 @@ struct name \
     struct result; \
     \
     template<class Zelda_X, BOOST_PP_SEQ_ENUM(ZELDA_FUNCTION_PREFIX_CLASS(template_params))> \
-    struct result<Zelda_X(BOOST_PP_SEQ_ENUM(template_params)), typename enable<Zelda_X(BOOST_PP_SEQ_ENUM(template_params))>::type> \
+    struct result<Zelda_X(BOOST_PP_SEQ_ENUM(template_params)), typename enable<Zelda_X(BOOST_PP_SEQ_ENUM(ZELDA_FUNCTION_DECAY(template_params)))>::type> \
     { \
         ZELDA_FUNCTION_PARAMS_STATIC_GEN(function_params) \
         typedef ZELDA_XTYPEOF_TPL(body) type; \
