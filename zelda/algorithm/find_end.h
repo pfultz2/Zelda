@@ -17,7 +17,7 @@
 
 namespace zelda { 
 
-ZELDA_FUNCTION_PIPE_OBJECT((find_end)(r, x)
+ZELDA_FUNCTION_PIPE_OBJECT((find_end)(auto r, x)
         if (is_sub_range<r, x>)(std::find_end(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
     )   
 

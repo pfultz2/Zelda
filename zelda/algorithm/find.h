@@ -41,7 +41,7 @@ adl_find(const Range& r, const T& x)
 
 }
 
-ZELDA_FUNCTION_PIPE_OBJECT((find)(r, x)
+ZELDA_FUNCTION_PIPE_OBJECT((find)(auto r, x)
         if (is_sub_range<r, x>)(std::search(boost::begin(r), boost::end(r), boost::begin(x), boost::end(x)))
         else if (is_range<r>)(detail::adl_find(r, x))
     )   
