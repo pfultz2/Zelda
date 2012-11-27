@@ -16,9 +16,7 @@
 #include <algorithm>
 #include <string>
 
-namespace zelda { 
-
-namespace detail {
+namespace zelda_adl {
 
 template<class Range, class T>
 typename boost::range_iterator<Range>::type
@@ -27,10 +25,17 @@ find(const Range& r, const T& x)
     return std::find(boost::begin(r), boost::end(r), x);
 }
 
+}
+
+namespace zelda { 
+
+namespace detail {
+
 template<class Range, class T>
 typename boost::range_iterator<Range>::type
 adl_find(const Range& r, const T& x)
 {
+    using namespace zelda_adl;
     return find(r, x);
 }
 
