@@ -8,13 +8,19 @@
 #ifndef ZELDA_GUARD_ALGORITHM_INDIRECT_H
 #define ZELDA_GUARD_ALGORITHM_INDIRECT_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/transform.h>
 
-class indirect
-{
+namespace zelda { namespace detail {
 
-};
+ZELDA_FUNCTION_CLASS((indirect_selector)(x)(*x))
 
-}}
+}
+
+ZELDA_FUNCTION_PIPE_OBJECT((indirect)(r)
+    if (is_range_or_sequence<r>)(zelda::transform(r, detail::indirect_selector()))
+)
+
+
+}
 
 #endif
