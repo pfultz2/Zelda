@@ -8,13 +8,20 @@
 #ifndef ZELDA_GUARD_ALGORITHM_KEYS_H
 #define ZELDA_GUARD_ALGORITHM_KEYS_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/transform.h>
 
-class keys
-{
+namespace zelda { namespace detail {
 
-};
+ZELDA_FUNCTION_CLASS((keys_selector)(x)(x.first))
 
-}}
+}
+
+ZELDA_FUNCTION_PIPE_OBJECT((keys)(r)
+    if (is_range_or_sequence<r>)(zelda::transform(r, detail::keys_selector()))
+)
+
+
+
+}
 
 #endif
