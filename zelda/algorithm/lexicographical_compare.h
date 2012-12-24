@@ -8,13 +8,24 @@
 #ifndef ZELDA_GUARD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_H
 #define ZELDA_GUARD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/function/builder.h>
+#include <zelda/traits.h>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/empty.hpp>
 
-class lexicographical_compare
-{
+#include <algorithm>
 
-};
+namespace zelda { 
 
-}}
+ZELDA_FUNCTION_PIPE_OBJECT((lexicographical_compare)(auto r1, auto r2)
+    if (is_range<r1>, is_range<r2>)
+    (
+        std::lexicographical_compare(boost::begin(r1), boost::end(r1), boost::begin(r2), boost::end(r2))
+    )
+
+)
+
+}
 
 #endif
