@@ -8,13 +8,24 @@
 #ifndef ZELDA_GUARD_ALGORITHM_LOWER_BOUND_H
 #define ZELDA_GUARD_ALGORITHM_LOWER_BOUND_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/function/builder.h>
+#include <zelda/traits.h>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/empty.hpp>
 
-class lower_bound
-{
+#include <algorithm>
 
-};
+namespace zelda { 
 
-}}
+ZELDA_FUNCTION_PIPE_OBJECT((lower_bound)(auto r, x)
+    if (is_range<r>)
+    (
+        std::lower_bound(boost::begin(r), boost::end(r), x)
+    )
+
+)
+
+}
 
 #endif
