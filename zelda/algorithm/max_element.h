@@ -8,13 +8,21 @@
 #ifndef ZELDA_GUARD_ALGORITHM_MAX_ELEMENT_H
 #define ZELDA_GUARD_ALGORITHM_MAX_ELEMENT_H
 
-namespace zelda { namespace algorithm {
+#include <zelda/algorithm/fold.h>
 
-class max_element
-{
 
-};
+namespace zelda { 
 
-}}
+namespace detail {
+
+ZELDA_FUNCTION_CLASS((max_element_fold)(auto x, auto y)(x > y ? x : y))
+
+}
+
+ZELDA_FUNCTION_PIPE_OBJECT((max_element)(auto r, const init)
+        if(is_range_or_sequence<r>)(fold(r, init, detail::max_element_fold()))
+    )
+
+}
 
 #endif

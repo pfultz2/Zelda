@@ -8,13 +8,18 @@
 #ifndef ZELDA_GUARD_ALGORITHM_MIN_ELEMENT_H
 #define ZELDA_GUARD_ALGORITHM_MIN_ELEMENT_H
 
-namespace zelda { namespace algorithm {
+namespace zelda { 
 
-class min_element
-{
+namespace detail {
 
-};
+ZELDA_FUNCTION_CLASS((min_element_fold)(auto x, auto y)(x < y ? x : y))
 
-}}
+}
+
+ZELDA_FUNCTION_PIPE_OBJECT((min_element)(auto r, const init)
+        if(is_range_or_sequence<r>)(fold(r, init, detail::min_element_fold()))
+    )
+
+}
 
 #endif
