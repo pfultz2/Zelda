@@ -23,6 +23,8 @@ namespace zelda {
 ZELDA_FUNCTION_PIPE_OBJECT((fold)(auto r, const init, f)
         if(is_range<r>)(std::accumulate(boost::begin(r), boost::end(r), init, f))
         else if(is_sequence<r>)(boost::fusion::fold(r, init, f))
+        def(auto r, f)
+        if (is_range<r>)(std::accumulate(++boost::begin(r), boost::end(r), *boost::begin(r), f))
     )
 
 }

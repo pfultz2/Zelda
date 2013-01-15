@@ -16,8 +16,8 @@ ZELDA_FUNCTION_CLASS((min_element_fold)(auto x, auto y)(x < y ? x : y))
 
 }
 
-ZELDA_FUNCTION_PIPE_OBJECT((min_element)(auto r, const init)
-        if(is_range_or_sequence<r>)(fold(r, init, detail::min_element_fold()))
+ZELDA_FUNCTION_PIPE_OBJECT((min_element)(auto r)
+        if(is_range_or_sequence<r>)(fold(r, detail::min_element_fold()))
     )
 
 }
