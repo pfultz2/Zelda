@@ -22,4 +22,15 @@ operator()(ZELDA_PP_PARAMS_Z(z, n, T, && x)) const \
 #define ZELDA_DETAIL_PERFECT_FACADE_OP(z, n, data) ZELDA_PP_MSVC_INVOKE(ZELDA_DETAIL_PERFECT_FACADE, (z, n, ZELDA_PP_REM data))
 #define ZELDA_PERFECT_FACADE(type, f) BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE_OP, (type, f))
 
+//Template parameters
+#define ZELDA_DETAIL_PERFECT_FACADE_TPL(z, n, F, function, tpl) \
+template<tpl T_ ## tpl, ZELDA_PP_PARAMS_Z(z, n, class T)> \
+typename zelda::result_of<F(ZELDA_PP_PARAMS_Z(z, n, T, && BOOST_PP_INTERCEPT))>::type \
+operator()(ZELDA_PP_PARAMS_Z(z, n, T, && x)) const \
+{ return function( ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) ); }
+
+#define ZELDA_DETAIL_PERFECT_FACADE_OP_TPL(z, n, data) ZELDA_PP_MSVC_INVOKE(ZELDA_DETAIL_PERFECT_FACADE_TPL, (z, n, ZELDA_PP_REM data))
+#define ZELDA_PERFECT_FACADE_TPL(type, f, tpl) BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE_OP_TPL, (type, f, tpl))
+
+
 #endif

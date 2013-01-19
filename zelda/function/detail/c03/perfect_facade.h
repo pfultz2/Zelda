@@ -79,5 +79,42 @@ type zelda_private_perfect_facade_function() const \
 } \
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE, ~)
 
+// Template parameters
+#define ZELDA_PERFECT_FACADE_SEQ_TPL(tpl, seq) ZELDA_PERFECT_ITERATE_END(ZELDA_PERFECT_FACADE_SEQ_1_ ## tpl seq)
+#define ZELDA_PERFECT_FACADE_SEQ_1_class(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2_class
+#define ZELDA_PERFECT_FACADE_SEQ_2_class(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1_class
+#define ZELDA_PERFECT_FACADE_SEQ_1_class_EOF
+#define ZELDA_PERFECT_FACADE_SEQ_2_class_EOF
+
+#define ZELDA_PERFECT_FACADE_SEQ_1_int(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2_int
+#define ZELDA_PERFECT_FACADE_SEQ_2_int(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1_int
+#define ZELDA_PERFECT_FACADE_SEQ_1_int_EOF
+#define ZELDA_PERFECT_FACADE_SEQ_2_int_EOF
+
+#define ZELDA_PERFECT_FACADE_SEQ_1_long(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2_long
+#define ZELDA_PERFECT_FACADE_SEQ_2_long(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1_long
+#define ZELDA_PERFECT_FACADE_SEQ_1_long_EOF
+#define ZELDA_PERFECT_FACADE_SEQ_2_long_EOF
+
+#define ZELDA_PERFECT_FACADE_OP_TPL(tpl, n, seq) \
+template<tpl T_ ## tpl, ZELDA_PP_PARAMS_Z(2, n, class T)> \
+typename zelda::result_of<typename zelda_private_perfect_facade_function_type<T_ ## tpl>::type(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & BOOST_PP_INTERCEPT))>::type \
+operator()(ZELDA_PERFECT_FACADE_PARAMS_R(1, seq, T, & x)) const \
+{ return this->zelda_private_perfect_facade_function<T_ ## tpl>()( ZELDA_PERFECT_FACADE_FORWARD_R(1, seq, T, x) ); }
+
+#define ZELDA_DETAIL_PERFECT_FACADE_TPL(z, n, tpl) \
+ZELDA_PERFECT_FACADE_SEQ_TPL(tpl, ZELDA_PERFECT_PRODUCT_SEQ(n))
+
+#define ZELDA_PERFECT_FACADE_TPL(type_, f, tpl) \
+template<tpl T_ ## tpl> \
+struct zelda_private_perfect_facade_function_type { typedef type_ type; }; \
+typedef type zelda_private_perfect_facade_function_type; \
+template<tpl T_ ## tpl>
+type_ zelda_private_perfect_facade_function() const \
+{ \
+    return f; \
+} \
+BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE_TPL, tpl)
+
 
 #endif

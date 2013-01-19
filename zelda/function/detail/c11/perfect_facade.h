@@ -19,5 +19,12 @@ operator()(T && ... x) const \
     return f(zelda::forward<T>(x)...); \
 }
 
+#define ZELDA_PERFECT_FACADE_TPL(F, f, tpl) \
+template<tpl T_ ## tpl, class... T> \
+typename zelda::result_of<F(T&&...)>::type \
+operator()(T && ... x) const \
+{ \
+    return f(zelda::forward<T>(x)...); \
+}
 
 #endif
