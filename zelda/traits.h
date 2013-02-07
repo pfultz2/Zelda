@@ -93,7 +93,7 @@ struct is_range_of<Range, T, ZELDA_CLASS_REQUIRES(is_range<Range>)>
 : boost::is_convertible<T, typename boost::range_value<Range>::type>
 {};
 
-template<class Range1, class Range2, class Eanble = void>
+template<class Range1, class Range2, class Enable = void>
 struct is_sub_range
 : boost::mpl::bool_<false>
 {};
@@ -121,6 +121,16 @@ struct is_pair
 
 template<class K, class V>
 struct is_pair<std::pair<K, V> > 
+: boost::mpl::bool_<true>
+{};
+
+template<class T>
+struct is_string 
+: boost::mpl::bool_<false>
+{};
+
+template<class C, class T, class A>
+struct is_string<std::basic_string<C, T, A> >
 : boost::mpl::bool_<true>
 {};
 
