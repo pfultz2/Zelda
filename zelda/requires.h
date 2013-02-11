@@ -5,6 +5,123 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
+// @begin
+// 
+// Requires
+// ========
+// 
+// Introduction
+// ------------
+// 
+// The requires macro provides a way for template specialization to include or
+// exclude matching specialization based on traits given to it. There are three
+// macros available:
+// 
+//     // Used inside template parameters
+//     #define ZELDA_REQUIRES(...)
+//     // Used for functions
+//     #define ZELDA_FUNCTION_REQUIRES(...)
+//     // Used for class specializations
+//     #define ZELDA_CLASS_REQUIRES(...)
+// 
+// Say for instance we had a template function like this:
+// 
+//     template<class T, class U>
+//     T max(T x, U y)
+//     {
+//         return x > y : x ? y;
+//     }
+// 
+// Perhaps we would like to restrict this function to just aritmetic types, We
+// can use the `ZELDA_FUNCTION_REQUIRES` macro to write this:
+// 
+//     template<class T, class U>
+//     ZELDA_FUNCTION_REQUIRES(is_arithmetic<T>, is_arithmetic<U>)
+//     (T) max(T x, U y)
+//     {
+//         return x > y : x ? y;
+//     }
+// 
+// It's important to note that parenthesis are required to be placed around the
+// return type when using the `ZELDA_FUNCTION_REQUIRES` macro. Also, multiple
+// traits can be given to the requires clause, and if it's true for every trait
+// given, then that function will be selected. So, it will by default be
+// inclusive with traits, but perhaps we want to exclude the function if a trait
+// is true. For example, maybe we would like to use this max function on
+// arithmetic types, but exclude booleans. In this case we can use the `exclude`
+// keyword(also `not` can be used on C++ compilers, but for portability to msvc
+// it's better to use `exclude`):
+// 
+//     template<class T, class U>
+//     ZELDA_FUNCTION_REQUIRES
+//     (
+//         is_arithmetic<T>, 
+//         is_arithmetic<U>, 
+//         exclude is_same<T, bool>, 
+//         exclude is_same<U, bool>
+//     )
+//     (T) max(T x, U y)
+//     {
+//         return x > y : x ? y;
+//     }
+// 
+// Usage
+// -----
+// 
+// The `ZELDA_REQUIRES` macro is useful where default template parameters are
+// used such as for classes(and function in C++11). It can be used something like
+// this:
+// 
+//     template<class T, ZELDA_REQUIRES(is_integral<T>)>
+//     class A { ... };
+// 
+// If class specialization is needed, then the `ZELDA_CLASS_REQUIRES` macro can
+// be used, like this:
+// 
+//     template <class T, class Enable = void> 
+//     class A { ... };
+// 
+//     template <class T>
+//     class A<T, ZELDA_CLASS_REQUIRES(is_integral<T>)> { ... };
+// 
+//     template <class T>
+//     class A<T, ZELDA_CLASS_REQUIRES(is_float<T>)> { ... };
+// 
+// For functions, the `ZELDA_FUNCTION_REQUIRES` can be used like this, but
+// parenthesis needs to be placed around the return type:
+// 
+//     template<class T, class U>
+//     ZELDA_FUNCTION_REQUIRES(is_arithmetic<T>, is_arithmetic<U>)
+//     (T) max(T x, U y)
+//     {
+//         return x > y : x ? y;
+//     }
+// 
+// Also, the `exclude` keyword can be used to exclude a trait from being
+// selected. This is really helpful, when there are overlapping conditions:
+// 
+//     template<class T>
+//     ZELDA_FUNCTION_REQUIRES(is_integral<T>)
+//     (T) foo(T x) { ... }
+// 
+//     template<class T>
+//     ZELDA_FUNCTION_REQUIRES(is_arithmetic<T>, exlcude is_integral<T>)
+//     (T) foo(T x) { ... }
+// 
+// Also, the keyword `not` can be used instead of `exclude`: 
+// 
+//     template<class T>
+//     ZELDA_FUNCTION_REQUIRES(is_integral<T>)
+//     (T) foo(T x) { ... }
+// 
+//     template<class T>
+//     ZELDA_FUNCTION_REQUIRES(is_arithmetic<T>, not is_integral<T>)
+//     (T) foo(T x) { ... }
+// 
+// But this won't work in non-C++ compilers such as msvc.
+// 
+// @end
+
 
 #ifndef ZELDA_REQUIRES_H
 #define	ZELDA_REQUIRES_H
