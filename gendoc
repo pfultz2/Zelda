@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SRCPATH=$1
+DOCPATH=$2
+
+find . -name "*.h" -print0 | xargs -0 -I {} ./genhtml {} "$SRCPATH" "$DOCPATH"
