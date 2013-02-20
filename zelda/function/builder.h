@@ -5,6 +5,146 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
+// @begin
+// Function Builder
+// ================
+// 
+// Introduction
+// ------------
+// 
+// The function builder provides a plugin for ZLang to make it easier to define
+// polymorphic functions. Say, for instance, we want to define a simple generic
+// sum function, we can define it like this:
+// 
+//     $(function(sum)(x, y)(x + y));
+// 
+// The return type is automatically deduced from the expression(ie `x + y`). The
+// types for the `x` and `y` variables are deduced from whats passed into the
+// function. However, with this function everything is passed in by value. The
+// best way to avoid copying is to use perfect forwarding, which will accept an
+// const reference, non-const reference, or an rvalue reference(in C++11). To do
+// this we add the `auto` keyword to the parameters like this:
+// 
+//     $(function(sum)(auto x, auto y)(x + y));
+// 
+// Now perhaps, we would like to restrict the sum to just integers. We can add an
+// `if` clause to the function as well:
+// 
+//     $(function(sum)(auto x, auto y) if (is_integral<x>, is_integral<y>)(x + y));
+// 
+// The `if` clause uses the same syntax as the requires clauses do. We can also
+// use an `else` to add more overloads, if the first one fails. So perhaps we
+// want to call `float_sum` function if they are floats, we can do this like
+// this:
+// 
+//     $(function(sum)(auto x, auto y) 
+//         if (is_integral<x>, is_integral<y>)(x + y)
+//         else if (is_float<x>, is_float<y>)(float_sum(x, y))
+//     );
+// 
+// Finally, we can also add `else` without using an `if` clause. Say for
+// instance, we just want to print a message to the user if the sum is not an
+// integer nor a float:
+// 
+//     $(function(sum)(auto x, auto y) 
+//         if (is_integral<x>, is_integral<y>)(x + y)
+//         else if (is_float<x>, is_float<y>)(float_sum(x, y))
+//         else (printf("No sum for you\n"))
+//     );
+// 
+// Types
+// -----
+// 
+// By default, the function builder builds a function object, but if a class is
+// all thats needed then the class keyword can be used like this:
+// 
+//      $(function class(sum_t)(x, y)(x + y));
+// 
+// And a class named `sum_t` will be created, that can be called like a function,
+// like this:
+// 
+//     int i = sum_t()(1 + 2); // i = 3
+// 
+// Also, pipable functions can be built by using the `pipe` keyword:
+// 
+//      $(function pipe(sum)(x, y)(x + y));
+// 
+// Then the function can be called like this:
+// 
+//     int i = 1 | sum(2); // i = 3
+// 
+// Parameters
+// ----------
+// 
+// The parameters to a function can accept parameters by value, by non-const
+// reference, by const reference, and by perfect reference(which is either const,
+// non-const, or an rvalue if supported). By default, without any keywords the
+// parameters are taken by value:
+// 
+//     $(function(sum)(x, y)(x + y));
+// 
+// To use non-const references, use `mutable`:
+// 
+//     $(function(sum)(mutable x, mutable y)(x + y));
+// 
+// To use const references, use `const`:
+// 
+//     $(function(sum)(const x, const y)(x + y));
+// 
+// To do perfect forwarding, use `auto`:
+// 
+//     $(function(sum)(auto x, auto y)(x + y));
+// 
+// Traits
+// ------
+// 
+// Traits can be given to a function to restrict valid overloads for that
+// function by using the `if` clause:
+// 
+//     $(function(sum)(x, y) if (is_integral<x>, is_integral<y>)(x + y));
+// 
+// In the `if` clause, the `x` and `y` are types to the corresponding parameters.
+// The types for The `if` clause uses the same syntax as the requires clauses do.
+// So multiple traits given are inclusive, unless the `exclude` keyword is used.
+// So, for example, if we want to further restrict the `sum` function to exlude
+// booleans, we could write this:
+// 
+//     $(function(sum)(x, y) 
+//         if (is_integral<x>, is_integral<y>, exclude is_same<x, bool>, exclude is_same<y, bool>)(x + y)
+//     );
+// 
+// The `else` clause lets more overloads be added if the previous traits failed. 
+// 
+//     $(function(sum)(x, y) 
+//         if (is_integral<x>, is_integral<y>, exclude is_same<x, bool>, exclude is_same<y, bool>)(x + y)
+//         else (printf("No sum for you\n"))
+//     );
+// 
+// The overloads for `else` clauses are process in order, so they aren't
+// ambiguities like with C++ overload resolution. So this is perfectly valid:
+// 
+//     $(function(sum)(x, y) 
+//         if (is_integral<x>, is_integral<y>)(x + y)
+//         else if (is_float<x>, is_float<y>)(float_sum(x, y))
+//     );
+// 
+// And won't cause an ambiguity, nor does it require using excludes.
+// 
+// Overloads
+// ---------
+// 
+// If multiple overloads with a different number of parameters are needed, then
+// the `def` keyword can be used:
+// 
+//     $(function(sum)(x, y)(x + y)
+//                 def(x, y, z)(x + y + z)
+//     );
+// 
+// Each additional overload uses C++ standard overload resolution to find the
+// function. So ambiguities must be avoided.
+// 
+// @end
+
 #ifndef ZELDA_GUARD_FUNCTION_BUILDER_H
 #define ZELDA_GUARD_FUNCTION_BUILDER_H
 
