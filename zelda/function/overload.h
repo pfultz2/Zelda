@@ -79,10 +79,10 @@ struct overload_adaptor_base<F> : F
 
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
 template<class...Fs> 
-struct overload_adaptor : defer<detail::overload_adaptor_base<Fs...> >
+struct overload_adaptor : defer_adaptor<detail::overload_adaptor_base<Fs...> >
 {
     typedef detail::overload_adaptor_base<Fs...> core;
-    typedef defer<core> base;
+    typedef defer_adaptor<core> base;
     overload_adaptor()
     {}
 
@@ -99,10 +99,10 @@ typename overload_adaptor<Fs...>::type overload(Fs...x)
 #else
 
 template<ZELDA_PP_PARAMS_Z(1, ZELDA_OVERLOAD_LIMIT, class F, = void BOOST_PP_INTERCEPT)> 
-struct overload_adaptor : defer<detail::overload_adaptor_base<ZELDA_PP_PARAMS_Z(1, ZELDA_OVERLOAD_LIMIT, F)> >
+struct overload_adaptor : defer_adaptor<detail::overload_adaptor_base<ZELDA_PP_PARAMS_Z(1, ZELDA_OVERLOAD_LIMIT, F)> >
 {
     typedef detail::overload_adaptor_base<ZELDA_PP_PARAMS_Z(1, ZELDA_OVERLOAD_LIMIT, F)> core;
-    typedef defer<core> base;
+    typedef defer_adaptor<core> base;
     overload_adaptor()
     {}
 #define ZELDA_OVERLOAD_ADAPTOR_CONSTRUCTOR(z, n, data)
