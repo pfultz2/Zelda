@@ -48,4 +48,21 @@ perfect_adaptor<F> perfect(F f)
 
 }
 
+
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <zelda/function/detail/test.h>
+
+typedef zelda::perfect_adaptor<binary_class> binary_perfect;
+typedef zelda::perfect_adaptor<void_class> void_perfect;
+typedef zelda::perfect_adaptor<mono_class> mono_perfect;
+
+ZELDA_TEST_CASE(perfect_test)
+{
+    void_perfect()(1);
+    ZELDA_TEST_EQUAL(3, binary_perfect()(1, 2));
+    ZELDA_TEST_EQUAL(3, mono_perfect()(2));
+}
+#endif
+
 #endif

@@ -128,9 +128,19 @@ variadic_adaptor<F> variadic(F f)
     return variadic_adaptor<F>(f);
 }
 
-
-
-
 }
+
+
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <zelda/function/detail/test.h>
+
+typedef zelda::variadic_adaptor<tuple_class> vard_class;
+
+ZELDA_TEST_CASE(variadic_test)
+{
+    ZELDA_TEST_EQUAL(3, vard_class()(2));
+}
+#endif
 
 #endif

@@ -68,4 +68,20 @@ fuse_adaptor<F> fuse(F f)
 
 }
 
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <zelda/function/detail/test.h>
+#include <zelda/function/static.h>
+
+zelda::static_<zelda::fuse_adaptor<unary_class> > unary_fuse = {};
+
+ZELDA_TEST_CASE(fuse_test)
+{
+    int ifu = 3;
+    ZELDA_TEST_EQUAL(3, zelda::fuse(unary_class())(boost::fusion::make_vector(3)));
+    ZELDA_TEST_EQUAL(3, unary_fuse(boost::fusion::make_vector(3)));
+    ZELDA_TEST_EQUAL(3, unary_fuse(boost::fusion::vector<int&>(ifu)));
+}
+#endif
+
 #endif

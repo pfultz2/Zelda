@@ -37,4 +37,22 @@ struct static_
 
 }
 
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <zelda/function/detail/test.h>
+
+zelda::static_<binary_class> binary_static = {};
+
+zelda::static_<void_class> void_static = {};
+
+zelda::static_<mono_class> mono_static = {};
+
+ZELDA_TEST_CASE(static_test)
+{
+    void_static(1);
+    ZELDA_TEST_EQUAL(3, binary_static(1, 2));
+    ZELDA_TEST_EQUAL(3, mono_static(2));
+}
+#endif
+
 #endif
