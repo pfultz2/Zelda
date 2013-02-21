@@ -15,8 +15,8 @@
 #include <boost/mpl/and.hpp>
 
 #if !defined(ZELDA_NO_DECLTYPE)
-#define ZELDA_TYPEOF decltype
-#define ZELDA_TYPEOF_TPL decltype
+#define ZELDA_TYPEOF(...) decltype(zelda::typeof_detail::decayed(ZELDA_AVOID(__VA_ARGS__)))
+#define ZELDA_TYPEOF_TPL(...) decltype(zelda::typeof_detail::decayed(ZELDA_AVOID(__VA_ARGS__)))
 #elif defined(ZELDA_HAS_TYPEOF)
 #define ZELDA_TYPEOF __typeof__
 #define ZELDA_TYPEOF_TPL __typeof__
@@ -75,6 +75,8 @@ template<class T>
 T declval();
 #endif
 
+
+
 namespace typeof_detail {
 struct void_ {};
 #ifndef ZELDA_NO_RVALUE_REFS
@@ -91,6 +93,19 @@ typename std::remove_reference<T>::type&&
 move(T&& x) noexcept;
 void move(void_);
 #endif
+
+#ifndef ZELDA_NO_RVALUE_REFS
+template<class T>
+T decayed(T& x);
+
+template<class T>
+const T decayed(const T& x);
+#else
+template<class T>
+typename std::decay<T>::type decayed(T&& x);
+#endif
+
+void decayed(void_);
 
 //rvalue probe from Eric Niebler
 template<typename T>
