@@ -24,9 +24,8 @@
 #include <boost/fusion/adapted/std_tuple.hpp>
 #define ZELDA_PIPABLE_SEQUENCE std::tuple
 #else
-#include <boost/fusion/vector.hpp>
+#include <boost/fusion/container/vector.hpp>
 #define ZELDA_PIPABLE_SEQUENCE boost::fusion::vector
-
 #endif
 namespace zelda { 
  

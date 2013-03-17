@@ -21,8 +21,8 @@ struct name \
 static zelda::test::auto_register name ## _register = zelda::test::auto_register(#name, name()); \
 void name::operator()(zelda::test::failure_callback zelda_test_fail) const
 
-#define ZELDA_DETAIL_TEST_FAIL(message) if (zelda_test_fail(message, __LINE__)) return
-#define ZELDA_DETAIL_TEST_FAIL_EX(message) if (zelda_test_fail(message, __LINE__)) throw
+#define ZELDA_DETAIL_TEST_FAIL(message) if (zelda_test_fail(message, __FILE__, __LINE__)) return
+#define ZELDA_DETAIL_TEST_FAIL_EX(message) if (zelda_test_fail(message, __FILE__, __LINE__)) throw
 
 #define ZELDA_DETAIL_TEST_EXEC(rethrow, ...) \
 do \
@@ -39,7 +39,7 @@ ZELDA_TEST_EXEC(if (!zelda::equals(x, __VA_ARGS__)) ZELDA_DETAIL_TEST_FAIL(std::
 
 namespace zelda { namespace test {
 
-typedef boost::function<bool(std::string message, long line)> failure_callback;
+typedef boost::function<bool(std::string message, std::string file, long line)> failure_callback;
 typedef boost::function<void(failure_callback fail)> test_case;
 static std::vector<std::pair<std::string, test_case> > test_cases;
 
@@ -54,9 +54,9 @@ struct auto_register
 struct out_failure
 {
     typedef bool result_type;
-    bool operator()(bool & failed, std::string name, std::string message, long line) const
+    bool operator()(bool & failed, std::string name, std::string message, std::string file, long line) const
     {
-        std::cout << "*****FAILED: " << name << "@" << line << std::endl << message << std::endl;
+        std::cout << "*****FAILED: " << name << "@" << file << ": " << line << std::endl << message << std::endl;
         failed = true;
         return true;
     }
@@ -67,7 +67,8 @@ void run()
     bool failed = false;
     ZELDA_FOREACH(const auto& tc, test_cases)
     {
-        tc.second(boost::bind(out_failure(), boost::ref(failed), tc.first, _1, _2));
+        // std::cout << "Test " << tc.first << " running..." << std::endl;
+        tc.second(boost::bind(out_failure(), boost::ref(failed), tc.first, _1, _2, _3));
     }
     if (!failed) std::cout << "All " << test_cases.size() << " test cases passed." << std::endl;
 }

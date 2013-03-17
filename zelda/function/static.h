@@ -29,10 +29,10 @@ struct static_
     typedef F function;
     template<class S>
     struct result
-    : zelda::result_of<S>::template apply_function<F>
+    : zelda::result_of<S, function>
     {};
 
-    ZELDA_PERFECT_FACADE(F, F())
+    ZELDA_PERFECT_FACADE(function, function())
 };
 
 }

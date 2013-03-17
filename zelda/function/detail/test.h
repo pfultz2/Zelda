@@ -18,6 +18,7 @@ struct binary_class_d
     template<class T, class U>
     T operator()(T x, U y) const
     {
+        // printf("%i + %i\n", x, y);
         return x+y;
     }
 
@@ -51,9 +52,8 @@ struct unary_class
 
     template<class F, class T>
     struct result<F(T)>
-    {
-        typedef typename zelda::add_forward_reference<T>::type type;
-    };
+    : zelda::add_forward_reference<T>
+    {};
 
     template<class T>
     ZELDA_FORWARD_REF(T) operator()(ZELDA_FORWARD_REF(T) x) const
@@ -112,6 +112,25 @@ struct tuple_class
     int operator()(T t) const
     {
         return boost::fusion::at_c<0>(t) + 1;
+    }
+};
+
+template<class R>
+struct explicit_class
+{
+    template<class F>
+    struct result;
+
+    template<class F, class T>
+    struct result<F(T)>
+    {
+        typedef R type;
+    };
+
+    template<class T>
+    R operator()(T x)
+    {
+        return static_cast<R>(x);
     }
 };
 

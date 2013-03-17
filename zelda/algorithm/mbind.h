@@ -17,6 +17,8 @@
 #include <zelda/range/iterator_range.h>
 #include <algorithm>
 
+// TODO: Rename to flat_transform
+
 namespace zelda { 
 
 ZELDA_FUNCTION_PIPE_OBJECT((mbind)(r, f)

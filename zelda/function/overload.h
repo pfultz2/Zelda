@@ -21,8 +21,8 @@ namespace detail {
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
 template<class...Fs> struct overload_adaptor_base;
  
-template<class F1, class...Fs>
-struct overload_adaptor_base<F1, Fs...> : F1, overload_adaptor_base<Fs...>
+template<class F, class...Fs>
+struct overload_adaptor_base<F, Fs...> : F, overload_adaptor_base<Fs...>
 {
     typedef overload_adaptor_base<Fs...> base;
 
@@ -31,10 +31,10 @@ struct overload_adaptor_base<F1, Fs...> : F1, overload_adaptor_base<Fs...>
 
     template<class T, class... Ts>
     overload_adaptor_base(T head, Ts... tail)
-    : F1(head), base(tail...)
+    : F(head), base(tail...)
     {}
 
-    using F1::operator();
+    using F::operator();
     using base::operator();
 };
 
@@ -44,18 +44,18 @@ template<class F, ZELDA_PP_PARAMS_Z(1, ZELDA_OVERLOAD_LIMIT, class F, = void BOO
 struct overload_adaptor_base;
 
 #define ZELDA_OVERLOAD_ADAPTOR_BASE(z, n, data) \
-template<class F, ZELDA_PP_PARAMS_Z(1, n, class F)>
-struct overload_adaptor_base<F, ZELDA_PP_PARAMS_Z(1, n, F)> : F, overload_adaptor_base<ZELDA_PP_PARAMS_Z(1, n, F)> \
+template<class F, ZELDA_PP_PARAMS_Z(z, n, class F)> \
+struct overload_adaptor_base<F, ZELDA_PP_PARAMS_Z(z, n, F)> : F, overload_adaptor_base<ZELDA_PP_PARAMS_Z(z, n, F)> \
 { \
-    typedef overload_adaptor_base<ZELDA_PP_PARAMS_Z(1, n, F)> base; \
+    typedef overload_adaptor_base<ZELDA_PP_PARAMS_Z(z, n, F)> base; \
     overload_adaptor_base() {} \
     \
-    template<class T, ZELDA_PP_PARAMS_Z(1, n, class T)> \
-    overload_adaptor_base(T head, ZELDA_PP_PARAMS_Z(1, n, T, tail)) \
-    : F1(head), base(ZELDA_PP_PARAMS_Z(1, n, tail)) \
+    template<class T, ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    overload_adaptor_base(T head, ZELDA_PP_PARAMS_Z(z, n, T, tail)) \
+    : F(head), base(ZELDA_PP_PARAMS_Z(z, n, tail)) \
     {} \
     \
-    using F1::operator(); \
+    using F::operator(); \
     using base::operator(); \
 };
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_OVERLOAD_LIMIT, ZELDA_OVERLOAD_ADAPTOR_BASE, ~)
@@ -105,19 +105,19 @@ struct overload_adaptor : defer_adaptor<detail::overload_adaptor_base<ZELDA_PP_P
     typedef defer_adaptor<core> base;
     overload_adaptor()
     {}
-#define ZELDA_OVERLOAD_ADAPTOR_CONSTRUCTOR(z, n, data)
-    template<ZELDA_PP_PARAMS_Z(1, n, class T)> \
-    overload_adaptor(ZELDA_PP_PARAMS_Z(1, n, class T, x)) : base(core(ZELDA_PP_PARAMS_Z(1, n, x))) \
+#define ZELDA_OVERLOAD_ADAPTOR_CONSTRUCTOR(z, n, data) \
+    template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    overload_adaptor(ZELDA_PP_PARAMS_Z(z, n, T, x)) : base(core(ZELDA_PP_PARAMS_Z(z, n, x))) \
     {}
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_OVERLOAD_LIMIT, ZELDA_OVERLOAD_ADAPTOR_CONSTRUCTOR, ~)
 };
 
 
 #define ZELDA_OVERLOAD_FUNCTION(z, n, data) \
-template<ZELDA_PP_PARAMS_Z(1, n, class F)> \
-typename overload_adaptor<ZELDA_PP_PARAMS_Z(1, n, F)>::type overload(ZELDA_PP_PARAMS_Z(1, n, F, x)) \
+template<ZELDA_PP_PARAMS_Z(z, n, class F)> \
+typename overload_adaptor<ZELDA_PP_PARAMS_Z(z, n, F)>::type overload(ZELDA_PP_PARAMS_Z(z, n, F, x)) \
 { \
-    return overload_adaptor<ZELDA_PP_PARAMS_Z(1, n, F)>(ZELDA_PP_PARAMS_Z(1, n, x)); \
+    return overload_adaptor<ZELDA_PP_PARAMS_Z(z, n, F)>(ZELDA_PP_PARAMS_Z(z, n, x)); \
 }
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_OVERLOAD_LIMIT, ZELDA_OVERLOAD_FUNCTION, ~)
 #endif
@@ -125,5 +125,46 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_OVERLOAD_LIMIT, ZELDA_OVERLOAD_FUNCTION, ~)
 
 
 }
+
+
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <zelda/function/reveal.h>
+#include <zelda/typeof.h>
+
+namespace zelda { namespace overload_test {
+struct int_class
+{
+    int operator()(int) const
+    {
+        return 1;
+    }
+};
+
+struct foo
+{};
+
+struct foo_class
+{
+    foo operator()(foo) const
+    {
+        return foo();
+    }
+};
+
+zelda::static_<zelda::overload_adaptor<int_class, foo_class> > fun = {};
+
+typedef ZELDA_TYPEOF(reveal(fun)(1)) fun_type;
+
+void test()
+{
+reveal(fun)(1);
+}
+
+static_assert(boost::is_same<int, ZELDA_TYPEOF(fun(1))>::value, "Failed overload");
+static_assert(boost::is_same<foo, ZELDA_TYPEOF(fun(foo()))>::value, "Failed overload");
+}}
+
+#endif
 
 #endif

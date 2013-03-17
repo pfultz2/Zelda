@@ -39,7 +39,7 @@ struct general_adaptor_base : function_adaptor_base<F>
     struct result;
 
     template<class X, class T>
-    struct result<X(T), ZELDA_CLASS_REQUIRES(zelda::mpl::any_of<typename boost::decay<T>::type, boost::phoenix::is_actor<boost::mpl::_1> >)>
+    struct result<X(T), ZELDA_CLASS_REQUIRES(exclude zelda::mpl::any_of<typename boost::decay<T>::type, boost::phoenix::is_actor<boost::mpl::_1> >)>
     : invoke_result<F, const typename boost::decay<T>::type&> 
     {}; 
 
@@ -69,5 +69,21 @@ general_adaptor<F> general(F f)
 }
 
 }
+
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+#include <boost/phoenix/core/argument.hpp>
+
+zelda::static_<zelda::general_adaptor<binary_class> > binary_general = {};
+
+ZELDA_TEST_CASE(general_test)
+{
+    boost::phoenix::expression::argument<1>::type const arg1 = {};
+    boost::phoenix::expression::argument<2>::type const arg2 = {};
+    ZELDA_TEST_EQUAL(3, binary_general(1, 2));
+    ZELDA_TEST_EQUAL(3, binary_general(arg1, arg2)(1, 2));
+    ZELDA_TEST_EQUAL(3, binary_general(arg1, 2)(1));
+}
+#endif
 
 #endif

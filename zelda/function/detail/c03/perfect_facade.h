@@ -48,9 +48,9 @@
 #define ZELDA_PERFECT_PRODUCT_SEQ_STEP_2_EOF
 
 
-#define ZELDA_PERFECT_FACADE_SEQ(seq) ZELDA_PERFECT_ITERATE_END(ZELDA_PERFECT_FACADE_SEQ_1 seq)
-#define ZELDA_PERFECT_FACADE_SEQ_1(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2
-#define ZELDA_PERFECT_FACADE_SEQ_2(seq) ZELDA_PERFECT_FACADE_OP(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1
+#define ZELDA_PERFECT_FACADE_SEQ(seq) ZELDA_PP_EXPAND(ZELDA_PERFECT_ITERATE_END(ZELDA_PERFECT_FACADE_SEQ_1 seq))
+#define ZELDA_PERFECT_FACADE_SEQ_1(seq) ZELDA_PP_OBSTRUCT(ZELDA_PERFECT_FACADE_OP)(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_2
+#define ZELDA_PERFECT_FACADE_SEQ_2(seq) ZELDA_PP_OBSTRUCT(ZELDA_PERFECT_FACADE_OP)(BOOST_PP_SEQ_SIZE(seq), seq) ZELDA_PERFECT_FACADE_SEQ_1
 #define ZELDA_PERFECT_FACADE_SEQ_1_EOF
 #define ZELDA_PERFECT_FACADE_SEQ_2_EOF
 
@@ -109,7 +109,7 @@ ZELDA_PERFECT_FACADE_SEQ_TPL(tpl, ZELDA_PERFECT_PRODUCT_SEQ(n))
 template<tpl T_ ## tpl> \
 struct zelda_private_perfect_facade_function_type { typedef type_ type; }; \
 typedef type zelda_private_perfect_facade_function_type; \
-template<tpl T_ ## tpl>
+template<tpl T_ ## tpl> \
 type_ zelda_private_perfect_facade_function() const \
 { \
     return f; \

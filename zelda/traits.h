@@ -150,6 +150,11 @@ struct is_range_or_sequence
 {};
 
 
+template<class T>
+struct purify
+: boost::remove_cv<typename boost::decay<T>::type>
+{};
+
 }
 
 #ifndef ZELDA_TEST

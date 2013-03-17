@@ -14,7 +14,7 @@
 
 namespace zelda { namespace detail {
 
-template<template <class> F, class Sequence>
+template<template <class> class F, class Sequence>
 struct implicit_invoke
 {
     Sequence seq;
@@ -30,14 +30,14 @@ struct implicit_invoke
     }
 };
 
-template<template <class> F>
+template<template <class> class F>
 struct implicit_base
 {
     template<class>
     struct result;
 
     template<class X, class T>
-    struct result
+    struct result<X(T)>
     {
         typedef implicit_invoke<F, typename boost::decay<T>::type> type;
     };
@@ -51,11 +51,61 @@ struct implicit_base
 
 }
 
-template<template <class> F>
-struct implicit : static_<variadic_adaptor<detail::implicit_base<F> > >
-{};
+template<template <class> class F>
+struct implicit
+{
+    typedef variadic_adaptor<detail::implicit_base<F> > function;
+    template<class S>
+    struct result
+    : zelda::result_of<S, function>
+    {};
+
+    ZELDA_PERFECT_FACADE(function, function())
+
+};
 
 
 }
+
+
+#ifdef ZELDA_TEST
+#include <zelda/test.h>
+
+
+template<class T>
+struct auto_caster
+{
+    template<class X>
+    struct result
+    {
+        typedef T type;
+    };
+    template<class U>
+    T operator()(U x)
+    {
+        return T(x);
+    }
+};
+
+struct auto_caster_foo
+{
+    int i;
+    explicit auto_caster_foo(int i) : i(i) {}
+
+};
+
+zelda::implicit<auto_caster> auto_cast = {};
+
+ZELDA_TEST_CASE(implicit_test)
+{
+    float f = 1.5;
+    int i = auto_cast(f);
+    // auto_caster_foo x = 1;
+    auto_caster_foo x = auto_cast(1);
+    ZELDA_TEST_EQUAL(1, i);
+    ZELDA_TEST_EQUAL(1, x.i);
+
+}
+#endif
 
 #endif

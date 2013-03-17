@@ -96,13 +96,13 @@ void move(void_);
 
 #ifndef ZELDA_NO_RVALUE_REFS
 template<class T>
+typename std::decay<T>::type decayed(T&& x);
+#else
+template<class T>
 T decayed(T& x);
 
 template<class T>
 const T decayed(const T& x);
-#else
-template<class T>
-typename std::decay<T>::type decayed(T&& x);
 #endif
 
 void decayed(void_);
