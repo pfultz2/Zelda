@@ -126,7 +126,6 @@ struct partial_adaptor_join
     typename result<partial_adaptor_join(F, Sequence, T)>::type
     operator()(F f, const Sequence& seq, const T& x) const
     {
-        // TODO: Decay values in the new sequence
         return partial
         (
             variadic(f), 

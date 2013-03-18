@@ -9,6 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_H
 
 #include <zelda/function/adaptor.h>
+#include <zelda/function/always.h>
 #include <zelda/function/builder.h>
 #include <zelda/function/defer.h>
 #include <zelda/function/fuse.h>
