@@ -17,6 +17,7 @@
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/sequence/intrinsic/size.hpp>
+#include <boost/fusion/algorithm/transformation/transform.hpp>
 #include <boost/type_traits.hpp>
 
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
@@ -86,17 +87,39 @@ struct partial_adaptor_join
     partial_adaptor_join()
     {}
 
+    struct decay_elem_k
+    {
+        template<class>
+        struct result;
+
+        template<class X, class T>
+        struct result<X(T)>
+        : boost::decay<T>
+        {};
+
+        template<class T>
+        typename boost::decay<T>::type operator()(ZELDA_FORWARD_REF(T) x) const
+        {
+            return x;
+        }
+    };
+    typedef perfect_adaptor<decay_elem_k> decay_elem;
+
     template<class>
     struct result;
 
     template<class X, class F, class Sequence, class T>
     struct result<X(F, Sequence, T)>
     {
-        typedef partial_adaptor<variadic_adaptor<typename zelda::purify<F>::type>, typename boost::fusion::result_of::as_vector<typename boost::fusion::result_of::join
+        typedef partial_adaptor
         <
-            typename boost::decay<Sequence>::type,
-            typename boost::decay<T>::type
-        >::type>::type> type;
+            variadic_adaptor<typename zelda::purify<F>::type>, 
+            typename boost::fusion::result_of::as_vector<typename boost::fusion::result_of::transform<typename boost::fusion::result_of::join
+            <
+                typename boost::decay<Sequence>::type,
+                typename boost::decay<T>::type
+            >::type, decay_elem>::type>::type
+        > type;
     };
 
     template<class F, class Sequence, class T>
@@ -104,11 +127,15 @@ struct partial_adaptor_join
     operator()(F f, const Sequence& seq, const T& x) const
     {
         // TODO: Decay values in the new sequence
-        return partial(variadic(f), boost::fusion::as_vector(boost::fusion::join
+        return partial
         (
-            seq,
-            x
-        )));
+            variadic(f), 
+            boost::fusion::as_vector(boost::fusion::transform(boost::fusion::join
+            (
+                seq,
+                x
+            ), decay_elem()))
+        );
     }
 };
 
