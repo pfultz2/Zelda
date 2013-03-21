@@ -22,7 +22,7 @@ struct function_adaptor_base
     function_adaptor_base() {};
     function_adaptor_base(F f) : f(f) {};
 
-    F get_function() const
+    const F& get_function() const
     {
         return f;
     }
