@@ -107,22 +107,6 @@ struct is_callable<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> \
 {};
 BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_BUILDER, ~)
 
-// #define ZELDA_IS_CALLABLE_BUILDER(z, n, data) \
-// template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
-// struct is_callable<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> \
-// { \
-//     static callable_detail::funwrap<n, Fun> & fun; \
-//     ZELDA_PP_GEN_Z(z, n, static typename add_forward_reference<T, >::type BOOST_PP_INTERCEPT, x, ; BOOST_PP_INTERCEPT) \
-//     static bool const value = \
-//     (\
-//         sizeof(callable_detail::no_type) == sizeof(callable_detail::is_private_type( (fun(ZELDA_PP_PARAMS_Z(z, n, x)), 0) )) \
-//     ); \
-//     typedef boost::mpl::bool_<value> type; \
-// };
-// BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_BUILDER, ~)
-// #undef ZELDA_IS_CALLABLE_BUILDER
-
-
 #else
 
 template<class F, class... Args>

@@ -15,13 +15,9 @@
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
 #include <tuple>
 #include <boost/fusion/adapted/std_tuple.hpp>
-// #define ZELDA_COMPOSE_SEQUENCE std::tuple
-// #define ZELDA_COMPOSE_MAKE_SEQUENCE std::make_tuple
 #else
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/container/generation/make_vector.hpp>
-// #define ZELDA_COMPOSE_SEQUENCE boost::fusion::vector
-// #define ZELDA_COMPOSE_MAKE_SEQUENCE boost::fusion::make_vector
 #endif
 
 #ifndef ZELDA_COMPOSE_LIMIT
