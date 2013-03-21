@@ -15,10 +15,17 @@
 #include <zelda/static_assert.h>
 #include <zelda/typeof.h>
 
+#ifndef ZELDA_HAS_ASSERTS
+#ifndef NDEBUG
+#define ZELDA_HAS_ASSERTS 1
+#else
+#define ZELDA_HAS_ASSERTS 0
+#endif
+#endif
 
 #define ZELDA_ASSERT(...) BOOST_PP_CAT(ZELDA_DETAIL_ASSERT_, ZELDA_PP_NARGS(__VA_ARGS__))(__VA_ARGS__)
 
-#if defined(NDEBUG) || defined(ZELDA_DISABLE_ASSERTS)
+#if ZELDA_HAS_ASSERTS
 
 #define ZELDA_DETAIL_ASSERT_1(cond) ((void)0)
 #define ZELDA_DETAIL_ASSERT_2(cond, msg) ((void)0)
