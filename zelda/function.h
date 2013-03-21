@@ -11,9 +11,12 @@
 #include <zelda/function/adaptor.h>
 #include <zelda/function/always.h>
 #include <zelda/function/builder.h>
+#include <zelda/function/compose.h>
 #include <zelda/function/defer.h>
+#include <zelda/function/fix.h>
 #include <zelda/function/fuse.h>
 #include <zelda/function/general.h>
+#include <zelda/function/identity.h>
 #include <zelda/function/implicit.h>
 #include <zelda/function/invoke.h>
 #include <zelda/function/is_callable.h>
@@ -24,7 +27,9 @@
 #include <zelda/function/perfect.h>
 #include <zelda/function/pipable.h>
 #include <zelda/function/poly.h>
+#include <zelda/function/regular.h>
 #include <zelda/function/result_of.h>
+#include <zelda/function/reveal.h>
 #include <zelda/function/static.h>
 #include <zelda/function/variadic.h>
 

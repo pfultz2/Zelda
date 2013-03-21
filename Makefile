@@ -22,7 +22,7 @@ gcc11:
 	g++ -std=gnu++11 -DZELDA_NO_NOEXCEPT -DZELDA_TEST -DZELDA_GCC_11 -DZELDA_NO_EXPRESSION_SFINAE -I. test.cpp
 
 pp:
-	clang++ -E -C -DZELDA_PARAMS_LIMIT=16 -I. zelda/function/static.h > pp.out
+	g++ -E -C -DZELDA_PARAMS_LIMIT=16 -I. zelda/function/static.h > pp.out
 
 ppmsvc:
 	clang++ -std=c++11 -E -C -fmacro-backtrace-limit=0 -Wfatal-errors -DZELDA_TEST -DZELDA_NO_STD_TUPLE -DZELDA_NO_VARIADIC_TEMPLATES -DZELDA_NO_RANGE_FOR -I. function/perfect.h
