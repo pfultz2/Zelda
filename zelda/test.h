@@ -37,7 +37,7 @@ do \
 #define ZELDA_TEST_EQUAL(x, ...) \
 ZELDA_TEST_EXEC(if (!zelda::equals(x, __VA_ARGS__)) ZELDA_DETAIL_TEST_FAIL(std::string(#x) + " != " + #__VA_ARGS__))
 
-#define ZELDA_TEST_CHECK(...) if (!(__VA_ARGS__)) ZELDA_DETAIL_TEST_FAIL(std::string(#x))
+#define ZELDA_TEST_CHECK(...) if (!(__VA_ARGS__)) ZELDA_DETAIL_TEST_FAIL(std::string(#__VA_ARGS__))
 
 namespace zelda { namespace test {
 
