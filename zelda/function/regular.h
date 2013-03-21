@@ -12,6 +12,7 @@
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
 #include <zelda/function/invoke.h>
+#include <boost/optional.hpp>
 
 namespace zelda { namespace detail {
 
@@ -55,7 +56,7 @@ struct regular_base
     template<class T>
     typename result<F(const T&)>::type operator()(const T & x) const
     {
-        return invoke(this->f, x);
+        return invoke(*(this->f), x);
     }
 };
 }
@@ -84,6 +85,7 @@ regular_adaptor<F> regular(F f)
 #include <zelda/function/placeholders.h>
 #include <algorithm>
 #include <boost/iterator/filter_iterator.hpp>
+#include <boost/phoenix/operator.hpp>
 
 ZELDA_TEST_CASE(regular_test)
 {
@@ -92,7 +94,7 @@ ZELDA_TEST_CASE(regular_test)
 
     ZELDA_TEST_CHECK(
         std::equal(a2, a2+3,
-            boost::make_filter_iterator(regular(ph::_1 % 2 == 0), a1, a1+6) )
+            boost::make_filter_iterator(zelda::regular(zelda::ph::_1 % 2 == 0), a1, a1+6) )
     );
 }
 
