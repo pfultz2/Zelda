@@ -81,10 +81,20 @@ regular_adaptor<F> regular(F f)
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>
+#include <zelda/function/placeholders.h>
+#include <algorithm>
+#include <boost/iterator/filter_iterator.hpp>
 
-// ZELDA_TEST_CASE(regular_test)
-// {
-// }
+ZELDA_TEST_CASE(regular_test)
+{
+    int a1[6] = {1,2,3,4,5,6};
+    int a2[3] = {2,4,6};
+
+    ZELDA_TEST_CHECK(
+        std::equal(a2, a2+3,
+            boost::make_filter_iterator(regular(ph::_1 % 2 == 0), a1, a1+6) )
+    );
+}
 
 #endif
 
