@@ -20,7 +20,8 @@ struct function_adaptor_base
 {
     F f;
     function_adaptor_base() {};
-    function_adaptor_base(F f) : f(f) {};
+    template<class X>
+    function_adaptor_base(X x) : f(x) {};
 
     const F& get_function() const
     {
@@ -32,7 +33,8 @@ template<class F>
 struct function_adaptor_base<F, ZELDA_CLASS_REQUIRES(boost::is_empty<F>)>
 {
     function_adaptor_base() {};
-    function_adaptor_base(F) {};
+    template<class X>
+    function_adaptor_base(X) {};
 
     F get_function() const
     {
