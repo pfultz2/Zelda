@@ -17,7 +17,9 @@
 #include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/fusion/sequence/intrinsic/size.hpp>
 
-
+#ifdef ZELDA_NO_VARIADIC_TEMPLATES
+#include <zelda/function/detail/is_nullary.h>
+#endif
 
 namespace zelda { 
 
@@ -85,6 +87,18 @@ auto invoke(F f, Sequence && t) ZELDA_RETURNS
 #else
 
 namespace detail {
+
+
+// Workaround result_of for nullary functions
+// template<class Sig>
+// struct invoke_result_of
+// : zelda::result_of<Sig>
+// {};
+// struct invoke_no_result {};
+// template<class F>
+// struct invoke_result_of<F()>
+// : boost::mpl::if_<is_nullary<F>, zelda::result_of<F>, invoke_no_result>::type
+// {};
 
 template<class Sequence>
 struct invoke_element

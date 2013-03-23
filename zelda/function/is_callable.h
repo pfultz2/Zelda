@@ -19,6 +19,16 @@
 #include <boost/function_types/is_function.hpp>
 #include <boost/function_types/is_function_pointer.hpp>
 
+#include <boost/phoenix/core/actor.hpp>
+#include <boost/phoenix/core/is_nullary.hpp>
+
+#ifdef ZELDA_TEST
+#include <zelda/function/placeholders.h>
+#include <boost/phoenix/operator.hpp>
+#include <boost/phoenix/core.hpp>
+#include <boost/phoenix/statement/if.hpp>
+#endif
+
 #ifndef ZELDA_IS_CALLABLE_LIMIT
 #define ZELDA_IS_CALLABLE_LIMIT 16
 #endif
@@ -112,13 +122,13 @@ BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_BUILDER, ~)
 template<class F, class... Args>
 struct is_callable<F(Args...)>
 {
-    typedef char yes; 
-    typedef long no; 
-    template<int N> 
+    typedef char yes;
+    typedef char (&no)[2];
+    template<class T> 
     struct selector {}; 
 
     template<class U> 
-    static yes check( selector<sizeof( zelda::declval<U>()(zelda::declval<Args>()...) )> * ); 
+    static yes check( selector<decltype( zelda::declval<U>()(zelda::declval<Args>()...) )> * ); 
 
     template<class U> 
     static no check(...); 
@@ -129,6 +139,12 @@ struct is_callable<F(Args...)>
 };
 
 #endif
+
+// Workaround for Boost.Phoenix
+template<class Expr>
+struct is_callable<boost::phoenix::actor<Expr>()>
+: boost::phoenix::result_of::is_nullary<Expr>
+{};
 
 #ifdef ZELDA_TEST
 struct is_callable_class
@@ -142,7 +158,17 @@ struct callable_test_param {};
 void is_callable_function(int)
 {
 }
+// using zelda::ph::_1;
+template<class F>
+void phoenix_not_nullary_check(F)
+{
+    static_assert(!is_callable<F()>::type::value, "Callable failed");
+}
 
+inline void callable_test()
+{
+    phoenix_not_nullary_check(zelda::ph::_1 + 1);
+}
 // typedef is_callable<is_callable_class(int)>::type is_callable_test;
 static_assert(is_callable<is_callable_class(int)>::type::value, "Not callable");
 static_assert(is_callable<is_callable_class(const int&)>::type::value, "Not callable");

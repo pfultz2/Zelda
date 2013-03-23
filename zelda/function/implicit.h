@@ -51,6 +51,7 @@ struct implicit_base
 
 }
 
+#ifndef ZELDA_NO_VARIADIC_TEMPLATES
 template<template <class> class F>
 struct implicit
 {
@@ -63,6 +64,43 @@ struct implicit
     ZELDA_PERFECT_FACADE(function, function())
 
 };
+#else
+
+template<template <class> class F, class Enable=void>
+struct implicit;
+
+template<template <class> class F>
+struct implicit<F, ZELDA_CLASS_REQUIRES(exclude is_callable<variadic_adaptor<detail::implicit_base<F> >()>)>
+{
+    typedef variadic_adaptor<detail::implicit_base<F> > function;
+    template<class S>
+    struct result
+    : zelda::result_of<S, function>
+    {};
+
+    ZELDA_PERFECT_FACADE(function, function())
+
+};
+
+template<template <class> class F>
+struct implicit<F, ZELDA_CLASS_REQUIRES(is_callable<variadic_adaptor<detail::implicit_base<F> >()>)>
+{
+    typedef variadic_adaptor<detail::implicit_base<F> > function;
+    template<class S>
+    struct result
+    : zelda::result_of<S, function>
+    {};
+
+    typename zelda::result_of<function()>::type operator()() const
+    {
+        return function()();
+    }
+
+    ZELDA_PERFECT_FACADE(function, function())
+
+};
+#endif
+
 
 
 }

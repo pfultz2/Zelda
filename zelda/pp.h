@@ -26,6 +26,7 @@
 #define ZELDA_PP_FALSE(...) 0
 #define ZELDA_PP_DEFER(...) __VA_ARGS__ ZELDA_PP_EMPTY()
 #define ZELDA_PP_OBSTRUCT(...) __VA_ARGS__ ZELDA_PP_DEFER(ZELDA_PP_EMPTY)()
+#define ZELDA_PP_WHEN(cond) BOOST_PP_IF(cond, ZELDA_PP_REM, ZELDA_PP_EAT)
  
  /**
  * ZELDA_PP_NARGS returns the number of args in __VA_ARGS__

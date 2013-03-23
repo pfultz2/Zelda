@@ -13,6 +13,7 @@
 #include <zelda/function/static.h>
 #include <zelda/forward.h>
 #include <zelda/function/invoke.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/as_vector.hpp>
@@ -166,6 +167,8 @@ ZELDA_PIPE_STATIC_OP(A)
 ZELDA_PIPE_STATIC_OP(const A)
 #endif
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(2, zelda::pipable_adaptor)
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

@@ -23,6 +23,8 @@
 
 namespace zelda { 
 
+BOOST_MPL_HAS_XXX_TRAIT_DEF(type)
+
 using boost::fusion::traits::is_sequence;
 
 namespace detail {

@@ -11,6 +11,7 @@
 #include <zelda/function/variadic.h>
 #include <zelda/function/fuse.h>
 #include <boost/fusion/algorithm/iteration/fold.hpp>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
 #include <tuple>
@@ -47,6 +48,7 @@ template<class Sequence>
 struct compose_base
 {
 
+    typedef typename boost::decay<typename boost::fusion::result_of::at_c<Sequence, 0>::type>::type first;
     Sequence seq;
 
     compose_base() {}
@@ -54,11 +56,11 @@ struct compose_base
     compose_base(Sequence seq) : seq(seq)
     {}
 
-    template<class>
+    template<class, class Enable = void>
     struct result;
 
     template<class X, class T>
-    struct result<X(T)>
+    struct result<X(T), ZELDA_CLASS_REQUIRES(is_callable<first(T)>)>
     : boost::fusion::result_of::fold<Sequence, T, compose_fold>
     {};
 
@@ -116,6 +118,9 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_COMPOSE_LIMIT, ZELDA_COMPOSE_FUN, ~)
 
 }
 
+ZELDA_NULLARY_TR1_RESULT_OF_N(ZELDA_COMPOSE_LIMIT, zelda::compose_adaptor)
+
+
 #ifdef ZELDA_TEST
 #include <zelda/test.h>
 #include <zelda/function/static.h>
@@ -129,6 +134,7 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_COMPOSE_LIMIT, ZELDA_COMPOSE_FUN, ~)
 ZELDA_TEST_CASE(compose_test)
 {
     using zelda::ph::_1;
+    // int r = (_1 + 1)()(3);
     int r = zelda::compose(_1 + 1, _1 - 1, _1 + 1)(3);
     ZELDA_TEST_EQUAL(r, 4);
 }

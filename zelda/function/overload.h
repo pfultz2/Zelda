@@ -10,6 +10,7 @@
 
 #include <zelda/function/adaptor.h>
 #include <zelda/function/defer.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 #ifndef ZELDA_OVERLOAD_LIMIT
 #define ZELDA_OVERLOAD_LIMIT 16
@@ -125,6 +126,9 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_OVERLOAD_LIMIT, ZELDA_OVERLOAD_FUNCTION, ~)
 
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(ZELDA_OVERLOAD_LIMIT, zelda::overload_adaptor)
+
 
 
 #ifdef ZELDA_TEST

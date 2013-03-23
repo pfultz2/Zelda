@@ -13,6 +13,7 @@
 #include <zelda/function/static.h>
 #include <zelda/forward.h>
 #include <zelda/function/invoke.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/as_vector.hpp>
@@ -105,11 +106,11 @@ struct partial_adaptor_join
     };
     typedef perfect_adaptor<decay_elem_k> decay_elem;
 
-    template<class>
+    template<class, class Enable=void>
     struct result;
 
     template<class X, class F, class Sequence, class T>
-    struct result<X(F, Sequence, T)>
+    struct result<X(F, Sequence, T), ZELDA_CLASS_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<typename boost::decay<T>::type>::value != 0>)>
     {
         typedef partial_adaptor
         <
@@ -122,8 +123,15 @@ struct partial_adaptor_join
         > type;
     };
 
+    // template<class X, class F, class Sequence, class T>
+    // struct result<X(F, Sequence, T), ZELDA_CLASS_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<T>::value == 0>)>
+    // {
+    //     typedef partial_adaptor<variadic_adaptor<typename zelda::purify<F>::type>, typename boost::decay<Sequence>::type> type;
+    // };
+
     template<class F, class Sequence, class T>
-    typename result<partial_adaptor_join(F, Sequence, T)>::type
+    ZELDA_FUNCTION_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<T>::value != 0>)
+    (typename result<partial_adaptor_join(F, Sequence, T)>::type)
     operator()(F f, const Sequence& seq, const T& x) const
     {
         return partial
@@ -136,6 +144,14 @@ struct partial_adaptor_join
             ), decay_elem()))
         );
     }
+
+    // template<class F, class Sequence, class T>
+    // ZELDA_FUNCTION_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<T>::value == 0>)
+    // (typename result<partial_adaptor_join(F, Sequence, T)>::type)
+    // operator()(F f, const Sequence& seq, const T& x) const
+    // {
+    //     return partial(variadic(f), seq);
+    // }
 };
 
 typedef zelda::poly_adaptor<partial_adaptor_invoke, partial_adaptor_join > partial_cond;
@@ -286,6 +302,9 @@ struct partial_adaptor<zelda::fuse_adaptor<F>, ZELDA_PARTIAL_SEQUENCE<> >
 };
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(2, zelda::partial_adaptor)
+
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

@@ -10,6 +10,7 @@
 
 #include <zelda/function/adaptor.h>
 #include <zelda/function/is_callable.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 namespace zelda {
 
@@ -52,5 +53,8 @@ defer_adaptor<F> defer(F f)
 }
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::defer_adaptor)
+
 
 #endif

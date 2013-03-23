@@ -12,6 +12,7 @@
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
 #include <zelda/function/invoke.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 #include <boost/optional.hpp>
 
 namespace zelda { namespace detail {
@@ -79,6 +80,8 @@ regular_adaptor<F> regular(F f)
 }
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::regular_adaptor)
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

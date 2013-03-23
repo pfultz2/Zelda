@@ -14,6 +14,7 @@
 #include <zelda/function/poly.h>
 #include <zelda/function/invoke.h>
 
+
 #include <boost/phoenix/function/function.hpp>
 #include <boost/phoenix/core/is_actor.hpp>
 #include <zelda/mpl/any_of.h>
@@ -69,6 +70,9 @@ general_adaptor<F> general(F f)
 }
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::general_adaptor)
+
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

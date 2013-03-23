@@ -9,6 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_REVEAL_H
 
 #include <zelda/function/poly.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 namespace zelda { 
 
@@ -74,6 +75,8 @@ reveal_adaptor<F> reveal(F f)
 }
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::reveal_adaptor)
 
 #if 0
 #include <zelda/test.h>

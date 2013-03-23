@@ -65,7 +65,6 @@ template<class F>
 struct result_of_impl<F, ZELDA_CLASS_REQUIRES(is_callable<F>)>
 : boost::result_of<F> 
 {
-    //typedef typename result_check<F>::type check;
 };
 
 }

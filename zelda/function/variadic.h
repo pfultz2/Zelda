@@ -11,6 +11,7 @@
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/result_of.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 #ifndef ZELDA_NO_VARIADIC_TEMPLATES
 #include <tuple>
 #include <boost/fusion/adapted/std_tuple.hpp>
@@ -61,9 +62,7 @@ struct tuple_reference<const T>
     typedef const T& type;
 };
 
-
-
-// TODO: Add a lightweight vardiac adaptor that takes the parameters by value
+#ifndef ZELDA_NO_VARIADIC_TEMPLATES
 template<class F>
 struct variadic_adaptor_base : function_adaptor_base<F>
 {
@@ -76,8 +75,6 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     template<class X>
     struct result;
 
-#ifndef ZELDA_NO_VARIADIC_TEMPLATES
-
     template<class X, class... T>
     struct result<X(T...)>
     : zelda::result_of<F(std::tuple<typename tuple_reference<T>::type...>)> 
@@ -89,15 +86,16 @@ struct variadic_adaptor_base : function_adaptor_base<F>
     {   
         return this->get_function()(std::tuple<typename tuple_reference<T&&>::type...>(std::forward<T>(x)...));
     }
+
+};
 #else
 
-// TODO: Add support for nullary functions
 #define ZELDA_FUNCTION_VARIADIC_ADAPTOR(z, n, data) \
-    template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    template<class X BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
     struct result<X(ZELDA_PP_PARAMS_Z(z, n, T))> \
     : zelda::result_of<F(boost::fusion::vector<ZELDA_PP_PARAMS_Z(z, n, typename tuple_reference<T, >::type BOOST_PP_INTERCEPT)>)> \
     {}; \
-    template<ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    ZELDA_PP_WHEN(n)(template<ZELDA_PP_PARAMS_Z(z, n, class T)>) \
     typename result<F(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT))>::type \
     operator()(ZELDA_PP_PARAMS_Z(z, n, T, ZELDA_FORWARD_REF() BOOST_PP_INTERCEPT, x)) const \
     { \
@@ -106,10 +104,44 @@ struct variadic_adaptor_base : function_adaptor_base<F>
                 ZELDA_PP_PARAMS_Z(z, n, zelda::forward<T, > BOOST_PP_INTERCEPT, (x)) \
             )); \
     }
+
+template<class F, class Enable = void>
+struct variadic_adaptor_base;
+
+template<class F>
+struct variadic_adaptor_base<F, ZELDA_CLASS_REQUIRES(exclude is_callable<F(boost::fusion::vector<>)>)> 
+: function_adaptor_base<F>
+{
+    variadic_adaptor_base() {}
+
+    template<class X>
+    variadic_adaptor_base(X x) : function_adaptor_base<F>(x)
+    {}
+
+    template<class X>
+    struct result;
+
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
 
-#endif
 };
+
+template<class F>
+struct variadic_adaptor_base<F, ZELDA_CLASS_REQUIRES(is_callable<F(boost::fusion::vector<>)>)> 
+: function_adaptor_base<F>
+{
+    variadic_adaptor_base() {}
+
+    template<class X>
+    variadic_adaptor_base(X x) : function_adaptor_base<F>(x)
+    {}
+
+    template<class X>
+    struct result;
+
+BOOST_PP_REPEAT_FROM_TO_1(0, ZELDA_PARAMS_LIMIT, ZELDA_FUNCTION_VARIADIC_ADAPTOR, ~)
+
+};
+#endif
 }
 
 template<class F>
@@ -130,6 +162,7 @@ variadic_adaptor<F> variadic(F f)
 
 }
 
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::variadic_adaptor)
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

@@ -4,6 +4,8 @@
 
 #include <zelda/function.h>
 
+// #include <zelda/function/is_callable.h>
+// #include <zelda/function/lazy.h>
 // #include <zelda/function/pipable.h>
 // #include <zelda/function/static.h>
 // #include <zelda/function/defer.h>

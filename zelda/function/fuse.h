@@ -12,6 +12,7 @@
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
 #include <zelda/function/invoke.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 namespace zelda {
 
@@ -67,6 +68,9 @@ fuse_adaptor<F> fuse(F f)
 }
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::fuse_adaptor)
+
 
 #ifdef ZELDA_TEST
 #include <zelda/test.h>

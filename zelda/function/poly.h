@@ -12,6 +12,7 @@
 #include <zelda/function/variadic.h>
 #include <zelda/function/fuse.h>
 #include <zelda/function/is_callable.h>
+#include <zelda/function/detail/nullary_tr1_result_of.h>
 
 #ifndef ZELDA_POLY_LIMIT
 #define ZELDA_POLY_LIMIT 16
@@ -218,5 +219,7 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_POLY_LIMIT, ZELDA_POLY_FUNCTION, ~)
 #endif
 
 }
+
+ZELDA_NULLARY_TR1_RESULT_OF_N(ZELDA_POLY_LIMIT, zelda::poly_adaptor)
 
 #endif
