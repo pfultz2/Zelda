@@ -65,6 +65,7 @@ struct poly_kernel_base<F1, F2, ZELDA_CLASS_REQUIRES(boost::is_empty<F1>, boost:
 template<class F1, class F2>
 struct poly_kernel : poly_kernel_base<F1, F2>
 {
+    // typedef void zelda_is_callable_by_result_tag;
     poly_kernel() {}
 
     template<class A, class B>
@@ -133,6 +134,7 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_POLY_LIMIT, ZELDA_POLY_BASE, ~)
 template<class F>
 struct poly_base<F> : function_adaptor_base<F>
 {
+    // typedef void zelda_is_callable_by_result_tag;
     poly_base() {}
 
     template<class X>

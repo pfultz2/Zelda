@@ -17,10 +17,6 @@
 #include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/fusion/sequence/intrinsic/size.hpp>
 
-#ifdef ZELDA_NO_VARIADIC_TEMPLATES
-#include <zelda/function/detail/is_nullary.h>
-#endif
-
 namespace zelda { 
 
 namespace detail {
@@ -60,8 +56,6 @@ template<class T>
 struct sequence_gens
 : gens<detail::seq_size<T>::value> {};
 
-template<class F, class T, int ...N>
-auto invoke_impl(F f, T && t, seq<N...>) ZELDA_RETURNS(f(boost::fusion::at_c<N>(zelda::forward<T>(t))...));
 
 template<class F, class T, class S, class Enable = void>
 struct invoke_result_impl
@@ -69,8 +63,16 @@ struct invoke_result_impl
 
 template<class F, class T, int ...N>
 struct invoke_result_impl<F, T, seq<N...> >
-: zelda::result_of<F(typename boost::fusion::result_of::at_c<T, N>::type...)>
+: zelda::result_of<F(typename boost::fusion::result_of::at_c<typename boost::add_const<T>::type, N>::type...)>
 {};
+
+template<class F, class T, int ...N>
+// typename zelda::result_of<F(typename boost::fusion::result_of::at_c<const T, N>::type...)>::type 
+typename invoke_result_impl<F, T, seq<N...> >::type
+invoke_impl(F f, const T & t, seq<N...>)
+{
+    return f(boost::fusion::at_c<N>(t)...);
+}
 
 }
 
@@ -79,33 +81,22 @@ struct invoke_result
 : detail::invoke_result_impl<F, typename boost::decay<T>::type, typename detail::sequence_gens<T>::type> {};
 
 template<class F, class Sequence>
-auto invoke(F f, Sequence && t) ZELDA_RETURNS
-(
-    detail::invoke_impl(f, std::forward<Sequence>(t), typename detail::sequence_gens<Sequence>::type() ) 
-);
+typename invoke_result<F, Sequence>::type 
+invoke(F f, const Sequence & t)
+{
+    return detail::invoke_impl(f, t, typename detail::sequence_gens<Sequence>::type() );
+}
 
 #else
 
 namespace detail {
-
-
-// Workaround result_of for nullary functions
-// template<class Sig>
-// struct invoke_result_of
-// : zelda::result_of<Sig>
-// {};
-// struct invoke_no_result {};
-// template<class F>
-// struct invoke_result_of<F()>
-// : boost::mpl::if_<is_nullary<F>, zelda::result_of<F>, invoke_no_result>::type
-// {};
 
 template<class Sequence>
 struct invoke_element
 {
     template<int N>
     struct at_c
-    : boost::fusion::result_of::at_c<typename boost::decay<Sequence>::type, N>
+    : boost::fusion::result_of::at_c<typename boost::add_const<typename boost::decay<Sequence>::type>::type, N>
     {};
 };
 

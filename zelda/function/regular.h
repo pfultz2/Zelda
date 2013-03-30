@@ -21,6 +21,7 @@ namespace zelda { namespace detail {
 template<class F>
 struct regular_base
 {
+    typedef void zelda_is_callable_by_result_tag;
     boost::optional<F> f;
 
     typedef F function_type;

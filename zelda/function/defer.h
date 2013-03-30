@@ -24,23 +24,40 @@ struct defer_adaptor : F
     defer_adaptor(X x) : F(x)
     {}
 
+    typedef void zelda_is_callable_by_result_tag;
+
     template<class X, class Enable = void>
     struct result;
 
-#ifndef ZELDA_NO_VARIADIC_TEMPLATES
-    template<class X, class... T>
-    struct result<X(T...), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(T...)>)>
+    struct no_result
+    {};
+
+    template<class X>
+    struct nullary_result
     {
-        typedef ZELDA_XTYPEOF_TPL(zelda::declval<X>()(zelda::declval<T>()...)) type;
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<X>()()) type;
+    };
+
+    template<class X>
+    struct result<X(), void>
+    : boost::mpl::if_<is_callable<F()>, nullary_result<F>, no_result>
+    {};
+
+#ifndef ZELDA_NO_VARIADIC_TEMPLATES
+    template<class X, class T0, class... T>
+    struct result<X(T0, T...), ZELDA_CLASS_REQUIRES(zelda::is_callable<F(T0, T...)>)>
+    {
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(zelda::declval<T0>(), zelda::declval<T>()...)) type;
     };
 #else
     #define ZELDA_DEFER_ADAPTOR(z, n, data) \
-    template<class X BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
-    struct result<X(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(zelda::is_callable<X(ZELDA_PP_PARAMS_Z(z, n, T))>)> \
+    template<class X, ZELDA_PP_PARAMS_Z(z, n, class T)> \
+    struct result<X(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(zelda::is_callable<F(ZELDA_PP_PARAMS_Z(z, n, T))>)> \
     { \
-        typedef ZELDA_XTYPEOF_TPL(zelda::declval<X>()(ZELDA_PP_PARAMS_Z(z, n, zelda::declval<T, >() BOOST_PP_INTERCEPT))) type; \
+        typedef ZELDA_XTYPEOF_TPL(zelda::declval<F>()(ZELDA_PP_PARAMS_Z(z, n, zelda::declval<T, >() BOOST_PP_INTERCEPT))) type; \
     };
-    BOOST_PP_REPEAT_1(ZELDA_PARAMS_LIMIT, ZELDA_DEFER_ADAPTOR, ~)
+    BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DEFER_ADAPTOR, ~)
+
 #endif
 
 };

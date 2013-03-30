@@ -30,6 +30,7 @@ namespace detail {
 template<class F>
 struct general_adaptor_base : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     general_adaptor_base() {};
 
     template<class X>

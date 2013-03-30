@@ -13,6 +13,7 @@
 #include <zelda/typeof.h>
 #include <zelda/forward.h>
 #include <zelda/static_assert.h>
+#include <zelda/traits.h>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/type_traits.hpp>
@@ -75,6 +76,32 @@ struct funwrap<n, Fun> : Fun \
 BOOST_PP_REPEAT_1(16, ZELDA_FUNWRAP_BUILDER, ~)
 #undef ZELDA_FUNWRAP_BUILDER
 
+BOOST_MPL_HAS_XXX_TRAIT_DEF(zelda_is_callable_by_result_tag)
+
+template<class F, class Enable = void>
+struct is_callable_fo;
+
+#define ZELDA_IS_CALLABLE_FO_BY_RESULT(z, n, data) \
+template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
+struct is_callable_fo<Fun(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(has_zelda_is_callable_by_result_tag<Fun>)> \
+: has_type<typename Fun::template result<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> > \
+{};
+BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_FO_BY_RESULT, ~)
+
+#define ZELDA_IS_CALLABLE_FO(z, n, data) \
+template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
+struct is_callable_fo<Fun(ZELDA_PP_PARAMS_Z(z, n, T)), ZELDA_CLASS_REQUIRES(exclude has_zelda_is_callable_by_result_tag<Fun>)> \
+{ \
+    static funwrap<n, Fun> & fun; \
+    ZELDA_PP_GEN_Z(z, n, static typename add_forward_reference<T, >::type BOOST_PP_INTERCEPT, x, ; BOOST_PP_INTERCEPT) \
+    static bool const value = \
+    (\
+        sizeof(no_type) == sizeof(is_private_type( (fun(ZELDA_PP_PARAMS_Z(z, n, x)), 0) )) \
+    ); \
+    typedef boost::mpl::bool_<value> type; \
+};
+BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_FO, ~)
+
 template<class F, class G>
 struct is_callable_fp
 : boost::mpl::bool_<false>
@@ -89,22 +116,6 @@ struct is_callable_fp<Fun(ZELDA_PP_PARAMS_Z(z, n, T)), Res(*)(ZELDA_PP_PARAMS_Z(
     typedef boost::mpl::bool_<value> type; \
 };
 BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_FP, ~)
-
-template<class F>
-struct is_callable_fo;
-#define ZELDA_IS_CALLABLE_FO(z, n, data) \
-template<class Fun BOOST_PP_COMMA_IF(n) ZELDA_PP_PARAMS_Z(z, n, class T)> \
-struct is_callable_fo<Fun(ZELDA_PP_PARAMS_Z(z, n, T))> \
-{ \
-    static funwrap<n, Fun> & fun; \
-    ZELDA_PP_GEN_Z(z, n, static typename add_forward_reference<T, >::type BOOST_PP_INTERCEPT, x, ; BOOST_PP_INTERCEPT) \
-    static bool const value = \
-    (\
-        sizeof(no_type) == sizeof(is_private_type( (fun(ZELDA_PP_PARAMS_Z(z, n, x)), 0) )) \
-    ); \
-    typedef boost::mpl::bool_<value> type; \
-};
-BOOST_PP_REPEAT_1(ZELDA_IS_CALLABLE_LIMIT, ZELDA_IS_CALLABLE_FO, ~)
 
 }
 

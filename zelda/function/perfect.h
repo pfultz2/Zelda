@@ -29,6 +29,7 @@ template<class F>
 struct perfect_adaptor
 : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     perfect_adaptor() {}
 
     template<class X>
@@ -52,6 +53,7 @@ template<class F>
 struct perfect_adaptor<F, ZELDA_CLASS_REQUIRES(exclude is_callable<F()>)>
 : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     perfect_adaptor() {}
 
     template<class X>
@@ -70,6 +72,7 @@ template<class F>
 struct perfect_adaptor<F, ZELDA_CLASS_REQUIRES(is_callable<F()>)>
 : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     perfect_adaptor() {}
 
     template<class X>

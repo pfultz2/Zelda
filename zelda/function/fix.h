@@ -27,6 +27,7 @@ namespace zelda { namespace detail {
 template<class F>
 struct fix_point : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     fix_point() {};
 
     template<class X>
@@ -59,6 +60,7 @@ struct fix_point : function_adaptor_base<F>
 template<class F>
 struct fix_adaptor_base : function_adaptor_base<fix_point<F> >
 {
+    typedef void zelda_is_callable_by_result_tag;
     fix_adaptor_base() {};
 
     template<class X>
@@ -98,39 +100,6 @@ fix_adaptor<F> fix(F f)
 {
     return fix_adaptor<F>(f);
 }
-
-
-// partial(f)(f)
-
-// struct y
-// {
-//     template<class>
-//     struct result;
-
-//     template<class X, class F>
-//     struct result
-//     : zelda::result_of<partial_adaptor<F>(typename zelda::result_of<partial_adaptor<X>(F)>::type)>
-//     {};
-
-//     template<class F>
-//     auto operator()(F f)
-//     {
-//         return partial(f)(partial(*this)(f));
-//     }
-// };
-
-// namespace detail {
-
-// template<class F>
-// struct fix_base
-
-
-// }
-
-// template<class F>
-// struct fix_adaptor;
-
-
 }
 
 ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::fix_adaptor)
@@ -148,6 +117,7 @@ ZELDA_NULLARY_TR1_RESULT_OF_N(1, zelda::fix_adaptor)
 
 struct factorial_t
 {
+    typedef void zelda_is_callable_by_result_tag;
     template<class>
     struct result;
 
@@ -163,7 +133,30 @@ struct factorial_t
     }
 };
 
-// zelda::static_<zelda::fix_adaptor<factorial_t > > factorial = {};
+// TODO: Add suport for type deduction with fix adaptor
+// struct factorial_t
+// {
+//     typedef void zelda_is_callable_by_result_tag;
+//     template<class>
+//     struct result;
+
+//     template<class X, class Self, class T>
+//     struct result<X(Self, T)>
+//     {
+//         static typename boost::decay<Self>::type& s;
+//         static typename boost::decay<T>::type& x;
+//         typedef ZELDA_XTYPEOF_TPL(x == 0 ? 1 : x * s(x-1)) type;
+//     };
+
+//     template<class Self, class T>
+//     typename result<factorial_t(Self, T)>::type 
+//     operator()(Self s, T x) const
+//     {
+//         return x == 0 ? 1 : x * s(x-1);
+//     }
+// };
+
+zelda::static_<zelda::fix_adaptor<factorial_t> > factorial = {};
 
 ZELDA_TEST_CASE(fix_test)
 {
@@ -171,7 +164,7 @@ ZELDA_TEST_CASE(fix_test)
     using zelda::ph::_2;
     using boost::phoenix::if_else;
 
-    // int r = factorial(5);
+    int r = factorial(5);
     // int r = zelda::fix
     // (
     //     if_else
@@ -182,7 +175,7 @@ ZELDA_TEST_CASE(fix_test)
     //     )
     // )(5);
     // printf("%i\n", r);
-    // ZELDA_TEST_EQUAL(r, 5*4*3*2*1);
+    ZELDA_TEST_EQUAL(r, 5*4*3*2*1);
 
 }
 

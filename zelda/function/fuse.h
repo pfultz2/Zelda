@@ -19,6 +19,7 @@ namespace zelda {
 template<class F>
 struct fuse_adaptor : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     fuse_adaptor() {};
 
     template<class X>

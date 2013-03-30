@@ -28,12 +28,14 @@ struct remove_rvalue_reference
 : boost::mpl::eval_if<boost::is_rvalue_reference<T>, boost::remove_reference<T>, boost::mpl::identity<T> >
 {};
 
+#ifdef ZELDA_TEST
 // static_assert(!boost::is_rvalue_reference<typename remove_rvalue_reference<int&&>::type>::type::value, "Error");
 static_assert(!boost::is_rvalue_reference<remove_rvalue_reference<int&>::type>::type::value, "Error");
 static_assert(boost::is_lvalue_reference<remove_rvalue_reference<int&>::type>::type::value, "Error");
 static_assert(!boost::is_rvalue_reference<remove_rvalue_reference<const int&>::type>::type::value, "Error");
 static_assert(boost::is_lvalue_reference<remove_rvalue_reference<const int&>::type>::type::value, "Error");
 // static_assert(boost::is_rvalue_reference<int&&>::type::value, "Error");
+#endif
 
 namespace detail {
 
@@ -66,6 +68,7 @@ struct tuple_reference<const T>
 template<class F>
 struct variadic_adaptor_base : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     variadic_adaptor_base() {}
 
     template<class X>
@@ -112,6 +115,7 @@ template<class F>
 struct variadic_adaptor_base<F, ZELDA_CLASS_REQUIRES(exclude is_callable<F(boost::fusion::vector<>)>)> 
 : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     variadic_adaptor_base() {}
 
     template<class X>
@@ -129,6 +133,7 @@ template<class F>
 struct variadic_adaptor_base<F, ZELDA_CLASS_REQUIRES(is_callable<F(boost::fusion::vector<>)>)> 
 : function_adaptor_base<F>
 {
+    typedef void zelda_is_callable_by_result_tag;
     variadic_adaptor_base() {}
 
     template<class X>

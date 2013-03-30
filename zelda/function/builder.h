@@ -239,6 +239,7 @@
 #define ZELDA_DETAIL_FUNCTION_CLASS_K(name, n, params, function_params, template_params, reqs, body) \
 struct name \
 { \
+    typedef void zelda_is_callable_by_result_tag; \
     template<class Zelda_X> \
     struct enable; \
     template<class Zelda_X, BOOST_PP_SEQ_ENUM(ZELDA_FUNCTION_PREFIX_CLASS(params))> \

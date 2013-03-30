@@ -11,12 +11,15 @@
 
 #include <zelda/config.h>
 #include <boost/type_traits.hpp>
+#include <boost/mpl/identity.hpp>
 
 namespace zelda {
 
 
 #ifdef ZELDA_NO_RVALUE_REFS
 #define ZELDA_FORWARD_REF(...) __VA_ARGS__ &
+
+
 
 // template< class T >
 // const T& forward( const typename boost::remove_reference<T>::type& t )
@@ -33,9 +36,11 @@ namespace zelda {
 #else
 #define ZELDA_FORWARD_REF(x) x &&
 
+// TODO: Add noexcept to forwarding functions
 template< class T >
-T&& forward( typename boost::remove_reference<T>::type&& t )
+T&& forward( typename std::remove_reference<T>::type&& t )
 {
+    static_assert(not std::is_lvalue_reference<T>::value, "Attempting to forward an rvalue as an lvalue");
     return static_cast<T&&>(t);
 }
 

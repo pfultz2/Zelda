@@ -204,7 +204,7 @@ template<class F, class Sequence>
 struct partial_adaptor_base<F, Sequence, ZELDA_CLASS_REQUIRES(boost::mpl::bool_<boost::fusion::result_of::size<Sequence>::value == 0>)>
 : partial_cond, zelda::function_adaptor_base<F>
 {
-
+    typedef void zelda_is_callable_by_result_tag;
     typedef zelda::function_adaptor_base<F> base;
 
     partial_adaptor_base()
