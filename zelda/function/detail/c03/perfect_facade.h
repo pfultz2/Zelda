@@ -13,6 +13,19 @@
 #include <zelda/function/result_of.h>
 #include <zelda/forward.h>
 
+#ifndef ZELDA_PERFECT_FACADE_DONT_PREPROCESS
+
+#if ZELDA_PARAMS_LIMIT >= 12
+#include <zelda/function/detail/c03/perfect_facade_12.h>
+#elif ZELDA_PARAMS_LIMIT >= 10
+#include <zelda/function/detail/c03/perfect_facade_10.h>
+#elif ZELDA_PARAMS_LIMIT >= 8
+#include <zelda/function/detail/c03/perfect_facade_8.h>
+#elif ZELDA_PARAMS_LIMIT <= 6
+#include <zelda/function/detail/c03/perfect_facade_6.h>
+#endif
+
+#else
 // (()())       ((const)())
 // (()(const))  ((const)(const))
 
@@ -116,5 +129,6 @@ type_ zelda_private_perfect_facade_function() const \
 } \
 BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_DETAIL_PERFECT_FACADE_TPL, tpl)
 
+#endif
 
 #endif
