@@ -160,7 +160,7 @@ template<class F, class Sequence, class Enable = void>
 struct partial_adaptor_base : partial_cond, zelda::function_adaptor_base<F>
 {
     typedef zelda::function_adaptor_base<F> base;
-
+    typedef void zelda_is_callable_by_result_tag;
     Sequence seq;
 
     partial_adaptor_base(Sequence seq) : seq(seq)
@@ -321,6 +321,7 @@ zelda::static_<zelda::partial_adaptor<mono_class> > mono_partial = {};
 
 ZELDA_TEST_CASE(partial_test)
 {
+    // TODO: Add supoort for nullary partial application
     zelda::partial_adaptor<void_class>()(1);
 
     void_partial(1);
