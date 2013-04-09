@@ -9,7 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_PIPABLE_H
 
 #include <zelda/function/adaptor.h>
-#include <zelda/function/poly.h>
+#include <zelda/function/conditional.h>
 #include <zelda/function/static.h>
 #include <zelda/forward.h>
 #include <zelda/function/invoke.h>
@@ -132,7 +132,7 @@ struct make_pipe_closure : function_adaptor_base<F>
     
 }
 
-template<class F, class FunctionBase=poly_adaptor<F, variadic_adaptor<detail::make_pipe_closure<F> > > >
+template<class F, class FunctionBase=conditional_adaptor<F, variadic_adaptor<detail::make_pipe_closure<F> > > >
 struct pipable_adaptor 
 : detail::pipe_closure<FunctionBase, ZELDA_PIPABLE_SEQUENCE<> >
 {

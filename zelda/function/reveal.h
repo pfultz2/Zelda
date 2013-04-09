@@ -8,7 +8,7 @@
 #ifndef ZELDA_GUARD_FUNCTION_REVEAL_H
 #define ZELDA_GUARD_FUNCTION_REVEAL_H
 
-#include <zelda/function/poly.h>
+#include <zelda/function/conditional.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
 
 namespace zelda { 
@@ -58,13 +58,13 @@ BOOST_PP_REPEAT_FROM_TO_1(1, ZELDA_PARAMS_LIMIT, ZELDA_REVEAL_ADAPTOR_BASE, ~)
 
 template<class F>
 struct reveal_adaptor
-: zelda::poly_adaptor<F, detail::reveal_adaptor_base<F> >
+: zelda::conditional_adaptor<F, detail::reveal_adaptor_base<F> >
 {
     reveal_adaptor()
     {}
 
     template<class X>
-    reveal_adaptor(X x) : zelda::poly_adaptor<F, detail::reveal_adaptor_base<F> >(x, x)
+    reveal_adaptor(X x) : zelda::conditional_adaptor<F, detail::reveal_adaptor_base<F> >(x, x)
     {}
 };
 

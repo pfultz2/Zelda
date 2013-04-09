@@ -9,7 +9,7 @@
 #define ZELDA_GUARD_FUNCTION_PARTIAL_H
 
 #include <zelda/function/adaptor.h>
-#include <zelda/function/poly.h>
+#include <zelda/function/conditional.h>
 #include <zelda/function/static.h>
 #include <zelda/forward.h>
 #include <zelda/function/invoke.h>
@@ -154,7 +154,7 @@ struct partial_adaptor_join
     // }
 };
 
-typedef zelda::poly_adaptor<partial_adaptor_invoke, partial_adaptor_join > partial_cond;
+typedef zelda::conditional_adaptor<partial_adaptor_invoke, partial_adaptor_join > partial_cond;
 
 template<class F, class Sequence, class Enable = void>
 struct partial_adaptor_base : partial_cond, zelda::function_adaptor_base<F>

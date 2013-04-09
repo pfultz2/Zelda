@@ -11,7 +11,7 @@
 #include <zelda/function/lazy.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
-#include <zelda/function/poly.h>
+#include <zelda/function/conditional.h>
 #include <zelda/function/invoke.h>
 
 
@@ -55,12 +55,12 @@ struct general_adaptor_base : function_adaptor_base<F>
 
 template<class F>
 struct general_adaptor 
-: poly_adaptor<variadic_adaptor<detail::general_adaptor_base<F> >, lazy_adaptor<F> >
+: conditional_adaptor<variadic_adaptor<detail::general_adaptor_base<F> >, lazy_adaptor<F> >
 {
     general_adaptor() {}
 
     template<class X>
-    general_adaptor(X x) : poly_adaptor<detail::general_adaptor_base<F>, lazy_adaptor<F> >(x, x)
+    general_adaptor(X x) : conditional_adaptor<detail::general_adaptor_base<F>, lazy_adaptor<F> >(x, x)
     {}
 };
 
