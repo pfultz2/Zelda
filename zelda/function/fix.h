@@ -8,6 +8,51 @@
 #ifndef ZELDA_GUARD_FUNCTION_FIX_H
 #define ZELDA_GUARD_FUNCTION_FIX_H
 
+// @begin
+// fix
+// ===
+// 
+// Description
+// -----------
+// 
+// The `fix` function adaptor implements a fixed-point combinator. This can be
+// used to write recursive functions.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     fix_adaptor<F> fix(F f);
+// 
+// Example
+// -------
+// 
+//     struct factorial
+//     {
+//         // This is used here to avoid incomplete types on older compilers.
+//         // Instead of detecting whether the function is callable, it will just
+//         // detect if result has a nested type.
+//         typedef void zelda_is_callable_by_result_tag;
+//         template<class>
+//         struct result;
+// 
+//         template<class X, class Self, class T>
+//         struct result<X(Self, T)>
+//         : boost::decay<T>
+//         {};
+// 
+//         template<class Self, class T>
+//         T operator()(Self s, T x) const
+//         {
+//             return x == 0 ? 1 : x * s(x-1);
+//         }
+//     };
+// 
+//     int r = fix(factorial())(5);
+//     assert(r, 5*4*3*2*1);
+// 
+// @end
+
 #include <zelda/function/variadic.h>
 #include <zelda/function/partial.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
