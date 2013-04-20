@@ -8,6 +8,25 @@
 #ifndef ZELDA_GUARD_FUNCTION_DEFER_H
 #define ZELDA_GUARD_FUNCTION_DEFER_H
 
+// @begin
+// defer
+// =====
+// 
+// Description
+// -----------
+// 
+// The `defer` function adaptor implements the `result_of` protocol for functions
+// by using type deduction. This can be useful to make functions(such as lambdas)
+// compatible with old TR1-style `result_of` protocol.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     defer_adaptor<F> defer(F f);
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/is_callable.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
