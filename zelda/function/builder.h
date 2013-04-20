@@ -120,7 +120,7 @@
 //         else (printf("No sum for you\n"))
 //     );
 // 
-// The overloads for `else` clauses are process in order, so they aren't
+// The overloads for `else` clauses are process in order, so there aren't
 // ambiguities like with C++ overload resolution. So this is perfectly valid:
 // 
 //     $(function(sum)(x, y) 
