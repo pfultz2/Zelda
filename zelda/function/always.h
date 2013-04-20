@@ -8,6 +8,31 @@
 #ifndef ZELDA_GUARD_FUNCTION_ALWAYS_H
 #define ZELDA_GUARD_FUNCTION_ALWAYS_H
 
+// @begin
+// always
+// ======
+// 
+// Description
+// -----------
+// 
+// The `always` function returns a function object that will always return the
+// value given to it, no matter what parameters are passed to the function
+// object.
+// 
+// Synopsis
+// --------
+// 
+//     template<class T>
+//     /* unspecified */ always(T value);
+// 
+// Example
+// -------
+// 
+//     int ten = 10;
+//     assert( zelda::always(ten)(1,2,3,4,5) == 10 );
+// 
+// @end
+
 #include <zelda/function/variadic.h>
 #include <zelda/function/static.h>
 
