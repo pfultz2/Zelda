@@ -8,6 +8,39 @@
 #ifndef ZELDA_GUARD_FUNCTION_FUSE_H
 #define ZELDA_GUARD_FUNCTION_FUSE_H
 
+// @begin
+// fuse
+// ====
+// 
+// Description
+// -----------
+// 
+// The `fuse` function adaptor takes a fusion sequence and uses that for the
+// arguments to the function.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     fuse_adaptor<F> fuse(F f);
+// 
+// Example
+// -------
+// 
+//     struct sum
+//     {
+//         template<class T>
+//         T sum(T x, T y)
+//         {
+//             return x+y;
+//         }
+//     };
+// 
+//     int r = fuse(sum())(boost::fusion::make_vector(3,2));
+//     assert(r, 5);
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
