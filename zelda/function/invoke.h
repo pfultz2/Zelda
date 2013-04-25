@@ -8,6 +8,30 @@
 #ifndef ZELDA_GUARD_FUNCTION_INVOKE_H
 #define ZELDA_GUARD_FUNCTION_INVOKE_H
 
+// @begin
+// invoke
+// ======
+// 
+// Description
+// -----------
+// 
+// Calls a function object with the arguments from a fusion sequence.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F, class Sequence>
+//     typename invoke_result<F, Sequence>::type
+//     invoke(F f, const Sequence& seq);
+// 
+// Example
+// -------
+// 
+//     std::plus<int> add;
+//     assert(invoke(add,boost::fusion::make_vector(1,1)) == 2);
+// 
+// @end
+
 #include <zelda/pp.h>
 #include <zelda/config.h>
 #include <zelda/forward.h>
