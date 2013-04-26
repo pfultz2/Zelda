@@ -8,6 +8,42 @@
 #ifndef ZELDA_GUARD_FUNCTION_LAZY_H
 #define ZELDA_GUARD_FUNCTION_LAZY_H
 
+// @begin
+// lazy
+// ====
+// 
+// Description
+// -----------
+// 
+// The `lazy` function adaptor returns a lazy phoenix function so it can accept
+// phoenix actors as parameters.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     lazy_adaptor<F> lazy(F f);
+// 
+// Example
+// -------
+// 
+//     struct sum
+//     {
+//         template<class T>
+//         T sum(T x, T y)
+//         {
+//             return x+y;
+//         }
+//     };
+// 
+//     using zelda::ph::_1;
+//     using zelda::ph::_2;
+//     assert(3 == lazy(sum())(1, 2)());
+//     assert(3 == lazy(sum())(_1, _2)(1, 2));
+//     assert(3 == lazy(sum())(_1, 2)(1));
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
 #include <boost/phoenix/function/function.hpp>
@@ -50,7 +86,7 @@ struct lazy_adaptor : boost::phoenix::function<F>
 template<class F>
 lazy_adaptor<F> lazy(F f)
 {
-    return boost::phoenix::function<F>(f);
+    return lazy_adaptor<F>(f);
 }
 
 }
