@@ -8,6 +8,29 @@
 #ifndef ZELDA_GUARD_FUNCTION_PERFECT_H
 #define ZELDA_GUARD_FUNCTION_PERFECT_H
 
+// @begin
+// perfect
+// =======
+// 
+// Description
+// -----------
+// 
+// The `perfect` function adaptor emulates perfect forwarding on older compilers.
+// On C++11, it uses reference collapsing. Just define your parameter for `T` as
+// `ZELDA_FORWARD_REF(T)`. In C++11 because of reference collapsing, `T` can be a
+// reference, however, in C++03, althought a variable is passed to a function by
+// reference, `T` itself won't ever be a reference, but could be const or non-
+// const. Also on C++03, rvalues are passed in as const references. So its just
+// near-perfect forwarding on C++03.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     perfect_adaptor<F> perfect(F f);
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/result_of.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
