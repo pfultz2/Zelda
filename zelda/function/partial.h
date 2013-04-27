@@ -22,8 +22,8 @@
 // Synopsis
 // --------
 // 
-//     template<class F1>
-//     partial_adaptor<F1> partial(F1 f1);
+//     template<class F>
+//     partial_adaptor<F> partial(F f);
 // 
 // Example
 // -------
