@@ -8,6 +8,53 @@
 #ifndef ZELDA_GUARD_FUNCTION_OVERLOAD_H
 #define ZELDA_GUARD_FUNCTION_OVERLOAD_H
 
+// @begin
+// overload
+// ========
+// 
+// Description
+// -----------
+// 
+// The `overload` function adaptor combines several functions together and
+// resolves which one should be called by using C++ overload resolution. This is
+// different than than the `conditional` adaptor which resolves them based on
+// order.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F1, class F2, ...>
+//     overload_adaptor<F1, F2, ...> overload(F1 f1, F2 f2, ...);
+// 
+// Example
+// -------
+// 
+//     struct int_class
+//     {
+//         int operator()(int) const
+//         {
+//             return 1;
+//         }
+//     };
+// 
+//     struct foo
+//     {};
+// 
+//     struct foo_class
+//     {
+//         foo operator()(foo) const
+//         {
+//             return foo();
+//         }
+//     };
+// 
+//     typedef overload_adaptor<int_class, foo_class> fun;
+// 
+//     static_assert(boost::is_same<int, ZELDA_TYPEOF(fun()(1))>::value, "Failed overload");
+//     static_assert(boost::is_same<foo, ZELDA_TYPEOF(fun()(foo()))>::value, "Failed overload");
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/defer.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
