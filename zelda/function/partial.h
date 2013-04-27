@@ -8,6 +8,39 @@
 #ifndef ZELDA_GUARD_FUNCTION_PARTIAL_H
 #define ZELDA_GUARD_FUNCTION_PARTIAL_H
 
+// @begin
+// partial
+// ========
+// 
+// Description
+// -----------
+// 
+// The `partial` function adaptor allows partial application of the function. If
+// the function can not be called with all the parameters, it will return a
+// function. It will continually do this until the function can be called.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F1>
+//     partial_adaptor<F1> partial(F1 f1);
+// 
+// Example
+// -------
+// 
+//     struct sum
+//     {
+//         template<class T>
+//         T sum(T x, T y)
+//         {
+//             return x+y;
+//         }
+//     };
+// 
+//     assert(3 == partial(sum())(1, 2));
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/conditional.h>
 #include <zelda/function/static.h>
