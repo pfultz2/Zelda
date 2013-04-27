@@ -8,6 +8,29 @@
 #ifndef ZELDA_GUARD_FUNCTION_IDENTITY_H
 #define ZELDA_GUARD_FUNCTION_IDENTITY_H
 
+// @begin
+// identity
+// ========
+// 
+// Description
+// -----------
+// 
+// The `identity` function is an unary function object that returns whats given to it. 
+// 
+// Synopsis
+// --------
+// 
+//     struct
+//     {
+//         template<class T>
+//         T&& operator()(T&& x) const
+//         {
+//             return zelda::forward<T>(x);
+//         }
+//     } identity;
+// 
+// @end
+
 #include <zelda/function/static.h>
 
 namespace zelda { namespace detail {
