@@ -8,6 +8,24 @@
 #ifndef ZELDA_GUARD_FUNCTION_VARIADIC_H
 #define ZELDA_GUARD_FUNCTION_VARIADIC_H
 
+// @begin
+// variadic
+// ========
+// 
+// Description
+// -----------
+// 
+// The `variadic` function adaptor converts the arguments to the function to a
+// tuple or fusion sequence.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     variadic_adaptor<F> variadic(F f);
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/result_of.h>
