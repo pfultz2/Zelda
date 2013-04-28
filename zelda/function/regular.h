@@ -8,6 +8,29 @@
 #ifndef ZELDA_GUARD_FUNCTION_REGULAR_H
 #define ZELDA_GUARD_FUNCTION_REGULAR_H
 
+// @begin
+// regular
+// =======
+// 
+// Description
+// -----------
+// 
+// The `regular` function adaptor makes a function default-constructible on
+// functions that are only copy-constructible. A lot of times, this is necessary
+// when using a lambda function. When its used inside of an iterator, it can be
+// problematic, since an iterator needs to be default-constructed.
+// 
+// Just as dereferencing a default-constructed iterator is invalid, calling a
+// default-constructed regular function is invalid as well.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     regular_adaptor<F> regular(F f);
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
