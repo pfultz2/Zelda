@@ -8,6 +8,26 @@
 #ifndef ZELDA_GUARD_RESULT_OF_H
 #define ZELDA_GUARD_RESULT_OF_H
 
+// @begin
+// result_of
+// =========
+// 
+// Description
+// -----------
+// 
+// The `result_of` metafunction returns the the return of a polymorphic function
+// object. This works like `boost::result_of` except its SFINAE-friendly(meaning
+// there is no nested type when the function object is not callable) even on
+// C++03 compilers as well.
+// 
+// Synopsis
+// --------
+// 
+//     template<class Sig>
+//     struct result_of;
+// 
+// @end
+
 #include <zelda/function/is_callable.h>
 #include <zelda/requires.h>
 #include <boost/utility/result_of.hpp>
