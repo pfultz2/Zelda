@@ -15,7 +15,7 @@
 // Description
 // -----------
 // 
-// The `implicit_adaptor` is a static function adaptor that uses the type that
+// The `implicit` adaptor is a static function adaptor that uses the type that
 // return value can be converted to in order to determine the type of the
 // template parameter. Since it is static function adaptor, the function must be
 // default constructible.
@@ -23,8 +23,8 @@
 // Synopsis
 // --------
 // 
-//     template<class F>
-//     class implicit_adaptor<F>;
+//     template<template <class> class F>
+//     class implicit<F>;
 // 
 // Example
 // -------
