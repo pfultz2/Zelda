@@ -8,6 +8,45 @@
 #ifndef ZELDA_GUARD_FUNCTION_STATIC_H
 #define ZELDA_GUARD_FUNCTION_STATIC_H
 
+// @begin
+// static
+// ======
+// 
+// Description
+// -----------
+// 
+// The `static_` adaptor is a static function adaptor that allows any default-
+// constructible function object to be static-initialized.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     class static_;
+// 
+// Example
+// -------
+// 
+//     // In C++03 this class can't be static-initialized, because of the 
+//     // default constructor.
+//     struct times_function
+//     {
+//         double factor;
+//         times2_function() : factor(2)
+//         {}
+//         template<class T>
+//         T operator()(T x) const
+//         {
+//             return x*factor;
+//         }
+//     };
+// 
+//     static_<times_function> times2 = {};
+// 
+//     assert(6 == times2(3));
+// 
+// @end
+
 #include <zelda/function/adaptor.h>
 #include <zelda/function/result_of.h>
 #include <zelda/function/detail/nullary_tr1_result_of.h>
