@@ -8,6 +8,24 @@
 #ifndef ZELDA_GUARD_FUNCTION_GENERAL_H
 #define ZELDA_GUARD_FUNCTION_GENERAL_H
 
+// @begin
+// general
+// =======
+// 
+// Description
+// -----------
+// 
+// The `general` function adaptor becomes a lazy function when a phoenix actor is
+// passed to it, otherwise, the function works as it normally does.
+// 
+// Synopsis
+// --------
+// 
+//     template<class F>
+//     general_adaptor<F> general(F f);
+// 
+// @end
+
 #include <zelda/function/lazy.h>
 #include <zelda/function/perfect.h>
 #include <zelda/function/variadic.h>
